@@ -1,224 +1,232 @@
-import { DocumentMetadata, MetadataField } from "@shared/schema";
+import { MetadataField } from "@shared/schema";
 
-const sampleDocument = {
-  title: "Financial_Report_Q1_2025.pdf",
-  pageCount: 24,
-  content: `FINANCIAL REPORT: Q1 2025
-Submitted: April 15, 2025
+export const sampleDocument = {
+  title: "Financial Report Q4 2024",
+  pageCount: 23,
+  content: `# Financial Report Q4 2024
 
-EXECUTIVE SUMMARY
-The first quarter of 2025 showed strong performance across all business units. 
-Total revenue reached $245M, representing a 12% increase year-over-year. 
-EBITDA margin improved to 28%, up from 26% in Q4 2024.
+## Executive Summary
 
-KEY FINANCIAL HIGHLIGHTS
-• Revenue: $245M (+12% YoY)
-• Operating Expenses: $172M (+8% YoY)
-• EBITDA: $68.6M (+21% YoY)
-• Operating Cash Flow: $52M (+15% YoY)
-• Cash Position: $138M (as of March 31, 2025)
+The fourth quarter of 2024 showed strong performance across all business units. Revenue increased by 12% year-over-year, reaching $128.5 million, while operating margins improved to 28.3% from 26.7% in the same period last year. The company's strategic investments in artificial intelligence and machine learning capabilities have begun to yield results, with efficiency improvements noted across several operational metrics.
 
-SEGMENT PERFORMANCE
-Enterprise Solutions
-Revenue: $112M (+18% YoY)
-Operating Margin: 34%
-New Customers: 28
-Customer Retention: 94%
+## Revenue Breakdown
 
-Consumer Products
-Revenue: $87M (+8% YoY)
-Operating Margin: 29%
-Units Sold: 1.4M
-Average Selling Price: $62
+| Business Segment | Q4 2024 ($M) | Q4 2023 ($M) | YoY Change |
+|------------------|--------------|--------------|------------|
+| Enterprise Solutions | 58.2 | 51.8 | +12.4% |
+| Consumer Products | 42.3 | 39.7 | +6.5% |
+| Emerging Markets | 28.0 | 22.6 | +23.9% |
+| **Total** | **128.5** | **114.1** | **+12.6%** |
 
-Digital Services
-Revenue: $46M (+7% YoY)
-Operating Margin: 22%
-Monthly Active Users: 3.8M (+12% YoY)
-Subscription Growth: 16% YoY
+## Key Performance Indicators
 
-GEOGRAPHIC BREAKDOWN
-• North America: $135M (55% of total)
-• Europe: $62M (25% of total)
-• Asia-Pacific: $34M (14% of total)
-• Rest of World: $14M (6% of total)
+- Customer acquisition cost decreased by 8.2%
+- Customer lifetime value increased by 14.5%
+- Net Promoter Score improved from 68 to 72
+- Monthly recurring revenue growth rate: 2.8%
 
-OUTLOOK FOR Q2 2025
-We anticipate continued growth in Q2 with projected revenue between $255-270M.
-Operating margin is expected to remain stable at 28-30%.`
+## Regional Performance
+
+North America continues to be our strongest market, accounting for 62% of total revenue. However, we've seen accelerated growth in the APAC region, which grew by 31% year-over-year and now represents 18% of our global revenue.
+
+## Risk Factors
+
+While performance has been strong, we note several risk factors that require ongoing monitoring:
+
+1. Increasing competitive pressure in the Enterprise Solutions segment
+2. Regulatory changes in European markets affecting data privacy compliance costs
+3. Foreign exchange volatility impacting international revenue
+4. Supply chain constraints affecting hardware component availability
+
+## Outlook for 2025
+
+We maintain our positive outlook for fiscal year 2025, with projected revenue growth of 15-18% and further margin expansion expected. Key growth initiatives include:
+
+- Expansion of AI-powered solutions across our product portfolio
+- Deeper penetration in healthcare and financial services verticals
+- Launch of next-generation platform scheduled for Q2 2025
+- Strategic acquisitions to enhance technological capabilities
+
+## Conclusion
+
+The strong Q4 2024 results provide momentum as we enter the new fiscal year. Our focus on innovation, operational excellence, and strategic expansion positions us well for continued growth despite macroeconomic uncertainties.`
 };
 
-const sampleChunks = [
+export const sampleChunks = [
   {
     id: 1,
     documentId: 1,
-    title: "Document Header",
-    content: "FINANCIAL REPORT: Q1 2025\nSubmitted: April 15, 2025",
-    tokenCount: 58,
+    title: "Executive Summary",
+    content: "The fourth quarter of 2024 showed strong performance across all business units. Revenue increased by 12% year-over-year, reaching $128.5 million, while operating margins improved to 28.3% from 26.7% in the same period last year.",
+    tokenCount: 42,
     chunkIndex: 1,
-    tags: ["Report", "Financial", "Q1 2025"]
+    tags: ["summary", "performance", "revenue"]
   },
   {
     id: 2,
     documentId: 1,
-    title: "Executive Summary",
-    content: "EXECUTIVE SUMMARY\nThe first quarter of 2025 showed strong performance across all business units. Total revenue reached $245M, representing a 12% increase year-over-year. EBITDA margin improved to 28%, up from 26% in Q4 2024.",
-    tokenCount: 112,
+    title: "Executive Summary (continued)",
+    content: "The company's strategic investments in artificial intelligence and machine learning capabilities have begun to yield results, with efficiency improvements noted across several operational metrics.",
+    tokenCount: 29,
     chunkIndex: 2,
-    tags: ["EBITDA", "Revenue", "YoY"]
+    tags: ["summary", "AI", "machine learning", "efficiency"]
   },
   {
     id: 3,
     documentId: 1,
-    title: "Financial Highlights",
-    content: "KEY FINANCIAL HIGHLIGHTS\n• Revenue: $245M (+12% YoY)\n• Operating Expenses: $172M (+8% YoY)\n• EBITDA: $68.6M (+21% YoY)\n• Operating Cash Flow: $52M (+15% YoY)\n• Cash Position: $138M (as of March 31, 2025)",
-    tokenCount: 146,
+    title: "Revenue Breakdown",
+    content: "| Business Segment | Q4 2024 ($M) | Q4 2023 ($M) | YoY Change |\n|------------------|--------------|--------------|------------|\n| Enterprise Solutions | 58.2 | 51.8 | +12.4% |\n| Consumer Products | 42.3 | 39.7 | +6.5% |\n| Emerging Markets | 28.0 | 22.6 | +23.9% |\n| **Total** | **128.5** | **114.1** | **+12.6%** |",
+    tokenCount: 56,
     chunkIndex: 3,
-    tags: ["Cash Flow", "Expenses", "Financial"]
+    tags: ["revenue", "breakdown", "segments", "table"]
   },
   {
     id: 4,
     documentId: 1,
-    title: "Enterprise Solutions",
-    content: "SEGMENT PERFORMANCE\nEnterprise Solutions\nRevenue: $112M (+18% YoY)\nOperating Margin: 34%\nNew Customers: 28\nCustomer Retention: 94%",
-    tokenCount: 98,
+    title: "Key Performance Indicators",
+    content: "- Customer acquisition cost decreased by 8.2%\n- Customer lifetime value increased by 14.5%\n- Net Promoter Score improved from 68 to 72\n- Monthly recurring revenue growth rate: 2.8%",
+    tokenCount: 34,
     chunkIndex: 4,
-    tags: ["Enterprise", "Retention", "Segment"]
+    tags: ["KPI", "metrics", "customer", "revenue"]
   },
   {
     id: 5,
     documentId: 1,
-    title: "Consumer Products",
-    content: "Consumer Products\nRevenue: $87M (+8% YoY)\nOperating Margin: 29%\nUnits Sold: 1.4M\nAverage Selling Price: $62",
-    tokenCount: 87,
+    title: "Regional Performance",
+    content: "North America continues to be our strongest market, accounting for 62% of total revenue. However, we've seen accelerated growth in the APAC region, which grew by 31% year-over-year and now represents 18% of our global revenue.",
+    tokenCount: 40,
     chunkIndex: 5,
-    tags: ["Consumer", "Products", "ASP"]
+    tags: ["regional", "north america", "APAC", "growth"]
   },
   {
     id: 6,
     documentId: 1,
-    title: "Digital Services",
-    content: "Digital Services\nRevenue: $46M (+7% YoY)\nOperating Margin: 22%\nMonthly Active Users: 3.8M (+12% YoY)\nSubscription Growth: 16% YoY",
-    tokenCount: 92,
+    title: "Risk Factors",
+    content: "While performance has been strong, we note several risk factors that require ongoing monitoring:\n\n1. Increasing competitive pressure in the Enterprise Solutions segment\n2. Regulatory changes in European markets affecting data privacy compliance costs\n3. Foreign exchange volatility impacting international revenue\n4. Supply chain constraints affecting hardware component availability",
+    tokenCount: 57,
     chunkIndex: 6,
-    tags: ["Digital", "Subscription", "Users"]
+    tags: ["risk", "competition", "regulation", "supply chain"]
   },
   {
     id: 7,
     documentId: 1,
-    title: "Geographic Breakdown",
-    content: "GEOGRAPHIC BREAKDOWN\n• North America: $135M (55% of total)\n• Europe: $62M (25% of total)\n• Asia-Pacific: $34M (14% of total)\n• Rest of World: $14M (6% of total)",
-    tokenCount: 123,
+    title: "Outlook for 2025",
+    content: "We maintain our positive outlook for fiscal year 2025, with projected revenue growth of 15-18% and further margin expansion expected. Key growth initiatives include:\n\n- Expansion of AI-powered solutions across our product portfolio\n- Deeper penetration in healthcare and financial services verticals\n- Launch of next-generation platform scheduled for Q2 2025\n- Strategic acquisitions to enhance technological capabilities",
+    tokenCount: 69,
     chunkIndex: 7,
-    tags: ["Geography", "Regional", "Markets"]
+    tags: ["outlook", "growth", "initiatives", "expansion"]
   },
   {
     id: 8,
     documentId: 1,
-    title: "Future Outlook",
-    content: "OUTLOOK FOR Q2 2025\nWe anticipate continued growth in Q2 with projected revenue between $255-270M. Operating margin is expected to remain stable at 28-30%.",
-    tokenCount: 105,
+    title: "Conclusion",
+    content: "The strong Q4 2024 results provide momentum as we enter the new fiscal year. Our focus on innovation, operational excellence, and strategic expansion positions us well for continued growth despite macroeconomic uncertainties.",
+    tokenCount: 35,
     chunkIndex: 8,
-    tags: ["Forecast", "Growth", "Margin"]
+    tags: ["conclusion", "growth", "strategy"]
   }
 ];
 
-const sampleFields = [
+export const sampleFields = [
   {
     id: 1,
-    name: "Revenue",
+    name: "title",
     documentId: 1,
     retrievable: true,
     filterable: true
   },
   {
     id: 2,
-    name: "EBITDA",
+    name: "content",
     documentId: 1,
     retrievable: true,
     filterable: false
   },
   {
     id: 3,
-    name: "Business Segment",
+    name: "chunk_title",
     documentId: 1,
     retrievable: true,
     filterable: true
   },
   {
     id: 4,
-    name: "Geographic Region",
+    name: "chunk_content",
     documentId: 1,
-    retrievable: false,
+    retrievable: true,
+    filterable: false
+  },
+  {
+    id: 5,
+    name: "tags",
+    documentId: 1,
+    retrievable: true,
+    filterable: true
+  },
+  {
+    id: 6,
+    name: "token_count",
+    documentId: 1,
+    retrievable: true,
+    filterable: false
+  },
+  {
+    id: 7,
+    name: "chunk_index",
+    documentId: 1,
+    retrievable: true,
     filterable: true
   }
 ];
 
-const sampleDocumentMetadata: DocumentMetadata = {
-  author: "Finance Department",
-  creationDate: "2025-04-15T10:32:15Z",
-  lastModified: "2025-04-16T14:22:38Z",
-  title: "Financial Report Q1 2025",
-  fileSize: 1245678, // bytes
-  fileType: "application/pdf",
-  sourceLocation: "Company Intranet/Finance/Reports/2025/",
-  customFields: {
-    "department": "Finance",
-    "quarter": "Q1",
-    "year": "2025",
-    "documentType": "Financial Report",
-    "status": "Final",
-    "confidentiality": "Internal"
-  }
-};
-
-const sampleMetadataFields: MetadataField[] = [
+// Sample metadata fields for document record-level indexing
+export const sampleMetadataFields: MetadataField[] = [
   {
     id: 1,
     name: "author",
     value: "Finance Department",
     included: true,
-    confidence: 0.98
+    confidence: 0.95
   },
   {
     id: 2,
     name: "creationDate",
-    value: "2025-04-15T10:32:15Z",
+    value: "2025-01-15",
     included: true,
     confidence: 1.0
   },
   {
     id: 3,
     name: "lastModified",
-    value: "2025-04-16T14:22:38Z",
+    value: "2025-01-20",
     included: true,
     confidence: 1.0
   },
   {
     id: 4,
     name: "title",
-    value: "Financial Report Q1 2025",
+    value: "Financial Report Q4 2024",
     included: true,
-    confidence: 0.92
+    confidence: 0.98
   },
   {
     id: 5,
     name: "fileSize",
-    value: "1245678",
+    value: "1284KB",
     included: false,
     confidence: 1.0
   },
   {
     id: 6,
     name: "fileType",
-    value: "application/pdf",
+    value: "PDF",
     included: true,
     confidence: 1.0
   },
   {
     id: 7,
     name: "sourceLocation",
-    value: "Company Intranet/Finance/Reports/2025/",
+    value: "Finance Repository/Q4Reports/",
     included: false,
     confidence: 0.85
   },
@@ -227,43 +235,48 @@ const sampleMetadataFields: MetadataField[] = [
     name: "department",
     value: "Finance",
     included: true,
-    confidence: 0.94
+    confidence: 0.92
   },
   {
     id: 9,
     name: "quarter",
-    value: "Q1",
+    value: "Q4",
     included: true,
-    confidence: 0.99
+    confidence: 0.97
   },
   {
     id: 10,
     name: "year",
-    value: "2025",
+    value: "2024",
     included: true,
     confidence: 0.99
   },
   {
     id: 11,
-    name: "documentType",
-    value: "Financial Report",
+    name: "reportType",
+    value: "Financial",
     included: true,
-    confidence: 0.91
+    confidence: 0.96
   },
   {
     id: 12,
-    name: "status",
-    value: "Final",
+    name: "confidentialityLevel",
+    value: "Internal",
     included: false,
-    confidence: 0.87
+    confidence: 0.75
   },
   {
     id: 13,
-    name: "confidentiality",
-    value: "Internal",
+    name: "totalPages",
+    value: "23",
+    included: true,
+    confidence: 1.0
+  },
+  {
+    id: 14,
+    name: "language",
+    value: "English",
     included: false,
-    confidence: 0.88
+    confidence: 1.0
   }
 ];
-
-export { sampleDocument, sampleChunks, sampleFields, sampleDocumentMetadata, sampleMetadataFields };
