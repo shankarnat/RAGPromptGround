@@ -133,49 +133,56 @@ export const sampleFields = [
     name: "title",
     documentId: 1,
     retrievable: true,
-    filterable: true
+    filterable: true,
+    typehead: true
   },
   {
     id: 2,
     name: "content",
     documentId: 1,
     retrievable: true,
-    filterable: false
+    filterable: false,
+    typehead: false
   },
   {
     id: 3,
     name: "chunk_title",
     documentId: 1,
     retrievable: true,
-    filterable: true
+    filterable: true,
+    typehead: true
   },
   {
     id: 4,
     name: "chunk_content",
     documentId: 1,
     retrievable: true,
-    filterable: false
+    filterable: false,
+    typehead: false
   },
   {
     id: 5,
     name: "tags",
     documentId: 1,
     retrievable: true,
-    filterable: true
+    filterable: true,
+    typehead: true
   },
   {
     id: 6,
     name: "token_count",
     documentId: 1,
     retrievable: true,
-    filterable: false
+    filterable: false,
+    typehead: false
   },
   {
     id: 7,
     name: "chunk_index",
     documentId: 1,
     retrievable: true,
-    filterable: true
+    filterable: true,
+    typehead: false
   }
 ];
 
