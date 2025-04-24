@@ -147,7 +147,7 @@ const DocumentRecordPanel: FC<DocumentRecordPanelProps> = ({
             
             {fields.length > 0 && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Field-Level Index Configuration</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Other Indexing Configuration</h4>
                 <div className="bg-white rounded-md border border-gray-200 p-3">
                   <div className="mb-2 border-b pb-2 border-gray-100">
                     <div className="grid grid-cols-4 gap-2 text-xs text-gray-500 font-medium">

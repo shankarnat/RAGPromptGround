@@ -443,10 +443,10 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
             </AccordionContent>
           </AccordionItem>
           
-          {/* Field Level Indexing Section */}
+          {/* Other Indexing Config Section */}
           <AccordionItem value="field-indexing">
             <AccordionTrigger className="text-sm font-medium">
-              Field-Level Indexing
+              Other Indexing Config
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-4 pt-2">
