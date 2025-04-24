@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { sampleDocument, sampleChunks, sampleFields, sampleMetadataFields } from "@/data/sampleDocument";
 import { recentDocuments, dataModels } from "@/data/sampleUploadData";
+import { embeddingModels, defaultAdvancedOptions } from "@/data/embeddingModelsData";
 import { 
   ChunkingMethod, 
   ProcessingMode, 
@@ -44,6 +45,9 @@ export interface DocumentProcessingState {
   metadataFields: MetadataField[];
   recordLevelIndexingEnabled: boolean;
   recordStructure: RecordStructure;
+  // Vectorization state
+  selectedModelId: string;
+  advancedEmbeddingOptions: typeof defaultAdvancedOptions;
   // Upload document view state
   activePage: string;
   uploadProgress: number;
@@ -69,6 +73,9 @@ export function useDocumentProcessing() {
     metadataFields: sampleMetadataFields,
     recordLevelIndexingEnabled: false,
     recordStructure: "flat",
+    // Vectorization state
+    selectedModelId: "openai-text-embedding-3-large",
+    advancedEmbeddingOptions: defaultAdvancedOptions,
     // Upload document view state
     activePage: "upload", // Default to upload page
     uploadProgress: 0,
@@ -405,6 +412,21 @@ export function useDocumentProcessing() {
     }
   };
 
+  // Vectorization methods
+  const selectEmbeddingModel = (modelId: string) => {
+    setState(prev => ({
+      ...prev,
+      selectedModelId: modelId
+    }));
+  };
+
+  const updateEmbeddingOptions = (options: typeof defaultAdvancedOptions) => {
+    setState(prev => ({
+      ...prev,
+      advancedEmbeddingOptions: options
+    }));
+  };
+
   return {
     state,
     updateChunkingMethod,
@@ -419,6 +441,9 @@ export function useDocumentProcessing() {
     toggleRecordLevelIndexing,
     updateRecordStructure,
     addCustomMetadataField,
+    // Vectorization methods
+    selectEmbeddingModel,
+    updateEmbeddingOptions,
     // Upload view methods
     setActivePage,
     selectDocument,

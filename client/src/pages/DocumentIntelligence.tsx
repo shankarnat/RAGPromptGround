@@ -24,7 +24,10 @@ const DocumentIntelligence: FC = () => {
     updateMetadataField,
     toggleRecordLevelIndexing,
     updateRecordStructure,
-    addCustomMetadataField
+    addCustomMetadataField,
+    // Vectorization methods
+    selectEmbeddingModel,
+    updateEmbeddingOptions
   } = useDocumentProcessing();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -69,6 +72,11 @@ const DocumentIntelligence: FC = () => {
           // Field-level indexing props
           fields={state.fields}
           onFieldPropertyChange={updateFieldProperty}
+          // Vectorization props
+          selectedModelId={state.selectedModelId}
+          onSelectModel={selectEmbeddingModel}
+          advancedOptions={state.advancedEmbeddingOptions}
+          onUpdateOptions={updateEmbeddingOptions}
         />
       </div>
     );
