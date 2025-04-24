@@ -183,13 +183,13 @@ const ConfigureIndex: FC = () => {
                 onClick={() => {
                   toast({
                     title: "Moving to Next Step",
-                    description: "Proceeding to test your configuration."
+                    description: "Proceeding to embedding model selection for vectorization."
                   });
-                  navigate("/test");
+                  navigate("/vectorization");
                 }}
                 className="flex items-center"
               >
-                Next: Test Results
+                Next: Vectorization
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>

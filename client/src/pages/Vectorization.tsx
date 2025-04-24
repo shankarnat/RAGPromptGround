@@ -6,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Sidebar from "@/components/Sidebar";
 import EmbeddingModelSelector from "@/components/EmbeddingModelSelector";
 import EmbeddingDimensionVisualizer from "@/components/EmbeddingDimensionVisualizer";
-import EmbeddingAdvancedOptions from "@/components/EmbeddingAdvancedOptions";
+import EmbeddingAdvancedOptions, { AdvancedEmbeddingOptions } from "@/components/EmbeddingAdvancedOptions";
 import { embeddingModels, defaultAdvancedOptions } from "@/data/embeddingModelsData";
 import { useToast } from "@/hooks/use-toast";
 
@@ -26,7 +26,7 @@ const Vectorization: FC = () => {
     });
   };
   
-  const handleUpdateOptions = (newOptions: typeof advancedOptions) => {
+  const handleUpdateOptions = (newOptions: any) => {
     setAdvancedOptions(newOptions);
     toast({
       title: "Advanced Options Updated",

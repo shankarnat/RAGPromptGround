@@ -128,8 +128,8 @@ export const embeddingModels: EmbeddingModel[] = [
 
 export const defaultAdvancedOptions = {
   normalizeEmbeddings: true,
-  poolingStrategy: 'mean' as const,
-  truncationMethod: 'tail' as const,
+  poolingStrategy: 'mean' as 'mean' | 'max' | 'cls',
+  truncationMethod: 'tail' as 'head' | 'tail' | 'middle',
   batchSize: 32,
   enableCaching: true
 };

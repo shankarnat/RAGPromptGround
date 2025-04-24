@@ -105,7 +105,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   ];
 
   const handleNavigation = (path: string, id: string) => {
-    if (id === "upload" || id === "parse-chunk" || id === "configure-index" || id === "fields" || id === "other-config" || id === "deploy") {
+    if (id === "upload" || id === "parse-chunk" || id === "vectorization" || id === "configure-index" || id === "fields" || id === "other-config" || id === "deploy") {
       navigate(path);
     }
   };
