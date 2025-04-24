@@ -98,14 +98,14 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
     },
     { 
       name: "Test & Deploy", 
-      icon: <ShieldCheck className="h-5 w-5 mr-3 text-gray-500" />, 
+      icon: <ShieldCheck className={`h-5 w-5 mr-3 ${activePage === "deploy" ? "text-primary-500" : "text-gray-500"}`} />, 
       id: "deploy",
       href: "/deploy"
     }
   ];
 
   const handleNavigation = (path: string, id: string) => {
-    if (id === "upload" || id === "parse-chunk" || id === "configure-index" || id === "fields" || id === "other-config") {
+    if (id === "upload" || id === "parse-chunk" || id === "configure-index" || id === "fields" || id === "other-config" || id === "deploy") {
       navigate(path);
     }
   };

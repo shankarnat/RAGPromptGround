@@ -1,0 +1,82 @@
+Here's a prompt for creating a testing page that displays the test interface in the middle and a configuration summary on the right:
+
+# Prompt for Replit: Create Test & Results Page with Configuration Summary
+
+Implement a "Test & Results" page for the Document Intelligence Center that follows the layout shown in the reference image. This page should be the final step in the workflow, displaying a testing interface in the middle panel while summarizing all configuration choices in the right panel.
+
+## Layout Requirements
+
+1. **Left Panel (Navigation):**
+   - Maintain the existing sidebar with workflow steps
+   - Show checkmarks for completed steps (Select Search Type, Vectorization, Configure Index, Ranking)
+   - Highlight "Review and Build" as the active step
+   - Keep the same visual styling as in the reference image
+
+2. **Middle Panel (Test Interface):**
+   - Create tabs for "Original Document", "Chunks", "Record Index", and "Test" (with "Test" selected by default)
+   - Implement a test query interface as shown in the reference image with:
+     - "Test Query" header
+     - Text input field with example query ("What were Q1 revenue figures?")
+     - "Run" button
+     - "Answer" section displaying the response
+     - "Sources" section showing where the answer was derived from
+     - "Evaluation Results" section with metrics (Accuracy, Latency, Tests Passed)
+   - Include a "Refresh Preview" button at the top left
+
+3. **Right Panel (Configuration Summary):**
+   - Add "Frequently Asked Questions" header
+   - Display a comprehensive summary of all configurations chosen in previous steps:
+     - Source document/data model information
+     - Embedding model details
+     - Field indexing choices
+     - Retrievable and filterable fields count
+     - Chunking strategy
+   - Add a "What happens next?" section explaining the deployment process
+   - Include a "Learn More" link
+
+## Key Components
+
+1. **Test Interface Features:**
+   - Functional query input with sample question
+   - Response display area with formatted answer
+   - Source attribution section
+   - Performance metrics dashboard showing:
+     - Accuracy percentage
+     - Response latency
+     - Number of tests passed
+
+2. **Configuration Summary:**
+   - Structured summary of all choices made across previous screens
+   - Each section should have:
+     - Clear header
+     - Checkmark icon
+     - Summary of selections
+     - Edit button for quick navigation back to that step
+   - Include specific details like:
+     - "Source DMO: Financial Report"
+     - "Vectorization: Embedding model: E5 Large V2 Embedding Model"
+     - "Fields: Field Level Indexing: 4, Record Level Indexing: 4"
+     - "Other Configurations: Retrievable Fields: 4, Filtering Fields: 4"
+
+## Visual Style
+
+- Match the exact color scheme and styling from the reference image
+- Use the same blue header with "New Configuration" title
+- Include Back/Next/Save buttons in the same positions
+- Use identical icons, metrics displays, and visual indicators
+- Maintain the same accordion-style sections for the configuration summary
+
+## Technical Implementation
+
+- Create a simulated query-response system
+- Display realistic but pre-defined answers to sample queries
+- Show appropriate source attribution
+- Implement tabs that allow switching between different views of the document
+
+## Integration
+
+- Ensure this screen appears as the final step in the workflow
+- Preserve all configuration choices from previous steps
+- Allow users to navigate back to adjust settings if needed
+
+This implementation will provide users with a comprehensive testing interface to validate their document intelligence configuration while displaying a complete summary of all chosen settings in the right panel.

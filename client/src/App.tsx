@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import DocumentIntelligence from "@/pages/DocumentIntelligence";
 import DocumentUpload from "@/pages/DocumentUpload";
 import ConfigureIndex from "@/pages/ConfigureIndex";
+import TestAndResults from "@/pages/TestAndResults";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 
 function Router() {
@@ -29,6 +30,8 @@ function Router() {
       <Route path="/configure-index/other">
         <ConfigureIndex />
       </Route>
+      <Route path="/test" component={TestAndResults} />
+      <Route path="/deploy" component={TestAndResults} />
       <Route component={NotFound} />
     </Switch>
   );
