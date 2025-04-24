@@ -47,7 +47,8 @@ const FinalizeIndexButton: FC<FinalizeIndexButtonProps> = ({ className }) => {
   return (
     <>
       <Button 
-        className={`${className || ''} bg-primary-600 hover:bg-primary-700`}
+        className={`${className || ''}`}
+        variant="default"
         onClick={() => setOpen(true)}
       >
         Finalize and Create Index
