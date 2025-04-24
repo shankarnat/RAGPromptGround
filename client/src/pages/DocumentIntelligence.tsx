@@ -5,10 +5,9 @@ import DocumentHeader from "@/components/DocumentHeader";
 import TabNavigation from "@/components/TabNavigation";
 import DocumentPanel from "@/components/DocumentPanel";
 import ChunksPanel from "@/components/ChunksPanel";
-import ChunkingConfigurationPanel from "@/components/ChunkingConfigurationPanel";
-import DocumentMetadataPanel from "@/components/DocumentMetadataPanel";
 import DocumentRecordPanel from "@/components/DocumentRecordPanel";
 import NavigationButtons from "@/components/NavigationButtons";
+import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import { useToast } from "@/hooks/use-toast";
 
@@ -48,6 +47,29 @@ const DocumentIntelligence: FC = () => {
 
   // Show different content based on the active tab
   const renderMainContent = () => {
+    // The configuration panel is consistent across all views
+    const configPanel = (
+      <div className="w-80 lg:w-96 flex-shrink-0">
+        <CombinedConfigurationPanel 
+          // Chunking props
+          chunkingMethod={state.chunkingMethod}
+          onChunkingMethodChange={updateChunkingMethod}
+          chunkSize={state.chunkSize}
+          onChunkSizeChange={updateChunkSize}
+          chunkOverlap={state.chunkOverlap}
+          onChunkOverlapChange={updateChunkOverlap}
+          // Metadata props
+          metadataFields={state.metadataFields}
+          onMetadataFieldChange={updateMetadataField}
+          recordLevelIndexingEnabled={state.recordLevelIndexingEnabled}
+          onRecordLevelIndexingToggle={toggleRecordLevelIndexing}
+          recordStructure={state.recordStructure}
+          onRecordStructureChange={updateRecordStructure}
+          onAddCustomField={addCustomMetadataField}
+        />
+      </div>
+    );
+
     switch (state.activeTab) {
       case "document":
         return (
@@ -55,16 +77,7 @@ const DocumentIntelligence: FC = () => {
             <div className="flex-1 min-w-0">
               <DocumentPanel documentContent={state.document.content} />
             </div>
-            <div className="w-80 lg:w-96 flex-shrink-0">
-              <ChunkingConfigurationPanel 
-                chunkingMethod={state.chunkingMethod}
-                onChunkingMethodChange={updateChunkingMethod}
-                chunkSize={state.chunkSize}
-                onChunkSizeChange={updateChunkSize}
-                chunkOverlap={state.chunkOverlap}
-                onChunkOverlapChange={updateChunkOverlap}
-              />
-            </div>
+            {configPanel}
           </div>
         );
       
@@ -78,16 +91,7 @@ const DocumentIntelligence: FC = () => {
                 onChunkSelect={selectChunk} 
               />
             </div>
-            <div className="w-80 lg:w-96 flex-shrink-0">
-              <ChunkingConfigurationPanel 
-                chunkingMethod={state.chunkingMethod}
-                onChunkingMethodChange={updateChunkingMethod}
-                chunkSize={state.chunkSize}
-                onChunkSizeChange={updateChunkSize}
-                chunkOverlap={state.chunkOverlap}
-                onChunkOverlapChange={updateChunkOverlap}
-              />
-            </div>
+            {configPanel}
           </div>
         );
       
@@ -100,17 +104,7 @@ const DocumentIntelligence: FC = () => {
                 recordStructure={state.recordStructure}
               />
             </div>
-            <div className="w-80 lg:w-96 flex-shrink-0">
-              <DocumentMetadataPanel 
-                metadataFields={state.metadataFields}
-                onMetadataFieldChange={updateMetadataField}
-                recordLevelIndexingEnabled={state.recordLevelIndexingEnabled}
-                onRecordLevelIndexingToggle={toggleRecordLevelIndexing}
-                recordStructure={state.recordStructure}
-                onRecordStructureChange={updateRecordStructure}
-                onAddCustomField={addCustomMetadataField}
-              />
-            </div>
+            {configPanel}
           </div>
         );
 
@@ -130,16 +124,7 @@ const DocumentIntelligence: FC = () => {
                 />
               </div>
             </div>
-            <div className="w-80 lg:w-96 flex-shrink-0">
-              <ChunkingConfigurationPanel 
-                chunkingMethod={state.chunkingMethod}
-                onChunkingMethodChange={updateChunkingMethod}
-                chunkSize={state.chunkSize}
-                onChunkSizeChange={updateChunkSize}
-                chunkOverlap={state.chunkOverlap}
-                onChunkOverlapChange={updateChunkOverlap}
-              />
-            </div>
+            {configPanel}
           </div>
         );
     }
