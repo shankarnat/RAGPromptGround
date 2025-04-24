@@ -1,0 +1,49 @@
+Here's a prompt to update the Document Intelligence app with the specified changes:
+
+# Prompt for Replit: Update Document Intelligence App Layout Structure
+
+Please update the Document Intelligence Center application to implement the following structural changes to ensure proper progression through the workflow:
+
+## 1. Parse & Chunk Page Updates:
+
+- **Remove "Field Level Indexing" component** from the right panel
+- Keep focus on chunking visualization and strategies in this view
+- Right panel should only contain chunking configuration options:
+  - Chunking method selection (Semantic, Fixed Size, Header-based)
+  - Size and overlap sliders
+  - Basic metadata about chunks
+- Maintain the document preview and chunked output in the middle panel
+
+## 2. Configure Index Page Implementation:
+
+- Create a new "Configure Index" page that appears after the Parse & Chunk step
+- **Left panel**: Same navigation sidebar, highlighting "Configure Index" as current step
+- **Middle panel**: Show interactive preview of indexed content with:
+  - Tabs for switching between original document, chunks, and record index views
+  - Visual representation of how fields are being indexed
+  - JSON-style preview of indexed records
+- **Right panel**: Add comprehensive field configuration options:
+  - **Add "Field Level Indexing"** component moved from Parse & Chunk page
+  - Include "Retrievable Fields" section with explanation and toggle options
+  - Add "Filterable Fields" section with configuration controls
+  - Include "Typehead Fields" section with options
+  - Each section should have proper explanations and configuration controls
+
+## 3. Test & Results Page:
+
+- Maintain the test interface in the middle panel:
+  - Query input field
+  - Results display
+  - Source attribution
+  - Performance metrics
+- Right panel should show summary of all configurations from previous steps
+- Include Back/Next/Save navigation buttons
+
+## Visual Consistency Requirements:
+
+- Maintain consistent styling across all pages
+- Use same component designs, colors, and interaction patterns
+- Ensure smooth transitions between workflow steps
+- Preserve all user selections when navigating between pages
+
+The goal is to create a more logical progression through the workflow, where users first parse and chunk their document, then configure indexing options in a dedicated step, before finally testing and reviewing the complete configuration.

@@ -1,10 +1,11 @@
 import { FC } from "react";
+import { useLocation } from "wouter";
 import Sidebar from "@/components/Sidebar";
 import DocumentHeader from "@/components/DocumentHeader";
 import TabNavigation from "@/components/TabNavigation";
 import DocumentPanel from "@/components/DocumentPanel";
 import ChunksPanel from "@/components/ChunksPanel";
-import ConfigurationPanel from "@/components/ConfigurationPanel";
+import ChunkingConfigurationPanel from "@/components/ChunkingConfigurationPanel";
 import NavigationButtons from "@/components/NavigationButtons";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import { useToast } from "@/hooks/use-toast";
@@ -37,15 +38,13 @@ const DocumentIntelligence: FC = () => {
               <DocumentPanel documentContent={state.document.content} />
             </div>
             <div className="w-80 lg:w-96 flex-shrink-0">
-              <ConfigurationPanel 
+              <ChunkingConfigurationPanel 
                 chunkingMethod={state.chunkingMethod}
                 onChunkingMethodChange={updateChunkingMethod}
                 chunkSize={state.chunkSize}
                 onChunkSizeChange={updateChunkSize}
                 chunkOverlap={state.chunkOverlap}
                 onChunkOverlapChange={updateChunkOverlap}
-                fields={state.fields}
-                onFieldPropertyChange={updateFieldProperty}
               />
             </div>
           </div>
@@ -61,43 +60,18 @@ const DocumentIntelligence: FC = () => {
               />
             </div>
             <div className="w-80 lg:w-96 flex-shrink-0">
-              <ConfigurationPanel 
+              <ChunkingConfigurationPanel 
                 chunkingMethod={state.chunkingMethod}
                 onChunkingMethodChange={updateChunkingMethod}
                 chunkSize={state.chunkSize}
                 onChunkSizeChange={updateChunkSize}
                 chunkOverlap={state.chunkOverlap}
                 onChunkOverlapChange={updateChunkOverlap}
-                fields={state.fields}
-                onFieldPropertyChange={updateFieldProperty}
               />
             </div>
           </div>
         );
-      case "fieldIndex":
-        return (
-          <div className="flex space-x-6">
-            <div className="flex-1 min-w-0 bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-medium mb-4">Field Index Configuration</h3>
-              <p className="text-gray-500 mb-6">
-                Configure how each detected field will be indexed and used in your retrieval system.
-              </p>
-              {/* More detailed field index configuration would go here */}
-            </div>
-            <div className="w-80 lg:w-96 flex-shrink-0">
-              <ConfigurationPanel 
-                chunkingMethod={state.chunkingMethod}
-                onChunkingMethodChange={updateChunkingMethod}
-                chunkSize={state.chunkSize}
-                onChunkSizeChange={updateChunkSize}
-                chunkOverlap={state.chunkOverlap}
-                onChunkOverlapChange={updateChunkOverlap}
-                fields={state.fields}
-                onFieldPropertyChange={updateFieldProperty}
-              />
-            </div>
-          </div>
-        );
+
       case "split":
       default:
         return (
