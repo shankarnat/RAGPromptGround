@@ -1,0 +1,63 @@
+Here's a detailed prompt you can provide to Replit to create the Parse, Chunk and Index document UI screen:
+Prompt for Replit to Create a Document Intelligence UI
+Create a React-based Document Intelligence Center UI focused on the "Parse, Chunk and Index" screen. This interface should help users visualize and configure how their documents are processed for retrieval augmented generation (RAG) applications.
+UI Structure Requirements
+
+Navigation Sidebar:
+
+Include options for a complete workflow: Dashboard, Upload Document, Parse & Chunk, Embed Vectors, IDP Extraction (marked as optional), Knowledge Graph (marked as optional), Build Pipeline, and Test & Deploy
+Highlight "Parse & Chunk" as the active page
+Use a clean, modern sidebar design with appropriate icons
+
+
+Header Area:
+
+Document title and metadata (e.g., "Financial_Report_Q1_2025.pdf • 24 pages")
+Processing mode selector with options for "Standard," "IDP," and "KG" (Standard selected)
+User avatar or initials in the top-right corner
+
+
+Main Content Area:
+
+Tab navigation with options: Split View, Document, Chunks, Field Index
+Split view (default) showing:
+
+Left panel: Original document with text in a monospaced font
+Right panel: Generated chunks with token counts and extracted entities
+
+
+
+
+Configuration Panel:
+
+Chunking method selection (Semantic, Fixed Size, Header-based)
+Chunk size and overlap sliders with numerical indicators
+Field indexing section showing extracted fields with options to make them retrievable/filterable
+
+
+
+Visual Design Requirements
+
+Use a clean, light color scheme with blue accent colors for active elements
+Ensure adequate whitespace and clear visual hierarchy
+Use cards or panels with subtle shadows and borders to group related content
+Include appropriate visual feedback for interactive elements
+Implement a responsive layout that works well on larger screens
+
+Interactions to Implement
+
+Tab switching between different document views
+Chunk method selection via radio buttons
+Adjustable sliders for chunk size and overlap
+Checkboxes for field configuration options
+Next/Previous navigation buttons at the bottom
+
+Technical Requirements
+
+Build using React and a CSS framework like Tailwind CSS
+Include sample document content and chunked output for demonstration
+Implement basic state management for UI interactions
+Focus on UI appearance and interactions, not backend functionality
+Make sure styling is clean and consistent throughout the interface
+
+The final result should look professional and match the style of modern web applications like LangFlow, making it intuitive for users to understand and configure document chunking and indexing options while seeing the results in real-time.
