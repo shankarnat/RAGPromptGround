@@ -53,6 +53,12 @@ interface CombinedConfigurationPanelProps {
     typehead?: boolean;
   }[];
   onFieldPropertyChange?: (fieldId: number, property: "retrievable" | "filterable" | "typehead", value: boolean) => void;
+  
+  // Vectorization props - all optional
+  selectedModelId?: string;
+  onSelectModel?: (modelId: string) => void;
+  advancedOptions?: typeof defaultAdvancedOptions;
+  onUpdateOptions?: (options: typeof defaultAdvancedOptions) => void;
 }
 
 const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
@@ -75,7 +81,13 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
   
   // Field-level indexing props
   fields = [],
-  onFieldPropertyChange
+  onFieldPropertyChange,
+  
+  // Vectorization props
+  selectedModelId = "openai-text-embedding-3-large",
+  onSelectModel = () => {},
+  advancedOptions = defaultAdvancedOptions,
+  onUpdateOptions = () => {}
 }) => {
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldValue, setNewFieldValue] = useState("");
@@ -540,6 +552,24 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
                   </div>
                 )}
               </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Vectorization Section */}
+          <AccordionItem value="vectorization">
+            <AccordionTrigger className="text-sm font-medium">
+              <div className="flex items-center">
+                <Layers className="h-4 w-4 mr-1.5 text-blue-600" />
+                Vectorization Options
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <VectorizationOptionsPanel
+                selectedModelId={selectedModelId}
+                onSelectModel={onSelectModel}
+                advancedOptions={advancedOptions}
+                onUpdateOptions={onUpdateOptions}
+              />
             </AccordionContent>
           </AccordionItem>
         </Accordion>

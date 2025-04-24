@@ -141,38 +141,40 @@ const VectorizationOptionsPanel: FC<VectorizationOptionsPanelProps> = ({
               
               <div>
                 <label className="text-xs font-medium">Pooling Strategy</label>
-                <Select
-                  value={localOptions.poolingStrategy}
-                  onValueChange={(value) => handleOptionChange('poolingStrategy', value as any)}
-                  className="mt-1"
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mean">Mean Pooling</SelectItem>
-                    <SelectItem value="max">Max Pooling</SelectItem>
-                    <SelectItem value="cls">CLS Token</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="mt-1">
+                  <Select
+                    value={localOptions.poolingStrategy}
+                    onValueChange={(value) => handleOptionChange('poolingStrategy', value as any)}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mean">Mean Pooling</SelectItem>
+                      <SelectItem value="max">Max Pooling</SelectItem>
+                      <SelectItem value="cls">CLS Token</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
               <div>
                 <label className="text-xs font-medium">Truncation Method</label>
-                <Select
-                  value={localOptions.truncationMethod}
-                  onValueChange={(value) => handleOptionChange('truncationMethod', value as any)}
-                  className="mt-1"
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="head">Head (beginning)</SelectItem>
-                    <SelectItem value="tail">Tail (ending)</SelectItem>
-                    <SelectItem value="middle">Middle</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="mt-1">
+                  <Select
+                    value={localOptions.truncationMethod}
+                    onValueChange={(value) => handleOptionChange('truncationMethod', value as any)}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="head">Head (beginning)</SelectItem>
+                      <SelectItem value="tail">Tail (ending)</SelectItem>
+                      <SelectItem value="middle">Middle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
               <div>
