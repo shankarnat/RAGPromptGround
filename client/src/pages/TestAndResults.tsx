@@ -6,6 +6,7 @@ import TestQueryInterface from "@/components/TestQueryInterface";
 import ConfigurationSummaryPanel from "@/components/ConfigurationSummaryPanel";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { sampleFields } from "@/data/sampleDocument";
 
 const TestAndResults: FC = () => {
   const [, navigate] = useLocation();
@@ -31,7 +32,7 @@ const TestAndResults: FC = () => {
           {/* Main content */}
           <div className="flex space-x-6 h-full">
             <div className="flex-1 min-w-0">
-              <TestQueryInterface />
+              <TestQueryInterface fields={sampleFields} />
             </div>
             <div className="w-80 lg:w-96 flex-shrink-0">
               <ConfigurationSummaryPanel />

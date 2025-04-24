@@ -11,7 +11,8 @@ const TabNavigation: FC<TabNavigationProps> = ({ activeTab, onTabChange }) => {
     { id: "split", label: "Split View" },
     { id: "document", label: "Document" },
     { id: "chunks", label: "Chunks" },
-    { id: "documentRecord", label: "Document Record" }
+    { id: "documentRecord", label: "Document Record" },
+    { id: "test", label: "Test" }
   ];
 
   return (

@@ -6,6 +6,7 @@ import TabNavigation from "@/components/TabNavigation";
 import DocumentPanel from "@/components/DocumentPanel";
 import ChunksPanel from "@/components/ChunksPanel";
 import DocumentRecordPanel from "@/components/DocumentRecordPanel";
+import TestQueryInterface from "@/components/TestQueryInterface";
 import NavigationButtons from "@/components/NavigationButtons";
 import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
@@ -113,6 +114,18 @@ const DocumentIntelligence: FC = () => {
               <DocumentRecordPanel 
                 metadataFields={state.metadataFields}
                 recordStructure={state.recordStructure}
+                fields={state.fields}
+              />
+            </div>
+            {configPanel}
+          </div>
+        );
+        
+      case "test":
+        return (
+          <div className="flex space-x-6">
+            <div className="flex-1 min-w-0">
+              <TestQueryInterface 
                 fields={state.fields}
               />
             </div>
