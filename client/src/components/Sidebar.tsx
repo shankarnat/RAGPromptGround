@@ -61,7 +61,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       completed: activePage !== "upload"
     },
     { 
-      name: "Parse & Chunk", 
+      name: "Parse, Chunk & Index", 
       icon: <AlignJustify className={`h-5 w-5 mr-3 ${activePage === "parse-chunk" ? "text-primary-500" : "text-gray-500"}`} />, 
       id: "parse-chunk",
       href: "/parse-chunk",

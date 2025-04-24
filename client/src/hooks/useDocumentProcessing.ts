@@ -38,6 +38,7 @@ export interface DocumentProcessingState {
     documentId: number;
     retrievable: boolean;
     filterable: boolean;
+    typehead?: boolean;
   }[];
   // Metadata & record-level indexing state
   metadataFields: MetadataField[];
@@ -120,7 +121,7 @@ export function useDocumentProcessing() {
     }));
   };
 
-  const updateFieldProperty = (fieldId: number, property: "retrievable" | "filterable", value: boolean) => {
+  const updateFieldProperty = (fieldId: number, property: "retrievable" | "filterable" | "typehead", value: boolean) => {
     setState((prev) => ({
       ...prev,
       fields: prev.fields.map(field => 

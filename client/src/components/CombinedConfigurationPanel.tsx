@@ -2,7 +2,8 @@ import { FC } from "react";
 import { 
   ChunkingMethod, 
   MetadataField, 
-  RecordStructure 
+  RecordStructure,
+  IndexField
 } from "@shared/schema";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -10,7 +11,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Edit, CheckCircle, Circle } from "lucide-react";
+import { 
+  PlusCircle, 
+  Edit, 
+  CheckCircle, 
+  Circle, 
+  Database, 
+  Search, 
+  Filter,
+  FileText 
+} from "lucide-react";
 import { useState } from "react";
 
 interface CombinedConfigurationPanelProps {
@@ -30,6 +40,16 @@ interface CombinedConfigurationPanelProps {
   recordStructure: RecordStructure;
   onRecordStructureChange: (structure: RecordStructure) => void;
   onAddCustomField: (name: string, value: string) => void;
+  
+  // Field-level indexing props
+  fields?: {
+    id: number;
+    name: string;
+    retrievable: boolean;
+    filterable: boolean;
+    typehead?: boolean;
+  }[];
+  onFieldPropertyChange?: (fieldId: number, property: "retrievable" | "filterable" | "typehead", value: boolean) => void;
 }
 
 const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
@@ -48,7 +68,11 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
   onRecordLevelIndexingToggle,
   recordStructure,
   onRecordStructureChange,
-  onAddCustomField
+  onAddCustomField,
+  
+  // Field-level indexing props
+  fields = [],
+  onFieldPropertyChange
 }) => {
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldValue, setNewFieldValue] = useState("");
@@ -415,6 +439,103 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
                     </div>
                   </div>
                 </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+          
+          {/* Field Level Indexing Section */}
+          <AccordionItem value="field-indexing">
+            <AccordionTrigger className="text-sm font-medium">
+              Field-Level Indexing
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2">
+                {fields.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2 px-2 mb-2">
+                      <div className="text-xs text-gray-500 font-medium">Field Name</div>
+                      <div className="col-span-2 flex items-center justify-between pr-2">
+                        <div className="text-xs text-gray-500 font-medium flex items-center">
+                          <Search className="h-3 w-3 mr-1" />
+                          <span>Retrievable</span>
+                        </div>
+                        <div className="text-xs text-gray-500 font-medium flex items-center">
+                          <Filter className="h-3 w-3 mr-1" />
+                          <span>Filterable</span>
+                        </div>
+                        <div className="text-xs text-gray-500 font-medium flex items-center">
+                          <FileText className="h-3 w-3 mr-1" />
+                          <span>Type Ahead</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {fields.map((field) => (
+                      <div key={field.id} className="px-2 py-2 border border-gray-100 rounded-md hover:bg-gray-50">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="text-xs font-medium">{field.name}</div>
+                          <div className="col-span-2 flex items-center justify-between">
+                            <Switch 
+                              id={`retrievable-${field.id}`}
+                              checked={field.retrievable}
+                              onCheckedChange={(checked) => 
+                                onFieldPropertyChange && onFieldPropertyChange(field.id, "retrievable", checked)
+                              }
+                              className="h-4 w-7"
+                            />
+                            <Switch 
+                              id={`filterable-${field.id}`}
+                              checked={field.filterable}
+                              onCheckedChange={(checked) => 
+                                onFieldPropertyChange && onFieldPropertyChange(field.id, "filterable", checked)
+                              }
+                              className="h-4 w-7"
+                            />
+                            <Switch 
+                              id={`typehead-${field.id}`}
+                              checked={field.typehead || false}
+                              onCheckedChange={(checked) => 
+                                onFieldPropertyChange && onFieldPropertyChange(field.id, "typehead", checked)
+                              }
+                              className="h-4 w-7"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="pt-3 border-t border-gray-200">
+                      <div className="bg-gray-50 rounded-md p-3 space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-600">Total Fields:</span>
+                          <span className="text-xs font-medium">{fields.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-600">Retrievable Fields:</span>
+                          <span className="text-xs font-medium">
+                            {fields.filter(f => f.retrievable).length}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-600">Filterable Fields:</span>
+                          <span className="text-xs font-medium">
+                            {fields.filter(f => f.filterable).length}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-600">Type Ahead Fields:</span>
+                          <span className="text-xs font-medium">
+                            {fields.filter(f => f.typehead).length}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-sm text-gray-500">
+                    No fields available for indexing configuration.
+                  </div>
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>
