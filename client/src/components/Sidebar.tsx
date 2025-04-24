@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { Link, useLocation } from "wouter";
 import { 
   LayoutDashboard, 
   Upload, 
@@ -15,52 +16,67 @@ interface SidebarProps {
 }
 
 const Sidebar: FC<SidebarProps> = ({ activePage }) => {
+  const [location, navigate] = useLocation();
+
   // Sidebar navigation items
   const navItems = [
     { 
       name: "Dashboard", 
       icon: <LayoutDashboard className="h-5 w-5 mr-3 text-gray-500" />, 
-      id: "dashboard" 
+      id: "dashboard",
+      href: "/dashboard"
     },
     { 
       name: "Upload Document", 
-      icon: <Upload className="h-5 w-5 mr-3 text-gray-500" />, 
-      id: "upload" 
+      icon: <Upload className={`h-5 w-5 mr-3 ${activePage === "upload" ? "text-primary-500" : "text-gray-500"}`} />, 
+      id: "upload",
+      href: "/upload"
     },
     { 
       name: "Parse & Chunk", 
-      icon: <AlignJustify className="h-5 w-5 mr-3 text-primary-500" />, 
-      id: "parse-chunk", 
-      active: true 
+      icon: <AlignJustify className={`h-5 w-5 mr-3 ${activePage === "parse-chunk" ? "text-primary-500" : "text-gray-500"}`} />, 
+      id: "parse-chunk",
+      href: "/parse-chunk"
     },
     { 
       name: "Embed Vectors", 
       icon: <Zap className="h-5 w-5 mr-3 text-gray-500" />, 
-      id: "embed" 
+      id: "embed",
+      href: "/embed"
     },
     { 
       name: "IDP Extraction", 
       icon: <FileText className="h-5 w-5 mr-3 text-gray-500" />, 
       id: "idp", 
-      optional: true 
+      optional: true,
+      href: "/idp"
     },
     { 
       name: "Knowledge Graph", 
       icon: <Network className="h-5 w-5 mr-3 text-gray-500" />, 
       id: "kg", 
-      optional: true 
+      optional: true,
+      href: "/kg"
     },
     { 
       name: "Build Pipeline", 
       icon: <Scale className="h-5 w-5 mr-3 text-gray-500" />, 
-      id: "pipeline" 
+      id: "pipeline",
+      href: "/pipeline"
     },
     { 
       name: "Test & Deploy", 
       icon: <ShieldCheck className="h-5 w-5 mr-3 text-gray-500" />, 
-      id: "deploy" 
+      id: "deploy",
+      href: "/deploy"
     }
   ];
+
+  const handleNavigation = (path: string, id: string) => {
+    if (id === "upload" || id === "parse-chunk") {
+      navigate(path);
+    }
+  };
 
   return (
     <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-sm border-r border-gray-200 z-10">
@@ -74,7 +90,11 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
             {navItems.map((item) => (
               <li key={item.id}>
                 <a 
-                  href="#" 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigation(item.href, item.id);
+                  }}
                   className={`flex items-center px-3 py-2 rounded-md ${
                     item.id === activePage
                       ? "text-primary-600 bg-primary-50 font-medium"

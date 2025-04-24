@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { useLocation } from "wouter";
 import Sidebar from "@/components/Sidebar";
 import UploadPanel from "@/components/UploadPanel";
 import DataModelPanel from "@/components/DataModelPanel";
@@ -9,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 const DocumentUpload: FC = () => {
   const { state, selectDocument, selectDataModel, uploadDocument, navigateToParseChunk } = useDocumentProcessing();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const handleNext = () => {
     if (!state.selectedDocument) {
@@ -29,8 +31,9 @@ const DocumentUpload: FC = () => {
       return;
     }
 
-    // Navigate to Parse & Chunk
+    // Update state and navigate to Parse & Chunk
     navigateToParseChunk();
+    navigate('/parse-chunk');
     
     toast({
       title: "Document Ready",
