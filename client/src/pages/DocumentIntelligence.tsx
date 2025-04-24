@@ -33,10 +33,10 @@ const DocumentIntelligence: FC = () => {
       case "document":
         return (
           <div className="flex space-x-6">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <DocumentPanel documentContent={state.document.content} />
             </div>
-            <div className="w-96">
+            <div className="w-80 lg:w-96 flex-shrink-0">
               <ConfigurationPanel 
                 chunkingMethod={state.chunkingMethod}
                 onChunkingMethodChange={updateChunkingMethod}
@@ -53,14 +53,14 @@ const DocumentIntelligence: FC = () => {
       case "chunks":
         return (
           <div className="flex space-x-6">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <ChunksPanel 
                 chunks={state.chunks} 
                 selectedChunk={state.selectedChunk} 
                 onChunkSelect={selectChunk} 
               />
             </div>
-            <div className="w-96">
+            <div className="w-80 lg:w-96 flex-shrink-0">
               <ConfigurationPanel 
                 chunkingMethod={state.chunkingMethod}
                 onChunkingMethodChange={updateChunkingMethod}
@@ -77,14 +77,14 @@ const DocumentIntelligence: FC = () => {
       case "fieldIndex":
         return (
           <div className="flex space-x-6">
-            <div className="flex-1 bg-white rounded-lg shadow-sm p-6">
+            <div className="flex-1 min-w-0 bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-4">Field Index Configuration</h3>
               <p className="text-gray-500 mb-6">
                 Configure how each detected field will be indexed and used in your retrieval system.
               </p>
               {/* More detailed field index configuration would go here */}
             </div>
-            <div className="w-96">
+            <div className="w-80 lg:w-96 flex-shrink-0">
               <ConfigurationPanel 
                 chunkingMethod={state.chunkingMethod}
                 onChunkingMethodChange={updateChunkingMethod}
@@ -102,15 +102,19 @@ const DocumentIntelligence: FC = () => {
       default:
         return (
           <div className="flex space-x-6">
-            <div className="flex-1 flex space-x-6">
-              <DocumentPanel documentContent={state.document.content} />
-              <ChunksPanel 
-                chunks={state.chunks} 
-                selectedChunk={state.selectedChunk} 
-                onChunkSelect={selectChunk} 
-              />
+            <div className="flex-1 min-w-0 flex space-x-6">
+              <div className="flex-1 min-w-0">
+                <DocumentPanel documentContent={state.document.content} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <ChunksPanel 
+                  chunks={state.chunks} 
+                  selectedChunk={state.selectedChunk} 
+                  onChunkSelect={selectChunk} 
+                />
+              </div>
             </div>
-            <div className="w-96">
+            <div className="w-80 lg:w-96 flex-shrink-0">
               <ConfigurationPanel 
                 chunkingMethod={state.chunkingMethod}
                 onChunkingMethodChange={updateChunkingMethod}
