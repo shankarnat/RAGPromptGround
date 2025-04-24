@@ -47,7 +47,7 @@ const DocumentUpload: FC = () => {
       
       <div className="flex-1 flex flex-col ml-64">
         <header className="h-16 border-b border-gray-200 bg-white flex items-center px-6">
-          <h1 className="text-xl font-semibold text-gray-800">Document Upload</h1>
+          <h1 className="text-xl font-semibold text-gray-800">Document Ingestion</h1>
         </header>
         
         <main className="flex-1 overflow-auto p-6 bg-gray-50">

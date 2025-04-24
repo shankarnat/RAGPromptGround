@@ -54,7 +54,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       href: "#",
       subnav: [
         { 
-          name: "Upload Document", 
+          name: "Document Ingestion", 
           id: "upload", 
           href: "/upload" 
         },

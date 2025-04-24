@@ -52,7 +52,7 @@ const UploadPanel: FC<UploadPanelProps> = ({
 
   return (
     <div className="flex-1 min-w-0 bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-xl font-medium text-gray-800 mb-6">Upload Document</h2>
+      <h2 className="text-xl font-medium text-gray-800 mb-6">Document Ingestion</h2>
       
       {/* Upload area */}
       <div
