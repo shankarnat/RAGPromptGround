@@ -1,0 +1,53 @@
+Here's a focused prompt for Replit to just update the Upload Document view while preserving the existing Parse & Chunk functionality:
+
+# Prompt for Replit: Add Document Upload & Selection Interface
+
+Update the existing Document Intelligence Center application by enhancing the "Upload Document" view. The Parse & Chunk functionality should remain unchanged and accessible after document selection.
+
+## Upload Document View Requirements
+
+When "Upload Document" is clicked in the sidebar:
+
+1. **Main Panel (Center):**
+   - Create a clean upload interface with:
+     - Drag and drop zone for files
+     - "Browse files" button alternative
+     - Supported file types indicator (PDF, DOCX, TXT, etc.)
+     - Upload progress indicator that appears during file processing
+     - Recently uploaded files section showing 3-5 previous documents
+
+2. **Right Panel (Data Model Selection):**
+   - Implement a data model selection table as shown in the screenshot
+   - Include:
+     - Radio button selectors in the first column
+     - "Data Model Object" column (Chat Transcript, Contact, etc.)
+     - "Object API Name" column with corresponding values
+     - Highlighted row styling for the selected item
+     - Scrollable list with at least 10-15 options
+     - Light gray background for alternate rows
+     - Thin separating borders between rows
+
+3. **Navigation Controls:**
+   - Add a "Next" button at the bottom that becomes enabled when both:
+     - A file has been uploaded
+     - A data model has been selected
+   - Clicking "Next" should navigate to the Parse & Chunk view
+
+## Integration Requirements
+
+1. **State Preservation:**
+   - The selected document and data model should be remembered when switching to Parse & Chunk
+   - When returning to Upload Document view, previous selections should remain
+
+2. **UI Consistency:**
+   - Maintain the same styling, colors, and layout structure as the existing Parse & Chunk view
+   - Keep the sidebar navigation highlighting the current active section
+
+## Technical Notes
+
+- Use the same React/Tailwind setup as the existing application
+- No need to implement actual file processing - simulate with timeouts
+- The data model options can be hardcoded to match the screenshot
+- Focus only on the Upload Document view - don't modify the Parse & Chunk functionality
+
+The goal is to create a seamless experience where users can select a document and data model type, then continue to the existing Parse & Chunk interface to process their document.

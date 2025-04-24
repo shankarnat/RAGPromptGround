@@ -81,3 +81,17 @@ export type ChunkingMethod = "semantic" | "fixed" | "header";
 export type ProcessingMode = "standard" | "idp" | "kg";
 
 export type TabView = "split" | "document" | "chunks" | "fieldIndex";
+
+export interface UploadedDocument {
+  id: number;
+  name: string;
+  type: string;
+  size: number;
+  uploadDate: string;
+}
+
+export interface DataModel {
+  id: number;
+  name: string;
+  apiName: string;
+}

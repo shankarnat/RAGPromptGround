@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { sampleDocument, sampleChunks, sampleFields } from "@/data/sampleDocument";
-import { ChunkingMethod, ProcessingMode, TabView } from "@shared/schema";
+import { recentDocuments, dataModels } from "@/data/sampleUploadData";
+import { ChunkingMethod, ProcessingMode, TabView, UploadedDocument, DataModel } from "@shared/schema";
 
 export interface DocumentProcessingState {
   document: {
@@ -30,6 +31,14 @@ export interface DocumentProcessingState {
     retrievable: boolean;
     filterable: boolean;
   }[];
+  // Upload document view state
+  activePage: string;
+  uploadProgress: number;
+  isUploading: boolean;
+  recentDocuments: UploadedDocument[];
+  selectedDocument: UploadedDocument | null;
+  dataModels: DataModel[];
+  selectedDataModel: DataModel | null;
 }
 
 export function useDocumentProcessing() {
@@ -42,7 +51,15 @@ export function useDocumentProcessing() {
     chunkingMethod: "semantic",
     chunkSize: 150,
     chunkOverlap: 20,
-    fields: sampleFields
+    fields: sampleFields,
+    // Upload document view state
+    activePage: "upload", // Default to upload page
+    uploadProgress: 0,
+    isUploading: false,
+    recentDocuments: recentDocuments,
+    selectedDocument: null,
+    dataModels: dataModels,
+    selectedDataModel: null
   });
 
   const updateChunkingMethod = (method: ChunkingMethod) => {
@@ -96,6 +113,82 @@ export function useDocumentProcessing() {
     }));
   };
 
+  // Upload view methods
+  const setActivePage = (page: string) => {
+    setState((prev) => ({
+      ...prev,
+      activePage: page
+    }));
+  };
+
+  const selectDocument = (document: UploadedDocument | null) => {
+    setState((prev) => ({
+      ...prev,
+      selectedDocument: document
+    }));
+  };
+
+  const selectDataModel = (model: DataModel | null) => {
+    setState((prev) => ({
+      ...prev,
+      selectedDataModel: model
+    }));
+  };
+
+  const uploadDocument = (file: File) => {
+    // Simulate upload process
+    setState((prev) => ({
+      ...prev,
+      isUploading: true,
+      uploadProgress: 0
+    }));
+
+    const simulateUploadProgress = () => {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 20;
+        
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+
+          // Create a new document and add it to recent documents
+          const newDocument: UploadedDocument = {
+            id: Math.floor(Math.random() * 1000) + 100,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            uploadDate: new Date().toISOString()
+          };
+
+          setState((prev) => ({
+            ...prev,
+            isUploading: false,
+            uploadProgress: 0,
+            selectedDocument: newDocument,
+            recentDocuments: [newDocument, ...prev.recentDocuments.slice(0, 4)]
+          }));
+        } else {
+          setState((prev) => ({
+            ...prev,
+            uploadProgress: Math.floor(progress)
+          }));
+        }
+      }, 300);
+    };
+
+    // Start simulated upload after a small delay
+    setTimeout(simulateUploadProgress, 300);
+  };
+
+  const navigateToParseChunk = () => {
+    // Switch to the Parse & Chunk page
+    setState((prev) => ({
+      ...prev,
+      activePage: "parse-chunk"
+    }));
+  };
+
   return {
     state,
     updateChunkingMethod,
@@ -104,6 +197,12 @@ export function useDocumentProcessing() {
     updateProcessingMode,
     updateActiveTab,
     selectChunk,
-    updateFieldProperty
+    updateFieldProperty,
+    // Upload view methods
+    setActivePage,
+    selectDocument,
+    selectDataModel,
+    uploadDocument,
+    navigateToParseChunk
   };
 }
