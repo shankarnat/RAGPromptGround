@@ -205,6 +205,97 @@ export function useDocumentProcessing() {
     }));
   };
 
+  // Create document record chunk from metadata
+  const createDocumentRecordChunk = () => {
+    const includedFields = state.metadataFields.filter(field => field.included);
+    
+    // Skip if no fields are included
+    if (includedFields.length === 0) return;
+    
+    // Format JSON based on selected structure
+    let recordData: Record<string, any> = {};
+    
+    if (state.recordStructure === "flat") {
+      // Flat structure: all fields at the root level
+      includedFields.forEach(field => {
+        recordData[field.name] = field.value;
+      });
+    } 
+    else if (state.recordStructure === "nested") {
+      // Nested structure: group by field types
+      const standardFields: Record<string, any> = {};
+      const documentFields: Record<string, any> = {};
+      const customFields: Record<string, any> = {};
+      
+      includedFields.forEach(field => {
+        // Categorize fields based on name pattern
+        if (["author", "creationDate", "lastModified", "title"].includes(field.name)) {
+          standardFields[field.name] = field.value;
+        } 
+        else if (["fileSize", "fileType", "sourceLocation"].includes(field.name)) {
+          documentFields[field.name] = field.value;
+        } 
+        else {
+          customFields[field.name] = field.value;
+        }
+      });
+      
+      recordData = {
+        standardMetadata: standardFields,
+        documentMetadata: documentFields,
+        customMetadata: customFields
+      };
+    } 
+    else {
+      // Custom structure (simplified example)
+      const metadata: Record<string, any> = {};
+      const content: Record<string, any> = {};
+      
+      includedFields.forEach(field => {
+        if (["fileSize", "fileType", "sourceLocation"].includes(field.name)) {
+          metadata[field.name] = field.value;
+        } else {
+          content[field.name] = field.value;
+        }
+      });
+      
+      recordData = {
+        metadata: metadata,
+        content: content,
+        indexTimestamp: new Date().toISOString()
+      };
+    }
+    
+    // Create JSON string for display
+    const jsonString = JSON.stringify(recordData, null, 2);
+    
+    // Find any existing document record chunk and remove it
+    const existingRecordChunkIndex = state.chunks.findIndex(
+      chunk => chunk.tags.includes('document-record')
+    );
+    
+    const newChunks = [...state.chunks];
+    if (existingRecordChunkIndex >= 0) {
+      newChunks.splice(existingRecordChunkIndex, 1);
+    }
+    
+    // Create a new chunk with the document record data
+    const recordChunk = {
+      id: Math.max(...state.chunks.map(c => c.id), 0) + 1,
+      documentId: state.chunks[0]?.documentId || 1,
+      title: "Document Record Metadata",
+      content: jsonString,
+      tokenCount: jsonString.length / 4, // Rough estimate of tokens
+      chunkIndex: newChunks.length + 1,
+      tags: ["document-record", "metadata", state.recordStructure]
+    };
+    
+    // Add the new record chunk
+    newChunks.push(recordChunk);
+    
+    return newChunks;
+  };
+  
   // Metadata handling methods
   const updateMetadataField = (fieldId: number, property: "included" | "value", value: boolean | string) => {
     setState(prev => ({
@@ -215,6 +306,19 @@ export function useDocumentProcessing() {
           : field
       )
     }));
+    
+    // After updating a metadata field, update chunks if record indexing is enabled
+    if (state.recordLevelIndexingEnabled) {
+      setTimeout(() => {
+        const updatedChunks = createDocumentRecordChunk();
+        if (updatedChunks) {
+          setState(prev => ({
+            ...prev,
+            chunks: updatedChunks
+          }));
+        }
+      }, 0);
+    }
   };
 
   const toggleRecordLevelIndexing = (enabled: boolean) => {
@@ -224,6 +328,32 @@ export function useDocumentProcessing() {
       // If turning it on, also switch to the record tab
       activeTab: enabled && prev.activeTab === "split" ? "documentRecord" : prev.activeTab
     }));
+    
+    // Update chunks when toggling on/off record-level indexing
+    if (enabled) {
+      // Add document record as a chunk
+      setTimeout(() => {
+        const updatedChunks = createDocumentRecordChunk();
+        if (updatedChunks) {
+          setState(prev => ({
+            ...prev,
+            chunks: updatedChunks
+          }));
+        }
+      }, 0);
+    } else {
+      // Remove document record chunk when disabled
+      setTimeout(() => {
+        const filteredChunks = state.chunks.filter(
+          chunk => !chunk.tags.includes('document-record')
+        );
+        
+        setState(prev => ({
+          ...prev,
+          chunks: filteredChunks
+        }));
+      }, 0);
+    }
   };
 
   const updateRecordStructure = (structure: RecordStructure) => {
@@ -231,6 +361,19 @@ export function useDocumentProcessing() {
       ...prev,
       recordStructure: structure
     }));
+    
+    // Update document record chunk when changing structure (if enabled)
+    if (state.recordLevelIndexingEnabled) {
+      setTimeout(() => {
+        const updatedChunks = createDocumentRecordChunk();
+        if (updatedChunks) {
+          setState(prev => ({
+            ...prev,
+            chunks: updatedChunks
+          }));
+        }
+      }, 0);
+    }
   };
 
   const addCustomMetadataField = (name: string, value: string) => {
@@ -246,6 +389,19 @@ export function useDocumentProcessing() {
       ...prev,
       metadataFields: [...prev.metadataFields, newField]
     }));
+    
+    // Update document record chunk when adding a new field (if enabled)
+    if (state.recordLevelIndexingEnabled) {
+      setTimeout(() => {
+        const updatedChunks = createDocumentRecordChunk();
+        if (updatedChunks) {
+          setState(prev => ({
+            ...prev,
+            chunks: updatedChunks
+          }));
+        }
+      }, 0);
+    }
   };
 
   return {
