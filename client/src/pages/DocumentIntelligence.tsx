@@ -13,19 +13,22 @@ import { useToast } from "@/hooks/use-toast";
 const DocumentIntelligence: FC = () => {
   const { state, updateChunkingMethod, updateChunkSize, updateChunkOverlap, updateProcessingMode, updateActiveTab, selectChunk, updateFieldProperty } = useDocumentProcessing();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const handlePrevious = () => {
     toast({
       title: "Navigation",
-      description: "Going to previous step: Upload Document",
+      description: "Going to previous step: Upload Document"
     });
+    navigate("/upload");
   };
-
+  
   const handleNext = () => {
     toast({
       title: "Navigation",
-      description: "Going to next step: Embed Vectors",
+      description: "Going to next step: Configure Index"
     });
+    navigate("/configure-index");
   };
 
   // Show different content based on the active tab
@@ -89,15 +92,13 @@ const DocumentIntelligence: FC = () => {
               </div>
             </div>
             <div className="w-80 lg:w-96 flex-shrink-0">
-              <ConfigurationPanel 
+              <ChunkingConfigurationPanel 
                 chunkingMethod={state.chunkingMethod}
                 onChunkingMethodChange={updateChunkingMethod}
                 chunkSize={state.chunkSize}
                 onChunkSizeChange={updateChunkSize}
                 chunkOverlap={state.chunkOverlap}
                 onChunkOverlapChange={updateChunkOverlap}
-                fields={state.fields}
-                onFieldPropertyChange={updateFieldProperty}
               />
             </div>
           </div>
