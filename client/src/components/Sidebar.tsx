@@ -35,7 +35,7 @@ interface SidebarProps {
 
 const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   const [location, navigate] = useLocation();
-  const [expandedItems, setExpandedItems] = useState<string[]>(["configure-index"]);
+  const [expandedItems, setExpandedItems] = useState<string[]>(["search-index"]);
 
   const toggleSubnav = (id: string) => {
     setExpandedItems(prev => 
@@ -48,48 +48,21 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   // Sidebar navigation items
   const navItems: NavItem[] = [
     { 
-      name: "Dashboard", 
+      name: "Search Index", 
       icon: <LayoutDashboard className="h-5 w-5 mr-3 text-gray-500" />, 
-      id: "dashboard",
-      href: "/dashboard"
-    },
-    { 
-      name: "Upload Document", 
-      icon: <Upload className={`h-5 w-5 mr-3 ${activePage === "upload" ? "text-primary-500" : "text-gray-500"}`} />, 
-      id: "upload",
-      href: "/upload",
-      completed: activePage !== "upload"
-    },
-    { 
-      name: "Parse, Chunk & Index", 
-      icon: <AlignJustify className={`h-5 w-5 mr-3 ${activePage === "parse-chunk" ? "text-primary-500" : "text-gray-500"}`} />, 
-      id: "parse-chunk",
-      href: "/parse-chunk",
-      completed: activePage !== "parse-chunk" && activePage !== "upload"
-    },
-    { 
-      name: "Select Search Type", 
-      icon: <Zap className="h-5 w-5 mr-3 text-gray-400" />, 
-      id: "search-type",
-      href: "/search-type",
-      disabled: true,
-      optional: true
-    },
-    { 
-      name: "Vectorization", 
-      icon: <FileText className={`h-5 w-5 mr-3 ${activePage === "vectorization" ? "text-primary-500" : "text-gray-500"}`} />, 
-      id: "vectorization",
-      href: "/vectorization",
-      completed: activePage === "configure-index"
-    },
-    { 
-      name: "Configure Index", 
-      icon: <Network className={`h-5 w-5 mr-3 ${activePage === "configure-index" ? "text-primary-500" : "text-gray-500"}`} />, 
-      id: "configure-index",
-      href: "/configure-index",
+      id: "search-index",
+      href: "#",
       subnav: [
-        { name: "Fields", id: "fields", href: "/configure-index/fields" },
-        { name: "Other Configurations", id: "other-config", href: "/configure-index/other" }
+        { 
+          name: "Upload Document", 
+          id: "upload", 
+          href: "/upload" 
+        },
+        { 
+          name: "Parse, Chunk & Index", 
+          id: "parse-chunk", 
+          href: "/parse-chunk" 
+        }
       ]
     },
     { 
@@ -109,14 +82,6 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       optional: true
     },
     { 
-      name: "Build Pipeline", 
-      icon: <Scale className="h-5 w-5 mr-3 text-gray-400" />, 
-      id: "pipeline",
-      href: "/pipeline",
-      disabled: true,
-      optional: true
-    },
-    { 
       name: "Test & Deploy", 
       icon: <ShieldCheck className={`h-5 w-5 mr-3 ${activePage === "deploy" ? "text-primary-500" : "text-gray-500"}`} />, 
       id: "deploy",
@@ -125,7 +90,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   ];
 
   const handleNavigation = (path: string, id: string) => {
-    if (id === "upload" || id === "parse-chunk" || id === "vectorization" || id === "configure-index" || id === "fields" || id === "other-config" || id === "deploy") {
+    if (id === "upload" || id === "parse-chunk" || id === "deploy") {
       navigate(path);
     }
   };
@@ -157,7 +122,8 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
                     className={`flex items-center px-3 py-2 rounded-md ${
                       item.disabled
                         ? "text-gray-400 cursor-not-allowed"
-                        : item.id === activePage
+                        : item.id === activePage || 
+                          (item.subnav && item.subnav.some(sub => sub.id === activePage))
                           ? "text-primary-600 bg-primary-50 font-medium"
                           : "text-gray-700 hover:bg-gray-100"
                     }`}
@@ -197,8 +163,8 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
                             }}
                             className={`block px-3 py-1.5 text-sm rounded-md ${
                               subItem.id === activePage
-                                ? "text-primary-600 font-medium"
-                                : "text-gray-600 hover:text-gray-900"
+                                ? "text-primary-600 bg-primary-50 font-medium"
+                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                             }`}
                           >
                             {subItem.name}
