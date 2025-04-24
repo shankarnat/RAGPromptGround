@@ -1,3 +1,5 @@
+import { DocumentMetadata, MetadataField } from "@shared/schema";
+
 const sampleDocument = {
   title: "Financial_Report_Q1_2025.pdf",
   pageCount: 24,
@@ -152,4 +154,116 @@ const sampleFields = [
   }
 ];
 
-export { sampleDocument, sampleChunks, sampleFields };
+const sampleDocumentMetadata: DocumentMetadata = {
+  author: "Finance Department",
+  creationDate: "2025-04-15T10:32:15Z",
+  lastModified: "2025-04-16T14:22:38Z",
+  title: "Financial Report Q1 2025",
+  fileSize: 1245678, // bytes
+  fileType: "application/pdf",
+  sourceLocation: "Company Intranet/Finance/Reports/2025/",
+  customFields: {
+    "department": "Finance",
+    "quarter": "Q1",
+    "year": "2025",
+    "documentType": "Financial Report",
+    "status": "Final",
+    "confidentiality": "Internal"
+  }
+};
+
+const sampleMetadataFields: MetadataField[] = [
+  {
+    id: 1,
+    name: "author",
+    value: "Finance Department",
+    included: true,
+    confidence: 0.98
+  },
+  {
+    id: 2,
+    name: "creationDate",
+    value: "2025-04-15T10:32:15Z",
+    included: true,
+    confidence: 1.0
+  },
+  {
+    id: 3,
+    name: "lastModified",
+    value: "2025-04-16T14:22:38Z",
+    included: true,
+    confidence: 1.0
+  },
+  {
+    id: 4,
+    name: "title",
+    value: "Financial Report Q1 2025",
+    included: true,
+    confidence: 0.92
+  },
+  {
+    id: 5,
+    name: "fileSize",
+    value: "1245678",
+    included: false,
+    confidence: 1.0
+  },
+  {
+    id: 6,
+    name: "fileType",
+    value: "application/pdf",
+    included: true,
+    confidence: 1.0
+  },
+  {
+    id: 7,
+    name: "sourceLocation",
+    value: "Company Intranet/Finance/Reports/2025/",
+    included: false,
+    confidence: 0.85
+  },
+  {
+    id: 8,
+    name: "department",
+    value: "Finance",
+    included: true,
+    confidence: 0.94
+  },
+  {
+    id: 9,
+    name: "quarter",
+    value: "Q1",
+    included: true,
+    confidence: 0.99
+  },
+  {
+    id: 10,
+    name: "year",
+    value: "2025",
+    included: true,
+    confidence: 0.99
+  },
+  {
+    id: 11,
+    name: "documentType",
+    value: "Financial Report",
+    included: true,
+    confidence: 0.91
+  },
+  {
+    id: 12,
+    name: "status",
+    value: "Final",
+    included: false,
+    confidence: 0.87
+  },
+  {
+    id: 13,
+    name: "confidentiality",
+    value: "Internal",
+    included: false,
+    confidence: 0.88
+  }
+];
+
+export { sampleDocument, sampleChunks, sampleFields, sampleDocumentMetadata, sampleMetadataFields };

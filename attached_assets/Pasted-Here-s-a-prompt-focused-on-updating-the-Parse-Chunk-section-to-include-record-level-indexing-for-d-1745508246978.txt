@@ -1,0 +1,69 @@
+Here's a prompt focused on updating the Parse & Chunk section to include record-level indexing for document metadata:
+
+# Prompt for Replit: Update Parse & Chunk to Include Record-Level Document Metadata Indexing
+
+Enhance the Parse & Chunk section of the Document Intelligence Center to support record-level indexing of document metadata. This feature will allow users to include document-wide attributes (like author, creation date, file type) as a unified JSON record alongside content chunks.
+
+## Feature Requirements:
+
+1. **Document Metadata Extraction:**
+   - Add a "Document Metadata" panel to the Parse & Chunk interface
+   - Automatically extract common metadata fields from uploaded documents:
+     - Author/Creator
+     - Creation date
+     - Last modified date
+     - Document title
+     - File size and type
+     - Source location/system
+   - Allow users to view and edit extracted metadata
+
+2. **Record-Level Indexing Configuration:**
+   - Add a "Record-Level Indexing" toggle in the Parse & Chunk configuration
+   - When enabled, show options for:
+     - Which metadata fields to include in the record
+     - How to structure the JSON record
+     - Whether to include this as a separate chunk or combine with content chunks
+   - Include preset templates for common document types (reports, emails, articles)
+
+3. **Preview Updates:**
+   - In the middle preview panel, add a "Document Record" tab alongside the chunks view
+   - Show a formatted JSON preview of how the document-level record will be structured
+   - Visually indicate which metadata fields are being included
+   - Demonstrate how this record relates to the content chunks
+
+## UI Implementation:
+
+1. **Metadata Extraction Panel:**
+   - Create a collapsible "Document Metadata" section in the right configuration panel
+   - Show automatically extracted fields with confidence scores
+   - Allow editing/correction of metadata values
+   - Include "Add Custom Field" option for user-defined metadata
+
+2. **Record Configuration:**
+   - Add checkboxes for selecting which metadata to include
+   - Create a "Record Structure" dropdown with options like:
+     - Flat (all metadata at root level)
+     - Nested (grouped by categories)
+     - Custom (user-defined structure)
+   - Include "Preview Record" button to show resulting JSON
+
+3. **Visual Integration:**
+   - Update the chunk visualization to show both:
+     - Content chunks from the document body
+     - The document-level metadata record
+   - Use color coding to differentiate between content and metadata
+   - Show relationships between the document record and content chunks
+
+## Functional Benefits to Highlight:
+
+1. **Search Improvements:**
+   - Explain how document metadata enhances search relevance
+   - Show how filtering by metadata (author, date, etc.) works
+   - Demonstrate improved retrieval for document-level attributes
+
+2. **Application Examples:**
+   - Knowledge management: finding documents by author or department
+   - Compliance: filtering content by creation date or document status
+   - Research: grouping similar document types together
+
+This update should seamlessly integrate document-level metadata into the chunking process, allowing for both granular content chunking and document-wide attribute indexing in a unified workflow.

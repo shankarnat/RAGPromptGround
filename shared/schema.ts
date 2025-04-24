@@ -80,7 +80,7 @@ export type ChunkingMethod = "semantic" | "fixed" | "header";
 
 export type ProcessingMode = "standard" | "idp" | "kg";
 
-export type TabView = "split" | "document" | "chunks" | "recordIndex";
+export type TabView = "split" | "document" | "chunks" | "recordIndex" | "documentRecord";
 
 export interface UploadedDocument {
   id: number;
@@ -115,6 +115,27 @@ export interface IndexField {
   chunkingStrategy?: string;
   vectorEmbedding?: boolean;
 }
+
+export interface DocumentMetadata {
+  author: string;
+  creationDate: string;
+  lastModified: string;
+  title: string;
+  fileSize: number;
+  fileType: string;
+  sourceLocation: string;
+  customFields: Record<string, string>;
+}
+
+export interface MetadataField {
+  id: number;
+  name: string;
+  value: string;
+  included: boolean;
+  confidence: number;
+}
+
+export type RecordStructure = "flat" | "nested" | "custom";
 
 export interface IndexConfiguration {
   name: string;
