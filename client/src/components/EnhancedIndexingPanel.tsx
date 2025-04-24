@@ -92,7 +92,87 @@ const EnhancedIndexingPanel: FC<EnhancedIndexingPanelProps> = ({
               Configure how each field is indexed to optimize search performance and accuracy.
             </p>
 
-            <Accordion type="multiple" defaultValue={["retrievable", "filterable", "typehead"]} className="space-y-4">
+            <Accordion type="multiple" defaultValue={["field-selection", "retrievable", "filterable", "typehead"]} className="space-y-4">
+              {/* Field Selection Section */}
+              <AccordionItem value="field-selection" className="border rounded-md">
+                <AccordionTrigger className="px-4 py-2 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <FileText className="h-4 w-4 mr-2 text-green-500" />
+                    <span className="font-medium text-sm">Field Selection</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="px-4 py-2 bg-gray-50 mb-3 rounded-md">
+                    <div className="flex space-x-2">
+                      <InfoIcon className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-gray-600">
+                        Select specific fields to include in your index. This allows you to focus on only the most relevant fields for your search application.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 px-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-medium">Field Name</span>
+                      <span className="text-xs font-medium">Include in Index</span>
+                    </div>
+                    
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                      {fields.map((field) => (
+                        <div 
+                          key={`select-${field.id}`}
+                          className="flex items-center justify-between py-1.5 border-b border-gray-100"
+                        >
+                          <div className="flex items-center">
+                            <span className="text-xs md:text-sm text-gray-700">{field.name}</span>
+                            <span className="ml-2 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
+                              {field.retrievable ? "Retrievable" : ""}
+                              {field.filterable ? (field.retrievable ? ", Filterable" : "Filterable") : ""}
+                            </span>
+                          </div>
+                          <Switch
+                            checked={field.retrievable || field.filterable || field.typehead}
+                            onCheckedChange={(checked) => {
+                              onFieldPropertyChange(field.id, "retrievable", checked);
+                              onFieldPropertyChange(field.id, "filterable", checked);
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex justify-between pt-2 border-t">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs"
+                        onClick={() => {
+                          fields.forEach(field => {
+                            onFieldPropertyChange(field.id, "retrievable", true);
+                            onFieldPropertyChange(field.id, "filterable", true);
+                          });
+                        }}
+                      >
+                        Select All
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs"
+                        onClick={() => {
+                          fields.forEach(field => {
+                            onFieldPropertyChange(field.id, "retrievable", false);
+                            onFieldPropertyChange(field.id, "filterable", false);
+                          });
+                        }}
+                      >
+                        Clear All
+                      </Button>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            
               {/* Retrievable Fields Section */}
               <AccordionItem value="retrievable" className="border rounded-md">
                 <AccordionTrigger className="px-4 py-2 hover:bg-gray-50">
@@ -211,6 +291,10 @@ const EnhancedIndexingPanel: FC<EnhancedIndexingPanelProps> = ({
             <div className="mt-6 pt-3 border-t border-gray-200">
               <h4 className="text-xs font-medium text-gray-700 mb-2">Field Indexing Summary</h4>
               <div className="bg-gray-50 p-3 rounded-md space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-600">Selected Fields:</span>
+                  <span className="text-xs font-medium">{fields.filter(f => f.retrievable || f.filterable || f.typehead).length} / {fields.length}</span>
+                </div>
                 <div className="flex justify-between">
                   <span className="text-xs text-gray-600">Retrievable Fields:</span>
                   <span className="text-xs font-medium">{fields.filter(f => f.retrievable).length} / {fields.length}</span>
