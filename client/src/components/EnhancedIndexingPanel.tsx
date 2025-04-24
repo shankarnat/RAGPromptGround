@@ -93,12 +93,12 @@ const EnhancedIndexingPanel: FC<EnhancedIndexingPanelProps> = ({
             </p>
 
             <Accordion type="multiple" defaultValue={["field-selection", "retrievable", "filterable", "typehead"]} className="space-y-4">
-              {/* Field Selection Section */}
+              {/* Indexing Options Section */}
               <AccordionItem value="field-selection" className="border rounded-md">
                 <AccordionTrigger className="px-4 py-2 hover:bg-gray-50">
                   <div className="flex items-center">
                     <FileText className="h-4 w-4 mr-2 text-green-500" />
-                    <span className="font-medium text-sm">Field Selection</span>
+                    <span className="font-medium text-sm">Indexing Options</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
