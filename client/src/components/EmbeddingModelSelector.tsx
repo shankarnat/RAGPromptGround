@@ -24,14 +24,14 @@ const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
   onSelectModel
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [provider, setProvider] = useState<string | null>(null);
+  const [provider, setProvider] = useState<string>("all");
   
   const filteredModels = models.filter(model => {
     const matchesSearch = searchQuery === "" || 
       model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       model.provider.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesProvider = provider === null || model.provider === provider;
+    const matchesProvider = provider === "all" || model.provider === provider;
     
     return matchesSearch && matchesProvider;
   });
@@ -64,12 +64,12 @@ const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
             />
           </div>
           
-          <Select value={provider || ""} onValueChange={(value) => setProvider(value || null)}>
+          <Select value={provider} onValueChange={(value) => setProvider(value)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="All Providers" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Providers</SelectItem>
+              <SelectItem value="all">All Providers</SelectItem>
               {providers.map(provider => (
                 <SelectItem key={provider} value={provider}>{provider}</SelectItem>
               ))}
