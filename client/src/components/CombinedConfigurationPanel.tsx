@@ -23,6 +23,7 @@ import {
   Layers
 } from "lucide-react";
 import VectorizationOptionsPanel from "./VectorizationOptionsPanel";
+import FinalizeIndexButton from "./FinalizeIndexButton";
 import { defaultAdvancedOptions } from "@/data/embeddingModelsData";
 import { useState } from "react";
 

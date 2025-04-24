@@ -80,17 +80,11 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       href: "/kg",
       disabled: true,
       optional: true
-    },
-    { 
-      name: "Test & Deploy", 
-      icon: <ShieldCheck className={`h-5 w-5 mr-3 ${activePage === "deploy" ? "text-primary-500" : "text-gray-500"}`} />, 
-      id: "deploy",
-      href: "/deploy"
     }
   ];
 
   const handleNavigation = (path: string, id: string) => {
-    if (id === "upload" || id === "parse-chunk" || id === "deploy") {
+    if (id === "upload" || id === "parse-chunk") {
       navigate(path);
     }
   };
