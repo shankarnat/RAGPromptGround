@@ -1,0 +1,89 @@
+Here's the updated prompt with the requested changes:
+
+# Prompt for Replit: Add Indexing Configuration Screen to Document Intelligence Center
+
+Enhance the Document Intelligence Center by adding a new "Configure Indexing" screen that follows the specific three-panel layout shown in your reference images, with modifications to the left panel navigation and adding index statistics to the middle panel.
+
+## Layout Requirements
+
+1. **Left Panel (Navigation):**
+   - Maintain existing sidebar with workflow steps
+   - **Remove all numeric step indicators** (no "3.", "4.", etc.)
+   - Include checkmarks for completed steps (Select Search Type, Vectorization)
+   - Highlight "Configure Index" as the active step
+   - Include sub-options under Configure Index (Fields, Other Configurations)
+   - Keep all other navigation options including IDP and KG as in previous designs
+
+2. **Middle Panel (Playground/Preview with Statistics):**
+   - Create an interactive preview area showing how document chunks are indexed
+   - **Add statistics dashboard at the top** showing:
+     - Total number of fields indexed
+     - Number of retrievable fields
+     - Number of filterable fields
+     - Average chunk size
+     - Total vector dimensions
+   - Display a visual representation of indexed content with field mapping
+   - Show expandable sections for different indexing types
+   - Include JSON-like representation of indexed records
+   - Implement a document preview with highlighting for different field types
+
+3. **Right Panel (Configuration Options):**
+   - Include "Frequently Asked Questions" header as shown in reference images
+   - Create sections for specific indexing concepts:
+     - "Field Level Indexing" explanation 
+     - "Record Level Indexing" explanation
+     - "Chunk Format Column" details
+   - Add "Retrievable Fields" section exactly as in Image 2
+   - Include "Typehead Fields" section from Image 2
+   - Add "Filtering Fields" description from reference image
+   - Include "Learn More" links for each section
+
+## Configuration Elements
+
+1. **Right Panel Options:**
+   - Explicitly include these sections from Image 2:
+     - Retrievable Fields explanation
+     - Typehead Fields explanation
+     - Filtering Fields explanation with examples
+   - Maintain the exact layout with descriptive text and "Learn More" links
+
+2. **Middle Playground with Statistics:**
+   - **Add metrics dashboard** showing indexing statistics
+   - Create visual indicators for index performance
+   - Include data distribution graphs for indexed fields
+   - Show expandable sections for:
+     - Retrievable Fields (with "No fields selected" placeholder)
+     - Typehead Fields (with "No fields selected" placeholder)
+     - Filtering Fields (with "No fields selected" placeholder)
+   - Include "Drag and drop fields for configuration" instructions
+   - Show cloud icon placeholders when no fields are selected
+
+3. **Indexing Configuration:**
+   - Include all configuration options from the references:
+     - Field Level Indexing with DMO and Chunking Strategy options
+     - Record Level Indexing with Data Type and API Name fields
+     - Toggles for "Create vector embedding from record level chunk"
+     - Post processing options
+
+## Visual Style
+
+- Match the exact color scheme and styling from the reference images
+- Use the same blue header with "New Configuration" title
+- Include Back/Next/Save buttons in the same positions
+- Implement the same accordion-style expandable sections
+- Use identical icons and visual indicators
+
+## Technical Implementation
+
+- Create a functional attribute search as shown in the left section of the reference
+- Allow dragging fields between different indexing types
+- Implement dropdown menus for chunking strategies
+- Include toggle switches for features
+
+## Integration
+
+- Ensure this screen maintains continuity with the Parse & Chunk view
+- Preserve context about the document being processed
+- Allow navigation between steps without losing configuration
+
+The implementation should closely mirror the reference images while incorporating the requested changes - removing numbered steps from the left panel and adding statistical information about indexed data in the middle preview panel.

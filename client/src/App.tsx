@@ -19,6 +19,11 @@ function Router() {
       </Route>
       <Route path="/upload" component={DocumentUpload} />
       <Route path="/parse-chunk" component={DocumentIntelligence} />
+      <Route path="/configure-index">
+        <Redirect to="/configure-index/fields" />
+      </Route>
+      <Route path="/configure-index/fields" component={() => <div>Configure Index Fields</div>} />
+      <Route path="/configure-index/other" component={() => <div>Other Configurations</div>} />
       <Route component={NotFound} />
     </Switch>
   );

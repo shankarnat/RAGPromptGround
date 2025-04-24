@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   LayoutDashboard, 
@@ -8,7 +8,10 @@ import {
   FileText, 
   Network, 
   Scale, 
-  ShieldCheck 
+  ShieldCheck,
+  Check,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 
 interface SidebarProps {
@@ -17,6 +20,15 @@ interface SidebarProps {
 
 const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   const [location, navigate] = useLocation();
+  const [expandedItems, setExpandedItems] = useState<string[]>(["configure-index"]);
+
+  const toggleSubnav = (id: string) => {
+    setExpandedItems(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id)
+        : [...prev, id]
+    );
+  };
 
   // Sidebar navigation items
   const navItems = [
@@ -30,19 +42,39 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       name: "Upload Document", 
       icon: <Upload className={`h-5 w-5 mr-3 ${activePage === "upload" ? "text-primary-500" : "text-gray-500"}`} />, 
       id: "upload",
-      href: "/upload"
+      href: "/upload",
+      completed: activePage !== "upload"
     },
     { 
       name: "Parse & Chunk", 
       icon: <AlignJustify className={`h-5 w-5 mr-3 ${activePage === "parse-chunk" ? "text-primary-500" : "text-gray-500"}`} />, 
       id: "parse-chunk",
-      href: "/parse-chunk"
+      href: "/parse-chunk",
+      completed: activePage !== "parse-chunk" && activePage !== "upload"
     },
     { 
-      name: "Embed Vectors", 
-      icon: <Zap className="h-5 w-5 mr-3 text-gray-500" />, 
-      id: "embed",
-      href: "/embed"
+      name: "Select Search Type", 
+      icon: <Zap className={`h-5 w-5 mr-3 ${activePage === "search-type" ? "text-primary-500" : "text-gray-500"}`} />, 
+      id: "search-type",
+      href: "/search-type",
+      completed: activePage === "configure-index" || activePage === "vectorization"
+    },
+    { 
+      name: "Vectorization", 
+      icon: <FileText className={`h-5 w-5 mr-3 ${activePage === "vectorization" ? "text-primary-500" : "text-gray-500"}`} />, 
+      id: "vectorization",
+      href: "/vectorization",
+      completed: activePage === "configure-index"
+    },
+    { 
+      name: "Configure Index", 
+      icon: <Network className={`h-5 w-5 mr-3 ${activePage === "configure-index" ? "text-primary-500" : "text-gray-500"}`} />, 
+      id: "configure-index",
+      href: "/configure-index",
+      subnav: [
+        { name: "Fields", id: "fields", href: "/configure-index/fields" },
+        { name: "Other Configurations", id: "other-config", href: "/configure-index/other" }
+      ]
     },
     { 
       name: "IDP Extraction", 
@@ -73,7 +105,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   ];
 
   const handleNavigation = (path: string, id: string) => {
-    if (id === "upload" || id === "parse-chunk") {
+    if (id === "upload" || id === "parse-chunk" || id === "configure-index" || id === "fields" || id === "other-config") {
       navigate(path);
     }
   };
@@ -89,26 +121,69 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
           <ul className="space-y-1 px-2">
             {navItems.map((item) => (
               <li key={item.id}>
-                <a 
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNavigation(item.href, item.id);
-                  }}
-                  className={`flex items-center px-3 py-2 rounded-md ${
-                    item.id === activePage
-                      ? "text-primary-600 bg-primary-50 font-medium"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  {item.icon}
-                  {item.name}
-                  {item.optional && (
-                    <span className="ml-auto text-xs bg-gray-200 px-2 py-0.5 rounded-full text-gray-600">
-                      Optional
-                    </span>
+                <div className="flex flex-col">
+                  <a 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (item.subnav) {
+                        toggleSubnav(item.id);
+                      } else {
+                        handleNavigation(item.href, item.id);
+                      }
+                    }}
+                    className={`flex items-center px-3 py-2 rounded-md ${
+                      item.id === activePage
+                        ? "text-primary-600 bg-primary-50 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="flex-1">{item.name}</span>
+                    
+                    {item.completed && (
+                      <span className="h-5 w-5 bg-green-500 rounded-full flex items-center justify-center mr-1">
+                        <Check className="h-3 w-3 text-white" />
+                      </span>
+                    )}
+                    
+                    {item.optional && (
+                      <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full text-gray-600">
+                        Optional
+                      </span>
+                    )}
+                    
+                    {item.subnav && (
+                      expandedItems.includes(item.id) 
+                        ? <ChevronDown className="h-4 w-4 ml-2 text-gray-500" />
+                        : <ChevronRight className="h-4 w-4 ml-2 text-gray-500" />
+                    )}
+                  </a>
+                  
+                  {/* Sub navigation items */}
+                  {item.subnav && expandedItems.includes(item.id) && (
+                    <ul className="pl-10 mt-1 space-y-1">
+                      {item.subnav.map((subItem) => (
+                        <li key={subItem.id}>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleNavigation(subItem.href, subItem.id);
+                            }}
+                            className={`block px-3 py-1.5 text-sm rounded-md ${
+                              subItem.id === activePage
+                                ? "text-primary-600 font-medium"
+                                : "text-gray-600 hover:text-gray-900"
+                            }`}
+                          >
+                            {subItem.name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
                   )}
-                </a>
+                </div>
               </li>
             ))}
           </ul>

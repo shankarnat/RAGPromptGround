@@ -95,3 +95,32 @@ export interface DataModel {
   name: string;
   apiName: string;
 }
+
+export interface IndexStatistics {
+  totalFieldsIndexed: number;
+  retrievableFields: number;
+  filterableFields: number;
+  averageChunkSize: number;
+  totalVectorDimensions: number;
+}
+
+export interface IndexField {
+  id: number;
+  name: string;
+  apiName: string;
+  dataType: string;
+  isRetrievable: boolean;
+  isFilterable: boolean;
+  isTypehead: boolean;
+  chunkingStrategy?: string;
+  vectorEmbedding?: boolean;
+}
+
+export interface IndexConfiguration {
+  name: string;
+  fieldLevelIndexing: boolean;
+  recordLevelIndexing: boolean;
+  createVectorEmbedding: boolean;
+  fields: IndexField[];
+  statistics: IndexStatistics;
+}
