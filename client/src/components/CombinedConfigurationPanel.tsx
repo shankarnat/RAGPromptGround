@@ -19,8 +19,11 @@ import {
   Database, 
   Search, 
   Filter,
-  FileText 
+  FileText,
+  Layers
 } from "lucide-react";
+import VectorizationOptionsPanel from "./VectorizationOptionsPanel";
+import { defaultAdvancedOptions } from "@/data/embeddingModelsData";
 import { useState } from "react";
 
 interface CombinedConfigurationPanelProps {
