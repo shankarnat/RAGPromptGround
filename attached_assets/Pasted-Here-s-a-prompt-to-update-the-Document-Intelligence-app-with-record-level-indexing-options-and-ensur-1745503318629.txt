@@ -1,0 +1,57 @@
+Here's a prompt to update the Document Intelligence app with record level indexing options and ensure proper layout of all options on the right side:
+
+# Prompt for Replit: Update Document Intelligence App with Expanded Indexing Options
+
+Please update the Document Intelligence Center application with the following specific layout and content changes:
+
+## 1. Configure Index Page Layout Adjustments:
+
+- **Right Panel - Full Height Utilization:**
+  - Expand configuration options to occupy the entire right panel, not just the bottom portion
+  - Implement proper scrolling for the right panel if content exceeds visible height
+  - Ensure all configuration sections are equally prominent and accessible
+
+- **Add Record Level Indexing Section:**
+  - Add a prominent "Record Level Indexing" section to the right panel
+  - Include toggle for enabling/disabling record level indexing
+  - Add configuration options specific to record-level processing:
+    - Create vector embedding from record level chunk option
+    - Configurable JSON paths for record fields
+    - Record chunk size settings
+
+- **Comprehensive Field Configuration:**
+  - Include all indexing options on the right panel, organized in clear sections:
+    1. Field Level Indexing (moved from Parse & Chunk page)
+    2. Record Level Indexing (newly added)
+    3. Retrievable Fields configuration
+    4. Filterable Fields options
+    5. Typehead Fields settings
+
+## 2. Right Panel Organization:
+
+- Add collapsible section headers for each configuration category
+- Implement a tabbed interface at the top of the right panel to switch between different configuration types
+- Include explanatory text for each option type
+- Add visual indicators showing which options are enabled
+- Ensure the "FAQ" section remains accessible but doesn't take space from configuration options
+
+## 3. Middle Panel Integration:
+
+- Update the middle panel preview to reflect both field-level and record-level indexing
+- Show visual difference between field chunks and record chunks
+- Provide real-time preview of how changes to indexing configuration affect the document
+
+## 4. Navigation and State Management:
+
+- Ensure all configuration options are saved when moving between steps
+- Add a "Apply Changes" button that updates the preview in real time
+- Include "Reset to Defaults" option for each configuration section
+
+## Visual Implementation Requirements:
+
+- Maintain consistent styling with the existing application
+- Use appropriate icons to differentiate between field and record level options
+- Add visual emphasis to currently active configuration sections
+- Implement responsive layout that works well at different screen sizes
+
+The goal is to create a comprehensive configuration interface where all indexing options (field level, record level, retrievable, filterable, and typehead) are clearly presented on the right panel, with real-time preview in the middle panel showing how these settings affect the document processing.

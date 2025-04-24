@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Sidebar from "@/components/Sidebar";
 import IndexStatisticsPanel from "@/components/IndexStatisticsPanel";
-import IndexPlayground from "@/components/IndexPlayground";
-import IndexFAQPanel from "@/components/IndexFAQPanel";
-import FieldIndexingPanel from "@/components/FieldIndexingPanel";
+import EnhancedIndexPlayground from "@/components/EnhancedIndexPlayground";
+import EnhancedIndexingPanel from "@/components/EnhancedIndexingPanel";
 import { sampleIndexConfiguration } from "@/data/sampleIndexData";
 import { ArrowLeft, ArrowRight, Save, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -151,10 +150,10 @@ const ConfigureIndex: FC = () => {
           {/* Main content */}
           <div className="flex space-x-6 h-full">
             <div className="flex-1 min-w-0">
-              <IndexPlayground fields={sampleIndexConfiguration.fields} />
+              <EnhancedIndexPlayground fields={sampleIndexConfiguration.fields} />
             </div>
             <div className="w-80 lg:w-96 flex-shrink-0">
-              <FieldIndexingPanel 
+              <EnhancedIndexingPanel 
                 fields={enhancedFields}
                 onFieldPropertyChange={handleFieldPropertyChange}
               />
