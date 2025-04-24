@@ -105,14 +105,16 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       icon: <Network className="h-5 w-5 mr-3 text-gray-400" />, 
       id: "kg", 
       href: "/kg",
-      disabled: true
+      disabled: true,
+      optional: true
     },
     { 
       name: "Build Pipeline", 
       icon: <Scale className="h-5 w-5 mr-3 text-gray-400" />, 
       id: "pipeline",
       href: "/pipeline",
-      disabled: true
+      disabled: true,
+      optional: true
     },
     { 
       name: "Test & Deploy", 
