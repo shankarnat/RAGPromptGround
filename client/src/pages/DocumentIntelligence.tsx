@@ -66,6 +66,9 @@ const DocumentIntelligence: FC = () => {
           recordStructure={state.recordStructure}
           onRecordStructureChange={updateRecordStructure}
           onAddCustomField={addCustomMetadataField}
+          // Field-level indexing props
+          fields={state.fields}
+          onFieldPropertyChange={updateFieldProperty}
         />
       </div>
     );
@@ -102,6 +105,7 @@ const DocumentIntelligence: FC = () => {
               <DocumentRecordPanel 
                 metadataFields={state.metadataFields}
                 recordStructure={state.recordStructure}
+                fields={state.fields}
               />
             </div>
             {configPanel}

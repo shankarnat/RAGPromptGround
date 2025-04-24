@@ -1,14 +1,23 @@
 import { FC } from "react";
 import { MetadataField, RecordStructure } from "@shared/schema";
+import { Database, FileText, Search, Filter } from "lucide-react";
 
 interface DocumentRecordPanelProps {
   metadataFields: MetadataField[];
   recordStructure: RecordStructure;
+  fields?: {
+    id: number;
+    name: string;
+    retrievable: boolean;
+    filterable: boolean;
+    typehead?: boolean;
+  }[];
 }
 
 const DocumentRecordPanel: FC<DocumentRecordPanelProps> = ({
   metadataFields,
-  recordStructure
+  recordStructure,
+  fields = []
 }) => {
   // Filter only included fields
   const includedFields = metadataFields.filter(field => field.included);
@@ -135,6 +144,69 @@ const DocumentRecordPanel: FC<DocumentRecordPanelProps> = ({
                 </div>
               </div>
             </div>
+            
+            {fields.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Field-Level Index Configuration</h4>
+                <div className="bg-white rounded-md border border-gray-200 p-3">
+                  <div className="mb-2 border-b pb-2 border-gray-100">
+                    <div className="grid grid-cols-4 gap-2 text-xs text-gray-500 font-medium">
+                      <div>Field Name</div>
+                      <div className="flex items-center">
+                        <Search className="h-3 w-3 mr-1" />
+                        <span>Retrievable</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Filter className="h-3 w-3 mr-1" />
+                        <span>Filterable</span>
+                      </div>
+                      <div className="flex items-center">
+                        <FileText className="h-3 w-3 mr-1" />
+                        <span>Type Ahead</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {fields.map(field => (
+                      <div key={field.id} className="grid grid-cols-4 gap-2 text-xs py-1 border-b border-gray-50">
+                        <div className="font-medium">{field.name}</div>
+                        <div>{field.retrievable ? 
+                          <span className="px-1.5 py-0.5 bg-green-50 text-green-600 rounded-full text-[10px]">Yes</span> : 
+                          <span className="px-1.5 py-0.5 bg-gray-50 text-gray-500 rounded-full text-[10px]">No</span>}
+                        </div>
+                        <div>{field.filterable ? 
+                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[10px]">Yes</span> : 
+                          <span className="px-1.5 py-0.5 bg-gray-50 text-gray-500 rounded-full text-[10px]">No</span>}
+                        </div>
+                        <div>{field.typehead ? 
+                          <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full text-[10px]">Yes</span> : 
+                          <span className="px-1.5 py-0.5 bg-gray-50 text-gray-500 rounded-full text-[10px]">No</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-3 pt-2 border-t border-gray-100 flex justify-between text-xs text-gray-500">
+                    <div>
+                      <Database className="h-3 w-3 inline mr-1" />
+                      <span>Indexing fields enabled:</span>
+                      <span className="ml-1 font-medium">{fields.length}</span>
+                    </div>
+                    <div>
+                      <span>Retrievable:</span>
+                      <span className="ml-1 font-medium">{fields.filter(f => f.retrievable).length}</span>
+                      <span className="mx-1">•</span>
+                      <span>Filterable:</span>
+                      <span className="ml-1 font-medium">{fields.filter(f => f.filterable).length}</span>
+                      <span className="mx-1">•</span>
+                      <span>Type Ahead:</span>
+                      <span className="ml-1 font-medium">{fields.filter(f => f.typehead).length}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center p-8 text-center">
