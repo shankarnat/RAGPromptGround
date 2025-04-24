@@ -52,6 +52,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       href: "/parse-chunk",
       completed: activePage !== "parse-chunk" && activePage !== "upload"
     },
+    /* Disabled Select Search Type
     { 
       name: "Select Search Type", 
       icon: <Zap className={`h-5 w-5 mr-3 ${activePage === "search-type" ? "text-primary-500" : "text-gray-500"}`} />, 
@@ -59,6 +60,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       href: "/search-type",
       completed: activePage === "configure-index" || activePage === "vectorization"
     },
+    */
     { 
       name: "Vectorization", 
       icon: <FileText className={`h-5 w-5 mr-3 ${activePage === "vectorization" ? "text-primary-500" : "text-gray-500"}`} />, 
@@ -76,6 +78,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
         { name: "Other Configurations", id: "other-config", href: "/configure-index/other" }
       ]
     },
+    /* Disabled IDP Extraction
     { 
       name: "IDP Extraction", 
       icon: <FileText className="h-5 w-5 mr-3 text-gray-500" />, 
@@ -83,6 +86,8 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       optional: true,
       href: "/idp"
     },
+    */
+    /* Disabled Knowledge Graph
     { 
       name: "Knowledge Graph", 
       icon: <Network className="h-5 w-5 mr-3 text-gray-500" />, 
@@ -90,12 +95,15 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       optional: true,
       href: "/kg"
     },
+    */
+    /* Disabled Build Pipeline
     { 
       name: "Build Pipeline", 
       icon: <Scale className="h-5 w-5 mr-3 text-gray-500" />, 
       id: "pipeline",
       href: "/pipeline"
     },
+    */
     { 
       name: "Test & Deploy", 
       icon: <ShieldCheck className={`h-5 w-5 mr-3 ${activePage === "deploy" ? "text-primary-500" : "text-gray-500"}`} />, 
