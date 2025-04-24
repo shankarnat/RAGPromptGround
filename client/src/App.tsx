@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import DocumentIntelligence from "@/pages/DocumentIntelligence";
 import DocumentUpload from "@/pages/DocumentUpload";
 import ConfigureIndex from "@/pages/ConfigureIndex";
+import Vectorization from "@/pages/Vectorization";
 import TestAndResults from "@/pages/TestAndResults";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/configure-index/other">
         <ConfigureIndex />
       </Route>
+      <Route path="/vectorization" component={Vectorization} />
       <Route path="/test" component={TestAndResults} />
       <Route path="/deploy" component={TestAndResults} />
       <Route component={NotFound} />

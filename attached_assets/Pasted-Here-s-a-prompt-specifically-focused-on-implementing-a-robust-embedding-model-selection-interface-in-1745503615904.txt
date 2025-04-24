@@ -1,0 +1,66 @@
+Here's a prompt specifically focused on implementing a robust embedding model selection interface in the vectorization section:
+
+# Prompt for Replit: Enhance Vectorization Section with Comprehensive Embedding Model Selection
+
+Update the Document Intelligence Center application to include a robust embedding model selection interface in the vectorization section with the following specifications:
+
+## Vectorization UI Requirements:
+
+1. **Embedding Model Dropdown:**
+   - Create a prominent dropdown menu labeled "Select Embedding Model"
+   - Include a diverse range of embedding models including:
+     - OpenAI models (text-embedding-ada-002, text-embedding-3-small, text-embedding-3-large)
+     - E5 models (E5-small, E5-base, E5-large)
+     - Cohere models (embed-english-v3.0, embed-multilingual-v3.0)
+     - BERT-based models (all-MiniLM-L6-v2, all-mpnet-base-v2)
+     - Sentence transformers (sentence-t5-xxl)
+   - Group models by provider with clear visual distinction
+
+2. **Model Information Display:**
+   - For each selected model, show key specs:
+     - Dimension count (e.g., 1536 dimensions)
+     - Supported languages
+     - Maximum token length
+     - Relative performance metrics (speed vs. quality indicator)
+   - Include a small info icon with tooltip showing model details
+
+3. **Advanced Configuration Options:**
+   - Add toggles for:
+     - Normalize embeddings
+     - Use pooling strategy dropdown (mean, max, cls token)
+     - Truncation handling method
+   - Include batch size configuration for processing
+   - Add option to enable/disable caching
+
+## Visual Implementation:
+
+1. **Model Selection Card:**
+   - Create a visually distinct card for the vectorization section
+   - Include a "Vectorization" header with appropriate icon
+   - Make the model dropdown the most prominent element
+   - Add visual indicators for recommended/popular models
+
+2. **Interactive Elements:**
+   - Implement a "Test Embedding" button that shows sample vector output
+   - Add dimension visualization that updates based on selected model
+   - Include performance comparison tooltip when hovering between models
+
+3. **Layout Integration:**
+   - Position the vectorization section prominently in the workflow
+   - Ensure the dropdown is easily accessible and visually prominent
+   - Maintain consistent styling with the rest of the application
+
+## Technical Implementation:
+
+1. **Dropdown Functionality:**
+   - Implement search filtering within the dropdown
+   - Include model logos/icons next to each option
+   - Show recently used models at the top 
+   - Preserve selection across workflow navigation
+
+2. **Information Display:**
+   - Create collapsible sections for detailed model information
+   - Update displayed information based on selected model
+   - Include links to model documentation where appropriate
+
+The vectorization section should be visually appealing, informative, and intuitive, allowing users to easily select from a variety of embedding models while understanding the tradeoffs between different options.
