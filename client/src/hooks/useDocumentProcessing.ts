@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
-import { sampleDocument, sampleChunks, sampleFields } from "@/data/sampleDocument";
+import { sampleDocument, sampleChunks, sampleFields, sampleMetadataFields } from "@/data/sampleDocument";
 import { recentDocuments, dataModels } from "@/data/sampleUploadData";
-import { ChunkingMethod, ProcessingMode, TabView, UploadedDocument, DataModel } from "@shared/schema";
+import { 
+  ChunkingMethod, 
+  ProcessingMode, 
+  TabView, 
+  UploadedDocument, 
+  DataModel, 
+  MetadataField,
+  RecordStructure 
+} from "@shared/schema";
 
 export interface DocumentProcessingState {
   document: {
@@ -31,6 +39,10 @@ export interface DocumentProcessingState {
     retrievable: boolean;
     filterable: boolean;
   }[];
+  // Metadata & record-level indexing state
+  metadataFields: MetadataField[];
+  recordLevelIndexingEnabled: boolean;
+  recordStructure: RecordStructure;
   // Upload document view state
   activePage: string;
   uploadProgress: number;
@@ -52,6 +64,10 @@ export function useDocumentProcessing() {
     chunkSize: 150,
     chunkOverlap: 20,
     fields: sampleFields,
+    // Metadata & record-level indexing state
+    metadataFields: sampleMetadataFields,
+    recordLevelIndexingEnabled: false,
+    recordStructure: "flat",
     // Upload document view state
     activePage: "upload", // Default to upload page
     uploadProgress: 0,
@@ -189,6 +205,49 @@ export function useDocumentProcessing() {
     }));
   };
 
+  // Metadata handling methods
+  const updateMetadataField = (fieldId: number, property: "included" | "value", value: boolean | string) => {
+    setState(prev => ({
+      ...prev,
+      metadataFields: prev.metadataFields.map(field => 
+        field.id === fieldId 
+          ? { ...field, [property]: value } 
+          : field
+      )
+    }));
+  };
+
+  const toggleRecordLevelIndexing = (enabled: boolean) => {
+    setState(prev => ({
+      ...prev,
+      recordLevelIndexingEnabled: enabled,
+      // If turning it on, also switch to the record tab
+      activeTab: enabled && prev.activeTab === "split" ? "documentRecord" : prev.activeTab
+    }));
+  };
+
+  const updateRecordStructure = (structure: RecordStructure) => {
+    setState(prev => ({
+      ...prev,
+      recordStructure: structure
+    }));
+  };
+
+  const addCustomMetadataField = (name: string, value: string) => {
+    const newField: MetadataField = {
+      id: state.metadataFields.length + 1,
+      name,
+      value,
+      included: true,
+      confidence: 1.0 // Custom fields have full confidence
+    };
+
+    setState(prev => ({
+      ...prev,
+      metadataFields: [...prev.metadataFields, newField]
+    }));
+  };
+
   return {
     state,
     updateChunkingMethod,
@@ -198,6 +257,11 @@ export function useDocumentProcessing() {
     updateActiveTab,
     selectChunk,
     updateFieldProperty,
+    // Metadata methods
+    updateMetadataField,
+    toggleRecordLevelIndexing,
+    updateRecordStructure,
+    addCustomMetadataField,
     // Upload view methods
     setActivePage,
     selectDocument,

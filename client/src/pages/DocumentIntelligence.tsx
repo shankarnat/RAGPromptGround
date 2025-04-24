@@ -6,12 +6,27 @@ import TabNavigation from "@/components/TabNavigation";
 import DocumentPanel from "@/components/DocumentPanel";
 import ChunksPanel from "@/components/ChunksPanel";
 import ChunkingConfigurationPanel from "@/components/ChunkingConfigurationPanel";
+import DocumentMetadataPanel from "@/components/DocumentMetadataPanel";
+import DocumentRecordPanel from "@/components/DocumentRecordPanel";
 import NavigationButtons from "@/components/NavigationButtons";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import { useToast } from "@/hooks/use-toast";
 
 const DocumentIntelligence: FC = () => {
-  const { state, updateChunkingMethod, updateChunkSize, updateChunkOverlap, updateProcessingMode, updateActiveTab, selectChunk, updateFieldProperty } = useDocumentProcessing();
+  const { 
+    state, 
+    updateChunkingMethod, 
+    updateChunkSize, 
+    updateChunkOverlap, 
+    updateProcessingMode, 
+    updateActiveTab, 
+    selectChunk, 
+    updateFieldProperty,
+    updateMetadataField,
+    toggleRecordLevelIndexing,
+    updateRecordStructure,
+    addCustomMetadataField
+  } = useDocumentProcessing();
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -52,6 +67,7 @@ const DocumentIntelligence: FC = () => {
             </div>
           </div>
         );
+      
       case "chunks":
         return (
           <div className="flex space-x-6">
@@ -70,6 +86,29 @@ const DocumentIntelligence: FC = () => {
                 onChunkSizeChange={updateChunkSize}
                 chunkOverlap={state.chunkOverlap}
                 onChunkOverlapChange={updateChunkOverlap}
+              />
+            </div>
+          </div>
+        );
+      
+      case "documentRecord":
+        return (
+          <div className="flex space-x-6">
+            <div className="flex-1 min-w-0">
+              <DocumentRecordPanel 
+                metadataFields={state.metadataFields}
+                recordStructure={state.recordStructure}
+              />
+            </div>
+            <div className="w-80 lg:w-96 flex-shrink-0">
+              <DocumentMetadataPanel 
+                metadataFields={state.metadataFields}
+                onMetadataFieldChange={updateMetadataField}
+                recordLevelIndexingEnabled={state.recordLevelIndexingEnabled}
+                onRecordLevelIndexingToggle={toggleRecordLevelIndexing}
+                recordStructure={state.recordStructure}
+                onRecordStructureChange={updateRecordStructure}
+                onAddCustomField={addCustomMetadataField}
               />
             </div>
           </div>
