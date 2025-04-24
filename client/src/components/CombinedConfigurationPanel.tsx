@@ -157,6 +157,11 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
       </div>
       
       <div className="p-3 md:p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+        {/* Finalize and Create Index Button at the top */}
+        <div className="mb-4">
+          <FinalizeIndexButton className="w-full" />
+        </div>
+        
         <Accordion type="single" collapsible className="w-full" defaultValue="chunking">
           {/* Chunking Configuration Section */}
           <AccordionItem value="chunking">
@@ -574,11 +579,6 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        
-        {/* Finalize and Create Index Button */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <FinalizeIndexButton className="w-full" />
-        </div>
       </div>
     </div>
   );
