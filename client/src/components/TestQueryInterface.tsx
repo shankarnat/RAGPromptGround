@@ -10,7 +10,30 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CheckIcon, CopyIcon, FilterIcon, SearchIcon, Wand2Icon } from "lucide-react";
+import { 
+  CheckIcon, 
+  CopyIcon, 
+  FilterIcon, 
+  SearchIcon, 
+  Wand2Icon, 
+  BrainCircuitIcon, 
+  DatabaseIcon,
+  SparklesIcon 
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface HybridSearchResult {
+  text: string;
+  document: string;
+  score: number;
+  method: 'vector' | 'keyword' | 'hybrid';
+}
 
 interface TestQueryResult {
   answer: string;
@@ -19,6 +42,7 @@ interface TestQueryResult {
     document: string;
     confidence: number;
   }[];
+  hybridResults: HybridSearchResult[];
   metrics: {
     accuracy: number;
     latency: number;
@@ -45,6 +69,8 @@ const TestQueryInterface: FC<TestQueryInterfaceProps> = ({ fields }) => {
   const [activeTab, setActiveTab] = useState("query");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<TestQueryResult | null>(null);
+  const [selectedLLM, setSelectedLLM] = useState("gpt-4o");
+  const [resultsView, setResultsView] = useState<'rag' | 'hybrid'>('rag');
 
   // Get filterable fields
   const filterableFields = fields.filter(field => field.filterable);
@@ -73,6 +99,32 @@ const TestQueryInterface: FC<TestQueryInterfaceProps> = ({ fields }) => {
             text: "Claims for flood damage require documentation of water levels and evidence that water entered the property from external sources.",
             document: "Claims_Process.pdf",
             confidence: 0.78
+          }
+        ],
+        hybridResults: [
+          {
+            text: "Flood damage coverage extends to $50,000 maximum with a standard deductible of $2,500.",
+            document: "Insurance_Policy_2023.pdf",
+            score: 0.95,
+            method: 'vector'
+          },
+          {
+            text: "Properties in zone B or C (moderate to minimal flood risk) qualify for standard coverage rates.",
+            document: "Insurance_Policy_2023.pdf",
+            score: 0.88,
+            method: 'hybrid'
+          },
+          {
+            text: "All claims for water damage must document that water entered from external sources.",
+            document: "Claims_Process.pdf",
+            score: 0.82,
+            method: 'keyword'
+          },
+          {
+            text: "Flood barriers must meet local building code specifications to qualify for coverage.",
+            document: "Policy_Requirements.pdf",
+            score: 0.79,
+            method: 'vector'
           }
         ],
         metrics: {
@@ -198,6 +250,36 @@ const TestQueryInterface: FC<TestQueryInterfaceProps> = ({ fields }) => {
                     <Label htmlFor="enableRag">Retrieval Augmented Generation</Label>
                   </div>
                   
+                  {/* LLM Model Selector */}
+                  <div className="space-y-2">
+                    <Label htmlFor="llm-model">Language Model</Label>
+                    <Select value={selectedLLM} onValueChange={setSelectedLLM}>
+                      <SelectTrigger id="llm-model" className="w-full">
+                        <SelectValue placeholder="Select a model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-4o">
+                          <div className="flex items-center">
+                            <SparklesIcon className="h-4 w-4 mr-2 text-blue-500" />
+                            <span>GPT-4o (OpenAI)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="claude-3-7-sonnet">
+                          <div className="flex items-center">
+                            <SparklesIcon className="h-4 w-4 mr-2 text-orange-500" />
+                            <span>Claude 3.7 Sonnet (Anthropic)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="llama-3-sonar">
+                          <div className="flex items-center">
+                            <SparklesIcon className="h-4 w-4 mr-2 text-purple-500" />
+                            <span>Llama 3 Sonar (Perplexity)</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <Label htmlFor="temperature">Temperature: {temperature.toFixed(1)}</Label>
@@ -246,23 +328,79 @@ const TestQueryInterface: FC<TestQueryInterfaceProps> = ({ fields }) => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Sources</CardTitle>
-                  <CardDescription>Document chunks used to generate the answer</CardDescription>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>Sources</CardTitle>
+                      <CardDescription>Document chunks used to generate the answer</CardDescription>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant={resultsView === 'rag' ? 'default' : 'outline'} 
+                        size="sm" 
+                        onClick={() => setResultsView('rag')}
+                        className="flex items-center"
+                      >
+                        <BrainCircuitIcon className="h-4 w-4 mr-1" />
+                        RAG
+                      </Button>
+                      <Button 
+                        variant={resultsView === 'hybrid' ? 'default' : 'outline'} 
+                        size="sm" 
+                        onClick={() => setResultsView('hybrid')}
+                        className="flex items-center"
+                      >
+                        <DatabaseIcon className="h-4 w-4 mr-1" />
+                        Hybrid DB
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-60">
                     <div className="space-y-4">
-                      {result.sources.map((source, idx) => (
-                        <div key={idx} className="p-3 border rounded-md">
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="text-sm font-medium text-gray-700">
-                              {source.document}
-                            </span>
-                            {renderConfidenceBadge(source.confidence)}
+                      {resultsView === 'rag' ? (
+                        // RAG Sources view
+                        result.sources.map((source, idx) => (
+                          <div key={idx} className="p-3 border rounded-md">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="text-sm font-medium text-gray-700">
+                                {source.document}
+                              </span>
+                              {renderConfidenceBadge(source.confidence)}
+                            </div>
+                            <p className="text-sm text-gray-600">{source.text}</p>
                           </div>
-                          <p className="text-sm text-gray-600">{source.text}</p>
-                        </div>
-                      ))}
+                        ))
+                      ) : (
+                        // Hybrid DB results view
+                        result.hybridResults.map((result, idx) => (
+                          <div key={idx} className="p-3 border rounded-md">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="text-sm font-medium text-gray-700">
+                                {result.document}
+                              </span>
+                              <div className="flex items-center">
+                                <Badge 
+                                  variant="outline" 
+                                  className={`ml-2 ${
+                                    result.method === 'vector' 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : result.method === 'hybrid'
+                                      ? 'bg-purple-100 text-purple-800'
+                                      : 'bg-green-100 text-green-800'
+                                  }`}
+                                >
+                                  {result.method}
+                                </Badge>
+                                <Badge variant="outline" className="ml-2 bg-gray-100 text-gray-800">
+                                  {(result.score * 100).toFixed(0)}% score
+                                </Badge>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600">{result.text}</p>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </ScrollArea>
                 </CardContent>
