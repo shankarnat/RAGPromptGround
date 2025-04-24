@@ -25,9 +25,28 @@ const DocumentHeader: FC<DocumentHeaderProps> = ({
         <div className="inline-flex rounded-md shadow-sm" role="group">
           <button 
             type="button" 
-            className="py-2 px-4 text-sm font-medium rounded-md border border-gray-200 focus:z-10 focus:ring-2 focus:ring-primary-500 text-primary-600 bg-primary-50"
+            className={`py-2 px-4 text-sm font-medium rounded-l-lg border border-gray-200 focus:z-10 focus:ring-2 focus:ring-primary-500 ${
+              processingMode === "standard" 
+                ? "text-primary-600 bg-primary-50" 
+                : "text-gray-900 bg-white hover:bg-gray-100"
+            }`}
+            onClick={() => onProcessingModeChange("standard")}
           >
             Standard
+          </button>
+          <button 
+            type="button" 
+            className="py-2 px-4 text-sm font-medium border-t border-b border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
+            disabled
+          >
+            IDP
+          </button>
+          <button 
+            type="button" 
+            className="py-2 px-4 text-sm font-medium rounded-r-md border border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
+            disabled
+          >
+            KG
           </button>
         </div>
         

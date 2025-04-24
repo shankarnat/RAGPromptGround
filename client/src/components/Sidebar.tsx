@@ -14,6 +14,21 @@ import {
   ChevronRight
 } from "lucide-react";
 
+interface NavItem {
+  name: string;
+  icon: React.ReactNode;
+  id: string;
+  href: string;
+  completed?: boolean;
+  disabled?: boolean;
+  optional?: boolean;
+  subnav?: {
+    name: string;
+    id: string;
+    href: string;
+  }[];
+}
+
 interface SidebarProps {
   activePage: string;
 }
@@ -31,7 +46,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   };
 
   // Sidebar navigation items
-  const navItems = [
+  const navItems: NavItem[] = [
     { 
       name: "Dashboard", 
       icon: <LayoutDashboard className="h-5 w-5 mr-3 text-gray-500" />, 
@@ -52,15 +67,14 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       href: "/parse-chunk",
       completed: activePage !== "parse-chunk" && activePage !== "upload"
     },
-    /* Disabled Select Search Type
     { 
       name: "Select Search Type", 
-      icon: <Zap className={`h-5 w-5 mr-3 ${activePage === "search-type" ? "text-primary-500" : "text-gray-500"}`} />, 
+      icon: <Zap className="h-5 w-5 mr-3 text-gray-400" />, 
       id: "search-type",
       href: "/search-type",
-      completed: activePage === "configure-index" || activePage === "vectorization"
+      disabled: true,
+      optional: true
     },
-    */
     { 
       name: "Vectorization", 
       icon: <FileText className={`h-5 w-5 mr-3 ${activePage === "vectorization" ? "text-primary-500" : "text-gray-500"}`} />, 
@@ -78,32 +92,28 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
         { name: "Other Configurations", id: "other-config", href: "/configure-index/other" }
       ]
     },
-    /* Disabled IDP Extraction
     { 
       name: "IDP Extraction", 
-      icon: <FileText className="h-5 w-5 mr-3 text-gray-500" />, 
+      icon: <FileText className="h-5 w-5 mr-3 text-gray-400" />, 
       id: "idp", 
-      optional: true,
-      href: "/idp"
+      href: "/idp",
+      disabled: true,
+      optional: true
     },
-    */
-    /* Disabled Knowledge Graph
     { 
       name: "Knowledge Graph", 
-      icon: <Network className="h-5 w-5 mr-3 text-gray-500" />, 
+      icon: <Network className="h-5 w-5 mr-3 text-gray-400" />, 
       id: "kg", 
-      optional: true,
-      href: "/kg"
+      href: "/kg",
+      disabled: true
     },
-    */
-    /* Disabled Build Pipeline
     { 
       name: "Build Pipeline", 
-      icon: <Scale className="h-5 w-5 mr-3 text-gray-500" />, 
+      icon: <Scale className="h-5 w-5 mr-3 text-gray-400" />, 
       id: "pipeline",
-      href: "/pipeline"
+      href: "/pipeline",
+      disabled: true
     },
-    */
     { 
       name: "Test & Deploy", 
       icon: <ShieldCheck className={`h-5 w-5 mr-3 ${activePage === "deploy" ? "text-primary-500" : "text-gray-500"}`} />, 
@@ -134,16 +144,20 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      if (item.subnav) {
+                      if (item.disabled) {
+                        return;
+                      } else if (item.subnav) {
                         toggleSubnav(item.id);
                       } else {
                         handleNavigation(item.href, item.id);
                       }
                     }}
                     className={`flex items-center px-3 py-2 rounded-md ${
-                      item.id === activePage
-                        ? "text-primary-600 bg-primary-50 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
+                      item.disabled
+                        ? "text-gray-400 cursor-not-allowed"
+                        : item.id === activePage
+                          ? "text-primary-600 bg-primary-50 font-medium"
+                          : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     {item.icon}
