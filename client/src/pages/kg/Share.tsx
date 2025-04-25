@@ -18,7 +18,10 @@ import {
   User,
   UserSquare2,
   Network,
-  Workflow
+  Workflow,
+  MessageSquare,
+  Briefcase,
+  Tag
 } from 'lucide-react';
 
 const Share = () => {
