@@ -492,17 +492,9 @@ const EKGSetup: React.FC = () => {
   
   // Helper function to get the appropriate stroke color for an edge
   const getStrokeColor = (edge: Edge): string => {
-    // Analytics edges get different colors based on type
-    if (edge.fromNodeType === 'person' && edge.toNodeType === 'person') {
-      return "#ff5722"; // Orange for Who Knows Who
-    }
-    
-    if (edge.fromNodeType === 'person' && edge.toNodeType === 'project') {
-      return "#4caf50"; // Green for Who Does What (person-project)
-    }
-    
-    if (edge.fromNodeType === 'person' && edge.toNodeType === 'document') {
-      return "#009688"; // Teal for Who Does What (person-document)
+    // All analytics edges get green color
+    if (isAnalyticsEdge(edge)) {
+      return "#4caf50"; // Green for all analytics edges
     }
     
     // Regular relationship edges
@@ -515,17 +507,9 @@ const EKGSetup: React.FC = () => {
       return ""; // No arrowhead for bidirectional edges (we use a separate line)
     }
     
-    // Analytics edges get different colored arrowheads
-    if (edge.fromNodeType === 'person' && edge.toNodeType === 'person') {
-      return "url(#arrowhead-orange)"; // Orange for Who Knows Who
-    }
-    
-    if (edge.fromNodeType === 'person' && edge.toNodeType === 'project') {
-      return "url(#arrowhead-green)"; // Green for Who Does What (person-project)
-    }
-    
-    if (edge.fromNodeType === 'person' && edge.toNodeType === 'document') {
-      return "url(#arrowhead-teal)"; // Teal for Who Does What (person-document)
+    // All analytics edges get green arrowheads
+    if (isAnalyticsEdge(edge)) {
+      return "url(#arrowhead-green)"; // Green for all analytics edges
     }
     
     // Regular relationship edges
@@ -588,143 +572,186 @@ const EKGSetup: React.FC = () => {
     
     return (
       <div className="flex flex-col space-y-2">
-        <svg ref={svgRef} width="100%" height="350" viewBox="0 0 600 350" className="border rounded-lg">
-          {/* Edge connections */}
-          {filteredEdges.map((edge) => {
-            const fromPos = nodePositions[edge.fromNodeType];
-            const toPos = nodePositions[edge.toNodeType];
-            
-            if (!fromPos || !toPos) return null;
-            
-            return (
-              <g key={edge.id}>
-                {/* Edge line */}
-                <line 
-                  x1={fromPos.x} 
-                  y1={fromPos.y} 
-                  x2={toPos.x} 
-                  y2={toPos.y} 
-                  stroke={getStrokeColor(edge)} 
-                  strokeWidth="2" 
-                  markerEnd={getMarkerEnd(edge)} 
-                  strokeDasharray={getStrokeDashArray(edge)} 
-                />
+        <div className="border rounded-lg overflow-auto" style={{ height: '350px' }}>
+          <svg ref={svgRef} width="100%" height="800" viewBox="0 0 600 350">
+            {/* Edge connections */}
+            {filteredEdges.map((edge) => {
+              const fromPos = nodePositions[edge.fromNodeType];
+              const toPos = nodePositions[edge.toNodeType];
+              
+              if (!fromPos || !toPos) return null;
+              
+              // Check if this is a self-referencing edge (affinity between the same node)
+              const isSelfReference = edge.fromNodeType === edge.toNodeType;
+              
+              if (isSelfReference) {
+                // Draw a curved arc for self-reference to make it more visible
+                const centerX = fromPos.x;
+                const centerY = fromPos.y;
+                const radius = 50; // Radius of the arc
                 
-                {/* Edge label */}
-                <text 
-                  x={(fromPos.x + toPos.x) / 2} 
-                  y={(fromPos.y + toPos.y) / 2 - 10} 
-                  textAnchor="middle" 
-                  fill="#4b5563" 
-                  fontSize="12" 
-                  fontWeight="medium"
-                  className="select-none"
-                >
-                  {edge.name}
-                </text>
-                
-                {/* Reverse arrow for bidirectional edges */}
-                {edge.isBidirectional && (
+                // Create a curved path for self-reference
+                return (
+                  <g key={edge.id}>
+                    <path
+                      d={`M ${centerX},${centerY - 35} 
+                          C ${centerX + 70},${centerY - 70} 
+                            ${centerX + 70},${centerY + 70} 
+                            ${centerX},${centerY + 35}`}
+                      fill="none"
+                      stroke={getStrokeColor(edge)}
+                      strokeWidth="2"
+                      strokeDasharray={getStrokeDashArray(edge)}
+                      markerEnd={getMarkerEnd(edge)}
+                    />
+                    
+                    {/* Edge label */}
+                    <text 
+                      x={centerX + 70} 
+                      y={centerY} 
+                      textAnchor="middle" 
+                      fill="#4b5563" 
+                      fontSize="12" 
+                      fontWeight="medium"
+                      className="select-none"
+                    >
+                      {edge.name}
+                    </text>
+                  </g>
+                );
+              }
+              
+              // Regular edge between different nodes
+              return (
+                <g key={edge.id}>
+                  {/* Edge line */}
                   <line 
-                    x1={toPos.x} 
-                    y1={toPos.y} 
-                    x2={fromPos.x} 
-                    y2={fromPos.y} 
-                    stroke="transparent" 
+                    x1={fromPos.x} 
+                    y1={fromPos.y} 
+                    x2={toPos.x} 
+                    y2={toPos.y} 
+                    stroke={getStrokeColor(edge)} 
                     strokeWidth="2" 
                     markerEnd={getMarkerEnd(edge)} 
+                    strokeDasharray={getStrokeDashArray(edge)} 
                   />
-                )}
-              </g>
-            );
-          })}
-          
-          {/* DMO nodes */}
-          {selectedDMOs.map(dmo => {
-            const pos = nodePositions[dmo.id];
-            if (!pos) return null;
+                  
+                  {/* Edge label */}
+                  <text 
+                    x={(fromPos.x + toPos.x) / 2} 
+                    y={(fromPos.y + toPos.y) / 2 - 10} 
+                    textAnchor="middle" 
+                    fill="#4b5563" 
+                    fontSize="12" 
+                    fontWeight="medium"
+                    className="select-none"
+                  >
+                    {edge.name}
+                  </text>
+                  
+                  {/* Reverse arrow for bidirectional edges */}
+                  {edge.isBidirectional && (
+                    <line 
+                      x1={toPos.x} 
+                      y1={toPos.y} 
+                      x2={fromPos.x} 
+                      y2={fromPos.y} 
+                      stroke="transparent" 
+                      strokeWidth="2" 
+                      markerEnd={getMarkerEnd(edge)} 
+                    />
+                  )}
+                </g>
+              );
+            })}
             
-            return (
-              <g key={dmo.id}>
-                {/* Node circle */}
-                <circle 
-                  cx={pos.x} 
-                  cy={pos.y} 
-                  r="35" 
-                  fill={dmo.required ? "#f0fdf4" : "#f9fafb"} 
-                  stroke={dmo.required ? "#10b981" : "#6b7280"} 
-                  strokeWidth="2" 
-                  className="cursor-pointer"
-                />
-                
-                {/* Node icon */}
-                <foreignObject x={pos.x - 15} y={pos.y - 15} width="30" height="30">
-                  <div className="flex items-center justify-center h-full">
-                    {React.cloneElement(dmo.icon as React.ReactElement, { className: "h-6 w-6" })}
-                  </div>
-                </foreignObject>
-                
-                {/* Node name */}
-                <text 
-                  x={pos.x} 
-                  y={pos.y + 25} 
-                  textAnchor="middle" 
-                  fill="#374151" 
-                  fontSize="12" 
-                  fontWeight="medium"
-                  className="select-none"
-                >
-                  {dmo.name}
-                </text>
-              </g>
-            );
-          })}
-          
-          {/* Arrow marker definition */}
-          <defs>
-            {/* Multiple arrowhead markers with different colors */}
-            <marker 
-              id="arrowhead" 
-              markerWidth="10" 
-              markerHeight="7" 
-              refX="9" 
-              refY="3.5" 
-              orient="auto"
-            >
-              <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
-            </marker>
-            <marker 
-              id="arrowhead-orange" 
-              markerWidth="10" 
-              markerHeight="7" 
-              refX="9" 
-              refY="3.5" 
-              orient="auto"
-            >
-              <polygon points="0 0, 10 3.5, 0 7" fill="#ff5722" />
-            </marker>
-            <marker 
-              id="arrowhead-green" 
-              markerWidth="10" 
-              markerHeight="7" 
-              refX="9" 
-              refY="3.5" 
-              orient="auto"
-            >
-              <polygon points="0 0, 10 3.5, 0 7" fill="#4caf50" />
-            </marker>
-            <marker 
-              id="arrowhead-teal" 
-              markerWidth="10" 
-              markerHeight="7" 
-              refX="9" 
-              refY="3.5" 
-              orient="auto"
-            >
-              <polygon points="0 0, 10 3.5, 0 7" fill="#009688" />
-            </marker>
-          </defs>
-        </svg>
+            {/* DMO nodes */}
+            {selectedDMOs.map(dmo => {
+              const pos = nodePositions[dmo.id];
+              if (!pos) return null;
+              
+              return (
+                <g key={dmo.id}>
+                  {/* Node circle */}
+                  <circle 
+                    cx={pos.x} 
+                    cy={pos.y} 
+                    r="35" 
+                    fill={dmo.required ? "#f0fdf4" : "#f9fafb"} 
+                    stroke={dmo.required ? "#10b981" : "#6b7280"} 
+                    strokeWidth="2" 
+                    className="cursor-pointer"
+                  />
+                  
+                  {/* Node icon */}
+                  <foreignObject x={pos.x - 15} y={pos.y - 15} width="30" height="30">
+                    <div className="flex items-center justify-center h-full">
+                      {React.cloneElement(dmo.icon as React.ReactElement, { className: "h-6 w-6" })}
+                    </div>
+                  </foreignObject>
+                  
+                  {/* Node name */}
+                  <text 
+                    x={pos.x} 
+                    y={pos.y + 25} 
+                    textAnchor="middle" 
+                    fill="#374151" 
+                    fontSize="12" 
+                    fontWeight="medium"
+                    className="select-none"
+                  >
+                    {dmo.name}
+                  </text>
+                </g>
+              );
+            })}
+            
+            {/* Arrow marker definition */}
+            <defs>
+              {/* Multiple arrowhead markers with different colors */}
+              <marker 
+                id="arrowhead" 
+                markerWidth="10" 
+                markerHeight="7" 
+                refX="9" 
+                refY="3.5" 
+                orient="auto"
+              >
+                <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+              </marker>
+              <marker 
+                id="arrowhead-orange" 
+                markerWidth="10" 
+                markerHeight="7" 
+                refX="9" 
+                refY="3.5" 
+                orient="auto"
+              >
+                <polygon points="0 0, 10 3.5, 0 7" fill="#ff5722" />
+              </marker>
+              <marker 
+                id="arrowhead-green" 
+                markerWidth="10" 
+                markerHeight="7" 
+                refX="9" 
+                refY="3.5" 
+                orient="auto"
+              >
+                <polygon points="0 0, 10 3.5, 0 7" fill="#4caf50" />
+              </marker>
+              <marker 
+                id="arrowhead-teal" 
+                markerWidth="10" 
+                markerHeight="7" 
+                refX="9" 
+                refY="3.5" 
+                orient="auto"
+              >
+                <polygon points="0 0, 10 3.5, 0 7" fill="#009688" />
+              </marker>
+            </defs>
+          </svg>
+        </div>
         
         {/* Simple Legend */}
         <div className="flex items-center justify-center space-x-8 py-2 bg-gray-50 rounded border">
@@ -741,7 +768,7 @@ const EKGSetup: React.FC = () => {
           <div className="flex items-center">
             <div className="h-px w-8 mr-2" style={{ 
               height: '2px', 
-              background: 'repeating-linear-gradient(to right, #ff5722 0, #ff5722 4px, transparent 4px, transparent 6px)' 
+              background: 'repeating-linear-gradient(to right, #4caf50 0, #4caf50 4px, transparent 4px, transparent 6px)' 
             }}></div>
             <span className="text-sm text-gray-600">Analytics</span>
           </div>
