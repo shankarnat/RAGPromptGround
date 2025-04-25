@@ -587,8 +587,8 @@ const EKGSetup: React.FC = () => {
     });
     
     return (
-      <div className="relative">
-        <svg ref={svgRef} width="100%" height="400" viewBox="0 0 600 400" className="border rounded-lg">
+      <div className="flex flex-col space-y-2">
+        <svg ref={svgRef} width="100%" height="350" viewBox="0 0 600 350" className="border rounded-lg">
           {/* Edge connections */}
           {filteredEdges.map((edge) => {
             const fromPos = nodePositions[edge.fromNodeType];
@@ -724,47 +724,28 @@ const EKGSetup: React.FC = () => {
               <polygon points="0 0, 10 3.5, 0 7" fill="#009688" />
             </marker>
           </defs>
-          
-          {/* Graph Legend */}
-          <g transform="translate(20, 360)">
-            <rect x="0" y="0" width="560" height="50" fill="#f9fafb" stroke="#e5e7eb" strokeWidth="1" rx="4" />
-            
-            {/* Title */}
-            <text x="10" y="15" fontSize="10" fontWeight="bold" fill="#374151">Legend:</text>
-            
-            {/* Main Groups */}
-            <g transform="translate(10, 35)">
-              {/* EKG DMO/Node */}
-              <g transform="translate(10, 0)">
-                <circle cx="0" cy="0" r="6" fill="#f9fafb" stroke="#6b7280" strokeWidth="1.5" />
-                <text x="12" y="4" fontSize="10" fill="#4b5563">EKG DMO/Node</text>
-              </g>
-              
-              {/* Regular Edge */}
-              <g transform="translate(120, 0)">
-                <line x1="-15" y1="0" x2="5" y2="0" stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrowhead)" />
-                <text x="12" y="4" fontSize="10" fill="#4b5563">Regular Relationship</text>
-              </g>
-            </g>
-            
-            {/* Analytics Group */}
-            <g transform="translate(280, 15)">
-              <text x="0" y="0" fontSize="10" fontWeight="bold" fill="#374151">Analytics (Dotted Lines):</text>
-              
-              {/* Who Knows Who Analytics */}
-              <g transform="translate(20, 20)">
-                <line x1="-15" y1="0" x2="5" y2="0" stroke="#ff5722" strokeWidth="2" strokeDasharray="4 2" markerEnd="url(#arrowhead-orange)" />
-                <text x="12" y="4" fontSize="10" fill="#4b5563">Who Knows Who</text>
-              </g>
-              
-              {/* Who Does What Analytics */}
-              <g transform="translate(150, 20)">
-                <line x1="-15" y1="0" x2="5" y2="0" stroke="#4caf50" strokeWidth="2" strokeDasharray="4 2" markerEnd="url(#arrowhead-green)" />
-                <text x="12" y="4" fontSize="10" fill="#4b5563">Who Does What</text>
-              </g>
-            </g>
-          </g>
         </svg>
+        
+        {/* Simple Legend */}
+        <div className="flex items-center justify-center space-x-8 py-2 bg-gray-50 rounded border">
+          <div className="flex items-center">
+            <div className="h-5 w-5 rounded-full border border-gray-500 bg-white mr-2"></div>
+            <span className="text-sm text-gray-600">Node/Entity</span>
+          </div>
+          
+          <div className="flex items-center">
+            <div className="h-px w-8 bg-blue-500 mr-2" style={{ height: '2px' }}></div>
+            <span className="text-sm text-gray-600">Edge</span>
+          </div>
+          
+          <div className="flex items-center">
+            <div className="h-px w-8 mr-2" style={{ 
+              height: '2px', 
+              background: 'repeating-linear-gradient(to right, #ff5722 0, #ff5722 4px, transparent 4px, transparent 6px)' 
+            }}></div>
+            <span className="text-sm text-gray-600">Analytics</span>
+          </div>
+        </div>
       </div>
     );
   };
