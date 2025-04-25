@@ -2246,7 +2246,7 @@ const EKGSetup: React.FC = () => {
       title="EKG Setup"
       rightPanelContent={rightPanelContent}
       currentStep={2}
-      totalSteps={5}  // Updated since we're removing the Edge Configuration page
+      totalSteps={4}  // 4 steps: Template, Setup, Playground, Share
       onNext={handleNext}
       onPrevious={handlePrevious}
     >

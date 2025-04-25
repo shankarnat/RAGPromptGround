@@ -256,7 +256,7 @@ const DMOSelection: React.FC = () => {
       title="EKG Data Models"
       rightPanelContent={rightPanelContent}
       currentStep={2}
-      totalSteps={7}
+      totalSteps={4}  // 4 steps: Template, Setup, Playground, Share
       onNext={handleNext}
       onPrevious={handlePrevious}
     >

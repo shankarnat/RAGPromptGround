@@ -215,7 +215,7 @@ const Mapping: React.FC = () => {
       title="Source-to-EKG Mapping"
       rightPanelContent={rightPanelContent}
       currentStep={5}
-      totalSteps={7}
+      totalSteps={4}  // 4 steps: Template, Setup, Playground, Share
       onNext={handleNext}
       onPrevious={handlePrevious}
     >
