@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   ArrowRight, 
   ArrowLeftRight, 
@@ -17,7 +18,16 @@ import {
   Tag, 
   Edit, 
   Check, 
-  ArrowUpDown 
+  ChevronDown,
+  ChevronUp,
+  Database,
+  Calendar,
+  ShoppingCart,
+  Briefcase,
+  Building,
+  Truck,
+  MapPin,
+  HelpCircle
 } from 'lucide-react';
 
 interface Edge {
@@ -43,144 +53,182 @@ interface NodeType {
 
 const EdgeConfiguration: React.FC = () => {
   const [, navigate] = useLocation();
-  const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
-  const [showNewEdgeForm, setShowNewEdgeForm] = useState(false);
   
-  const nodeTypes: NodeType[] = [
-    { id: 'document', name: 'Document', icon: <FileText className="h-5 w-5 text-blue-500" /> },
-    { id: 'user', name: 'User', icon: <User className="h-5 w-5 text-green-500" /> },
-    { id: 'tag', name: 'Tag', icon: <Tag className="h-5 w-5 text-red-500" /> },
-  ];
-
-  // Initial edge configurations
+  // Node types that can be connected by edges
+  const [nodeTypes] = useState<NodeType[]>([
+    { id: 'user', name: 'User', icon: <User className="h-4 w-4 text-blue-500" /> },
+    { id: 'document', name: 'Document', icon: <FileText className="h-4 w-4 text-gray-500" /> },
+    { id: 'product', name: 'Product', icon: <ShoppingCart className="h-4 w-4 text-green-500" /> },
+    { id: 'organization', name: 'Organization', icon: <Building className="h-4 w-4 text-purple-500" /> },
+    { id: 'event', name: 'Event', icon: <Calendar className="h-4 w-4 text-red-500" /> },
+    { id: 'project', name: 'Project', icon: <Briefcase className="h-4 w-4 text-amber-500" /> },
+    { id: 'location', name: 'Location', icon: <MapPin className="h-4 w-4 text-indigo-500" /> },
+    { id: 'category', name: 'Category', icon: <Tag className="h-4 w-4 text-teal-500" /> },
+    { id: 'supplier', name: 'Supplier', icon: <Truck className="h-4 w-4 text-orange-500" /> },
+  ]);
+  
+  // Edges connecting node types
   const [edges, setEdges] = useState<Edge[]>([
     {
-      id: 'edge1',
+      id: '1',
       name: 'Created',
       fromNodeType: 'user',
       toNodeType: 'document',
       isBidirectional: false,
       attributes: [
-        { id: 'attr1', name: 'timestamp', type: 'date' },
-        { id: 'attr2', name: 'method', type: 'string' },
+        { id: '1-1', name: 'created_at', type: 'date' },
+        { id: '1-2', name: 'platform', type: 'string' },
       ]
     },
     {
-      id: 'edge2',
-      name: 'Tagged',
-      fromNodeType: 'document',
-      toNodeType: 'tag',
+      id: '2',
+      name: 'WorksAt',
+      fromNodeType: 'user',
+      toNodeType: 'organization',
       isBidirectional: false,
       attributes: [
-        { id: 'attr3', name: 'added_at', type: 'date' },
-        { id: 'attr4', name: 'relevance_score', type: 'number' },
+        { id: '2-1', name: 'start_date', type: 'date' },
+        { id: '2-2', name: 'role', type: 'string' },
+        { id: '2-3', name: 'is_active', type: 'boolean' },
       ]
     },
     {
-      id: 'edge3',
+      id: '3',
       name: 'Collaborates',
       fromNodeType: 'user',
       toNodeType: 'user',
       isBidirectional: true,
       attributes: [
-        { id: 'attr5', name: 'frequency', type: 'number' },
-        { id: 'attr6', name: 'last_interaction', type: 'date' },
+        { id: '3-1', name: 'project_count', type: 'number' },
+        { id: '3-2', name: 'last_collaboration', type: 'date' },
       ]
-    },
+    }
   ]);
-
-  // New edge form state
-  const [newEdge, setNewEdge] = useState<Omit<Edge, 'id'>>({
+  
+  // State for adding/editing edges
+  const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
+  const [showNewEdgeForm, setShowNewEdgeForm] = useState<boolean>(false);
+  const [newEdge, setNewEdge] = useState<Omit<Edge, 'id'> & { id?: string }>({
     name: '',
     fromNodeType: '',
     toNodeType: '',
     isBidirectional: false,
     attributes: []
   });
-
-  // New attribute form state
+  
+  // State for adding attributes
   const [newAttribute, setNewAttribute] = useState<Omit<EdgeAttribute, 'id'>>({
     name: '',
     type: 'string'
   });
-
-  const handleAddEdge = () => {
-    if (newEdge.name && newEdge.fromNodeType && newEdge.toNodeType) {
-      const edge: Edge = {
-        ...newEdge,
-        id: `edge${Date.now()}`,
-      };
-      
-      setEdges(prev => [...prev, edge]);
-      setNewEdge({
-        name: '',
-        fromNodeType: '',
-        toNodeType: '',
-        isBidirectional: false,
-        attributes: []
-      });
-      setShowNewEdgeForm(false);
-    }
+  
+  // Reset the new edge form
+  const resetNewEdgeForm = () => {
+    setNewEdge({
+      name: '',
+      fromNodeType: '',
+      toNodeType: '',
+      isBidirectional: false,
+      attributes: []
+    });
+    setNewAttribute({
+      name: '',
+      type: 'string'
+    });
   };
-
+  
+  // Start editing an existing edge
+  const startEditing = (edge: Edge) => {
+    setEditingEdgeId(edge.id);
+    setNewEdge({
+      ...edge
+    });
+  };
+  
+  // Add a new edge
+  const handleAddEdge = () => {
+    const edgeId = Date.now().toString();
+    const newEdgeWithId: Edge = {
+      id: edgeId,
+      name: newEdge.name,
+      fromNodeType: newEdge.fromNodeType,
+      toNodeType: newEdge.toNodeType,
+      isBidirectional: newEdge.isBidirectional,
+      attributes: newEdge.attributes
+    };
+    
+    setEdges(prev => [...prev, newEdgeWithId]);
+    setShowNewEdgeForm(false);
+    resetNewEdgeForm();
+  };
+  
+  // Update an existing edge
   const handleUpdateEdge = (edgeId: string) => {
     setEdges(prev => prev.map(edge => 
       edge.id === edgeId 
-        ? { ...edge, ...newEdge, id: edgeId }
+        ? { ...newEdge, id: edgeId } as Edge
         : edge
     ));
     setEditingEdgeId(null);
+    resetNewEdgeForm();
   };
-
+  
+  // Delete an edge
   const handleDeleteEdge = (edgeId: string) => {
     setEdges(prev => prev.filter(edge => edge.id !== edgeId));
   };
-
+  
+  // Add an attribute to an edge
   const handleAddAttribute = (edgeId: string) => {
-    if (newAttribute.name) {
-      const attribute: EdgeAttribute = {
-        ...newAttribute,
-        id: `attr${Date.now()}`
-      };
-      
+    const attributeId = `${edgeId}-${Date.now()}`;
+    const attribute: EdgeAttribute = {
+      id: attributeId,
+      name: newAttribute.name,
+      type: newAttribute.type
+    };
+    
+    if (editingEdgeId) {
+      setNewEdge(prev => ({
+        ...prev,
+        attributes: [...prev.attributes, attribute]
+      }));
+    } else {
       setEdges(prev => prev.map(edge => 
         edge.id === edgeId
           ? { ...edge, attributes: [...edge.attributes, attribute] }
           : edge
       ));
-      
-      setNewAttribute({
-        name: '',
-        type: 'string'
-      });
+    }
+    
+    setNewAttribute({
+      name: '',
+      type: 'string'
+    });
+  };
+  
+  // Delete an attribute from an edge
+  const handleDeleteAttribute = (edgeId: string, attributeId: string) => {
+    if (editingEdgeId) {
+      setNewEdge(prev => ({
+        ...prev,
+        attributes: prev.attributes.filter(attr => attr.id !== attributeId)
+      }));
+    } else {
+      setEdges(prev => prev.map(edge => 
+        edge.id === edgeId
+          ? { ...edge, attributes: edge.attributes.filter(attr => attr.id !== attributeId) }
+          : edge
+      ));
     }
   };
-
-  const handleDeleteAttribute = (edgeId: string, attributeId: string) => {
-    setEdges(prev => prev.map(edge => 
-      edge.id === edgeId
-        ? { ...edge, attributes: edge.attributes.filter(attr => attr.id !== attributeId) }
-        : edge
-    ));
-  };
-
-  const startEditing = (edge: Edge) => {
-    setNewEdge({
-      name: edge.name,
-      fromNodeType: edge.fromNodeType,
-      toNodeType: edge.toNodeType,
-      isBidirectional: edge.isBidirectional,
-      attributes: edge.attributes
-    });
-    setEditingEdgeId(edge.id);
-  };
-
-  const getNodeName = (nodeId: string) => {
+  
+  // Helper functions
+  const getNodeName = (nodeId: string): string => {
     const node = nodeTypes.find(n => n.id === nodeId);
     return node ? node.name : nodeId;
   };
-
-  const getNodeIcon = (nodeId: string) => {
+  
+  const getNodeIcon = (nodeId: string): React.ReactNode => {
     const node = nodeTypes.find(n => n.id === nodeId);
     return node ? node.icon : null;
   };
@@ -195,35 +243,309 @@ const EdgeConfiguration: React.FC = () => {
     navigate('/kg/dmo');
   };
 
-  // Help panel content
+  // Edge definitions UI to be shown in the right panel
+  const EdgeDefinitionsPanel = () => {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-medium">Edge Definitions</h2>
+          <Button 
+            onClick={() => setShowNewEdgeForm(true)}
+            disabled={showNewEdgeForm || editingEdgeId !== null}
+            size="sm"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Edge
+          </Button>
+        </div>
+        
+        {/* Edge list */}
+        <div className="space-y-4">
+          {edges.map(edge => (
+            <div 
+              key={edge.id} 
+              className={`p-3 border rounded-md ${
+                editingEdgeId === edge.id ? 'border-primary-500 bg-primary-50' : 'hover:bg-gray-50'
+              }`}
+            >
+              {editingEdgeId === edge.id ? (
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="edge-name" className="text-xs mb-1 block">Name</Label>
+                    <Input 
+                      id="edge-name"
+                      value={newEdge.name}
+                      onChange={e => setNewEdge({...newEdge, name: e.target.value})}
+                      placeholder="e.g., Created, Owns"
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <div className="flex-1">
+                      <Label htmlFor="from-node" className="text-xs mb-1 block">From</Label>
+                      <Select
+                        value={newEdge.fromNodeType}
+                        onValueChange={value => setNewEdge({...newEdge, fromNodeType: value})}
+                      >
+                        <SelectTrigger id="from-node" className="h-7 text-xs">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {nodeTypes.map(node => (
+                            <SelectItem key={node.id} value={node.id}>
+                              <div className="flex items-center">
+                                {node.icon}
+                                <span className="ml-2 text-xs">{node.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="flex-1">
+                      <Label htmlFor="to-node" className="text-xs mb-1 block">To</Label>
+                      <Select
+                        value={newEdge.toNodeType}
+                        onValueChange={value => setNewEdge({...newEdge, toNodeType: value})}
+                      >
+                        <SelectTrigger id="to-node" className="h-7 text-xs">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {nodeTypes.map(node => (
+                            <SelectItem key={node.id} value={node.id}>
+                              <div className="flex items-center">
+                                {node.icon}
+                                <span className="ml-2 text-xs">{node.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="bidirectional"
+                      checked={newEdge.isBidirectional}
+                      onCheckedChange={checked => setNewEdge({...newEdge, isBidirectional: checked})}
+                    />
+                    <Label htmlFor="bidirectional" className="text-xs">Bidirectional</Label>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2 pt-2">
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingEdgeId(null)}
+                      className="h-7 text-xs"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => handleUpdateEdge(edge.id)}
+                      disabled={!newEdge.name || !newEdge.fromNodeType || !newEdge.toNodeType}
+                      size="sm"
+                      className="h-7 text-xs"
+                    >
+                      <Check className="h-3 w-3 mr-1" />
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-xs">{edge.name}</h3>
+                    <div className="flex items-center space-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => startEditing(edge)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Edit className="h-3 w-3 text-gray-500" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteEdge(edge.id)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Trash2 className="h-3 w-3 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center mb-2 text-xs">
+                    <div className="flex items-center">
+                      {getNodeIcon(edge.fromNodeType)}
+                      <span className="ml-1">{getNodeName(edge.fromNodeType)}</span>
+                    </div>
+                    
+                    {edge.isBidirectional ? (
+                      <ArrowLeftRight className="h-3 w-3 mx-1 text-purple-500" />
+                    ) : (
+                      <ArrowRight className="h-3 w-3 mx-1 text-blue-500" />
+                    )}
+                    
+                    <div className="flex items-center">
+                      {getNodeIcon(edge.toNodeType)}
+                      <span className="ml-1">{getNodeName(edge.toNodeType)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {/* New edge form */}
+          {showNewEdgeForm && (
+            <div className="p-3 border rounded-md border-blue-200 bg-blue-50">
+              <h3 className="font-medium text-xs mb-2">New Edge</h3>
+              <div className="space-y-3">
+                {/* Same form fields as in the edit mode */}
+                <div>
+                  <Label htmlFor="new-edge-name" className="text-xs mb-1 block">Name</Label>
+                  <Input 
+                    id="new-edge-name"
+                    value={newEdge.name}
+                    onChange={e => setNewEdge({...newEdge, name: e.target.value})}
+                    placeholder="e.g., Created, Owns"
+                    className="h-7 text-xs"
+                  />
+                </div>
+                
+                <div className="flex space-x-2">
+                  <div className="flex-1">
+                    <Label htmlFor="new-from-node" className="text-xs mb-1 block">From</Label>
+                    <Select
+                      value={newEdge.fromNodeType}
+                      onValueChange={value => setNewEdge({...newEdge, fromNodeType: value})}
+                    >
+                      <SelectTrigger id="new-from-node" className="h-7 text-xs">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {nodeTypes.map(node => (
+                          <SelectItem key={node.id} value={node.id}>
+                            <div className="flex items-center">
+                              {node.icon}
+                              <span className="ml-2 text-xs">{node.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex-1">
+                    <Label htmlFor="new-to-node" className="text-xs mb-1 block">To</Label>
+                    <Select
+                      value={newEdge.toNodeType}
+                      onValueChange={value => setNewEdge({...newEdge, toNodeType: value})}
+                    >
+                      <SelectTrigger id="new-to-node" className="h-7 text-xs">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {nodeTypes.map(node => (
+                          <SelectItem key={node.id} value={node.id}>
+                            <div className="flex items-center">
+                              {node.icon}
+                              <span className="ml-2 text-xs">{node.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="new-bidirectional"
+                    checked={newEdge.isBidirectional}
+                    onCheckedChange={checked => setNewEdge({...newEdge, isBidirectional: checked})}
+                  />
+                  <Label htmlFor="new-bidirectional" className="text-xs">Bidirectional</Label>
+                </div>
+                
+                <div className="flex justify-end space-x-2 pt-2">
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowNewEdgeForm(false);
+                      resetNewEdgeForm();
+                    }}
+                    className="h-7 text-xs"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleAddEdge}
+                    disabled={!newEdge.name || !newEdge.fromNodeType || !newEdge.toNodeType}
+                    size="sm"
+                    className="h-7 text-xs"
+                  >
+                    <Check className="h-3 w-3 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Help panel content with information tooltip
   const rightPanelContent = (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-sm font-medium mb-2">Edge Configuration</h3>
-        <p className="text-sm text-gray-600">
-          Edges define relationships between nodes in your knowledge graph. Configure the relationship types, directionality, and attributes here.
-        </p>
-      </div>
+      <EdgeDefinitionsPanel />
       
-      <div>
-        <h3 className="text-sm font-medium mb-2">Edge Types</h3>
-        <p className="text-sm text-gray-600">
-          Common edge types include 'Created', 'Owns', 'Contributes To', 'Reports To', etc. Choose meaningful names that describe the relationship.
-        </p>
-      </div>
-      
-      <div>
-        <h3 className="text-sm font-medium mb-2">Directionality</h3>
-        <p className="text-sm text-gray-600">
-          One-way relationships flow from one node to another. Bidirectional relationships apply in both directions and are useful for peer relationships.
-        </p>
-      </div>
-      
-      <div>
-        <h3 className="text-sm font-medium mb-2">Edge Attributes</h3>
-        <p className="text-sm text-gray-600">
-          Attributes store additional information about the relationship, such as creation time, strength, or other metadata that helps characterize the relationship.
-        </p>
+      <div className="mt-8">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-start mt-4 cursor-pointer">
+                <div className="mr-2 mt-1">
+                  <HelpCircle className="h-4 w-4 text-gray-400" />
+                </div>
+                <h3 className="text-sm font-medium mb-2 text-gray-500">Configuration Help</h3>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="w-72 p-4">
+              <div className="space-y-3 text-xs">
+                <div>
+                  <h4 className="font-medium mb-1">Edge Types</h4>
+                  <p className="text-gray-600">
+                    Common edge types include 'Created', 'Owns', 'Contributes To', 'Reports To', etc. Choose meaningful names that describe the relationship.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-1">Directionality</h4>
+                  <p className="text-gray-600">
+                    One-way relationships flow from one node to another. Bidirectional relationships apply in both directions and are useful for peer relationships.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-1">Edge Attributes</h4>
+                  <p className="text-gray-600">
+                    Attributes store additional information about the relationship, such as creation time, strength, or other metadata that helps characterize the relationship.
+                  </p>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );
@@ -411,345 +733,17 @@ const EdgeConfiguration: React.FC = () => {
       onNext={handleNext}
       onPrevious={handlePrevious}
     >
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div>
         {/* Graph visualization panel */}
-        <div className="lg:flex-1">
-          <Card>
-            <CardContent className="pt-6">
-              <h2 className="text-lg font-medium mb-4">Edge Visualization</h2>
-              <p className="text-gray-600 mb-6">
-                This visualization shows the configured relationships between entity types in your knowledge graph.
-              </p>
-              <GraphVisualization />
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Edge configuration panel */}
-        <div className="lg:w-96">
-          <Card className="mb-6">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-medium">Edge Definitions</h2>
-                <Button 
-                  onClick={() => setShowNewEdgeForm(true)}
-                  disabled={showNewEdgeForm || editingEdgeId !== null}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Edge
-                </Button>
-              </div>
-              
-              {/* Edge list */}
-              <div className="space-y-4 mb-6">
-                {edges.map(edge => (
-                  <div 
-                    key={edge.id} 
-                    className={`p-4 border rounded-md ${
-                      editingEdgeId === edge.id ? 'border-primary-500 bg-primary-50' : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    {editingEdgeId === edge.id ? (
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="edge-name" className="mb-1 block">Relationship Name</Label>
-                          <Input 
-                            id="edge-name"
-                            value={newEdge.name}
-                            onChange={e => setNewEdge({...newEdge, name: e.target.value})}
-                            placeholder="e.g., Created, Owns, Reports To"
-                          />
-                        </div>
-                        
-                        <div className="flex space-x-4">
-                          <div className="flex-1">
-                            <Label htmlFor="from-node" className="mb-1 block">From</Label>
-                            <Select
-                              value={newEdge.fromNodeType}
-                              onValueChange={value => setNewEdge({...newEdge, fromNodeType: value})}
-                            >
-                              <SelectTrigger id="from-node">
-                                <SelectValue placeholder="Select node" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {nodeTypes.map(node => (
-                                  <SelectItem key={node.id} value={node.id}>
-                                    <div className="flex items-center">
-                                      {node.icon}
-                                      <span className="ml-2">{node.name}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="flex-1">
-                            <Label htmlFor="to-node" className="mb-1 block">To</Label>
-                            <Select
-                              value={newEdge.toNodeType}
-                              onValueChange={value => setNewEdge({...newEdge, toNodeType: value})}
-                            >
-                              <SelectTrigger id="to-node">
-                                <SelectValue placeholder="Select node" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {nodeTypes.map(node => (
-                                  <SelectItem key={node.id} value={node.id}>
-                                    <div className="flex items-center">
-                                      {node.icon}
-                                      <span className="ml-2">{node.name}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="bidirectional"
-                            checked={newEdge.isBidirectional}
-                            onCheckedChange={checked => setNewEdge({...newEdge, isBidirectional: checked})}
-                          />
-                          <Label htmlFor="bidirectional">Bidirectional relationship</Label>
-                        </div>
-                        
-                        <div className="pt-2">
-                          <Label className="mb-2 block">Attributes</Label>
-                          {newEdge.attributes.map(attr => (
-                            <div key={attr.id} className="flex items-center space-x-2 mb-2">
-                              <div className="flex-1 text-sm">
-                                {attr.name} <span className="text-gray-500">({attr.type})</span>
-                              </div>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => handleDeleteAttribute(edge.id, attr.id)}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </div>
-                          ))}
-                          
-                          <div className="flex items-end space-x-2 mt-3">
-                            <div className="flex-1">
-                              <Label htmlFor="attr-name" className="text-xs mb-1 block">Name</Label>
-                              <Input 
-                                id="attr-name"
-                                className="h-8 text-sm"
-                                value={newAttribute.name}
-                                onChange={e => setNewAttribute({...newAttribute, name: e.target.value})}
-                                placeholder="e.g., created_at"
-                              />
-                            </div>
-                            <div className="w-24">
-                              <Label htmlFor="attr-type" className="text-xs mb-1 block">Type</Label>
-                              <Select
-                                value={newAttribute.type}
-                                onValueChange={value => setNewAttribute({
-                                  ...newAttribute, 
-                                  type: value as 'string' | 'number' | 'date' | 'boolean'
-                                })}
-                              >
-                                <SelectTrigger id="attr-type">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="string">String</SelectItem>
-                                  <SelectItem value="number">Number</SelectItem>
-                                  <SelectItem value="date">Date</SelectItem>
-                                  <SelectItem value="boolean">Boolean</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <Button 
-                              size="sm"
-                              onClick={() => handleAddAttribute(edge.id)}
-                              disabled={!newAttribute.name}
-                            >
-                              Add
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-end space-x-2 pt-2">
-                          <Button 
-                            variant="outline"
-                            onClick={() => setEditingEdgeId(null)}
-                          >
-                            Cancel
-                          </Button>
-                          <Button 
-                            onClick={() => handleUpdateEdge(edge.id)}
-                            disabled={!newEdge.name || !newEdge.fromNodeType || !newEdge.toNodeType}
-                          >
-                            <Check className="h-4 w-4 mr-2" />
-                            Save
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-medium">{edge.name}</h3>
-                          <div className="flex items-center space-x-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => startEditing(edge)}
-                            >
-                              <Edit className="h-4 w-4 text-gray-500" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleDeleteEdge(edge.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center mb-3">
-                          <div className="flex items-center">
-                            {getNodeIcon(edge.fromNodeType)}
-                            <span className="text-sm ml-1">{getNodeName(edge.fromNodeType)}</span>
-                          </div>
-                          
-                          {edge.isBidirectional ? (
-                            <ArrowLeftRight className="h-4 w-4 mx-2 text-purple-500" />
-                          ) : (
-                            <ArrowRight className="h-4 w-4 mx-2 text-blue-500" />
-                          )}
-                          
-                          <div className="flex items-center">
-                            {getNodeIcon(edge.toNodeType)}
-                            <span className="text-sm ml-1">{getNodeName(edge.toNodeType)}</span>
-                          </div>
-                        </div>
-                        
-                        {edge.attributes.length > 0 && (
-                          <div>
-                            <p className="text-xs text-gray-500 mb-1">Attributes:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {edge.attributes.map(attr => (
-                                <span 
-                                  key={attr.id} 
-                                  className="text-xs bg-gray-100 px-2 py-1 rounded-full"
-                                >
-                                  {attr.name}: {attr.type}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              {/* New edge form */}
-              {showNewEdgeForm && (
-                <div className="p-4 border rounded-md border-primary-500 bg-primary-50 space-y-4">
-                  <h3 className="font-medium">Add New Edge</h3>
-                  
-                  <div>
-                    <Label htmlFor="new-edge-name" className="mb-1 block">Relationship Name</Label>
-                    <Input 
-                      id="new-edge-name"
-                      value={newEdge.name}
-                      onChange={e => setNewEdge({...newEdge, name: e.target.value})}
-                      placeholder="e.g., Created, Owns, Reports To"
-                    />
-                  </div>
-                  
-                  <div className="flex space-x-4">
-                    <div className="flex-1">
-                      <Label htmlFor="new-from-node" className="mb-1 block">From</Label>
-                      <Select
-                        value={newEdge.fromNodeType}
-                        onValueChange={value => setNewEdge({...newEdge, fromNodeType: value})}
-                      >
-                        <SelectTrigger id="new-from-node">
-                          <SelectValue placeholder="Select node" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {nodeTypes.map(node => (
-                            <SelectItem key={node.id} value={node.id}>
-                              <div className="flex items-center">
-                                {node.icon}
-                                <span className="ml-2">{node.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="flex-1">
-                      <Label htmlFor="new-to-node" className="mb-1 block">To</Label>
-                      <Select
-                        value={newEdge.toNodeType}
-                        onValueChange={value => setNewEdge({...newEdge, toNodeType: value})}
-                      >
-                        <SelectTrigger id="new-to-node">
-                          <SelectValue placeholder="Select node" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {nodeTypes.map(node => (
-                            <SelectItem key={node.id} value={node.id}>
-                              <div className="flex items-center">
-                                {node.icon}
-                                <span className="ml-2">{node.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="new-bidirectional"
-                      checked={newEdge.isBidirectional}
-                      onCheckedChange={checked => setNewEdge({...newEdge, isBidirectional: checked})}
-                    />
-                    <Label htmlFor="new-bidirectional">Bidirectional relationship</Label>
-                  </div>
-                  
-                  <div className="flex justify-end space-x-2 pt-2">
-                    <Button 
-                      variant="outline"
-                      onClick={() => {
-                        setShowNewEdgeForm(false);
-                        setNewEdge({
-                          name: '',
-                          fromNodeType: '',
-                          toNodeType: '',
-                          isBidirectional: false,
-                          attributes: []
-                        });
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleAddEdge}
-                      disabled={!newEdge.name || !newEdge.fromNodeType || !newEdge.toNodeType}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <h2 className="text-lg font-medium mb-4">Edge Visualization</h2>
+            <p className="text-gray-600 mb-6">
+              This visualization shows the configured relationships between entity types in your knowledge graph.
+            </p>
+            <GraphVisualization />
+          </CardContent>
+        </Card>
       </div>
     </KnowledgeGraphLayout>
   );
