@@ -125,7 +125,12 @@ interface EdgeAttribute {
 
 // Combined EKG Setup Component (DMO Selection + Edge Configuration)
 const EKGSetup: React.FC = () => {
-  const [location, navigate] = useLocation();
+  const [location, setLocation] = useLocation();
+  
+  // Navigation helper function
+  const navigate = (path: string) => {
+    setLocation(path);
+  };
   const [activeTab, setActiveTab] = useState<'dmos' | 'edges' | 'analytics' | 'mapping'>('dmos');
   const [visualizationView, setVisualizationView] = useState<'visualization' | 'playground'>('visualization');
   const svgRef = useRef<SVGSVGElement>(null);

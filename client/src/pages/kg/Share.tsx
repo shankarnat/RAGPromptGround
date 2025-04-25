@@ -194,8 +194,8 @@ const Share = () => {
       title="Save &amp; Share"
       rightPanelContent={rightPanelContent}
       onPrevious={handlePrevious}
-      currentStep={3}
-      totalSteps={3}
+      currentStep={4}
+      totalSteps={4}
     >
       <div className="space-y-6">
         <div className="flex justify-between items-center">

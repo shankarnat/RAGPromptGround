@@ -211,7 +211,7 @@ const Playground: React.FC = () => {
       title="Query Playground"
       rightPanelContent={rightPanel}
       currentStep={3}
-      totalSteps={5}
+      totalSteps={4}
     >
       <div className="border rounded-lg p-4 h-[calc(100vh-250px)] flex flex-col space-y-4 overflow-hidden">
         <div className="flex flex-col space-y-2">
