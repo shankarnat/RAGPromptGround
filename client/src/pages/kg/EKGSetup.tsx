@@ -125,12 +125,8 @@ interface EdgeAttribute {
 
 // Combined EKG Setup Component (DMO Selection + Edge Configuration)
 const EKGSetup: React.FC = () => {
-  const [location, setLocation] = useLocation();
+  const [location, navigate] = useLocation();
   
-  // Navigation helper function
-  const navigate = (path: string) => {
-    setLocation(path);
-  };
   const [activeTab, setActiveTab] = useState<'dmos' | 'edges' | 'analytics' | 'mapping'>('dmos');
   const [visualizationView, setVisualizationView] = useState<'visualization' | 'playground'>('visualization');
   const svgRef = useRef<SVGSVGElement>(null);
@@ -3837,7 +3833,15 @@ const AnalyticsConfigModal: React.FC = () => {
     return (
       <div className="border rounded-lg p-4 h-[calc(100vh-250px)] flex flex-col space-y-4 overflow-hidden">
         <div className="flex flex-col space-y-2">
-          <h3 className="text-xl font-semibold">EKG Query Playground</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold">EKG Query Playground</h3>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/kg/playground')}
+            >
+              Open full Query Playground
+            </Button>
+          </div>
           <p className="text-sm text-gray-500">
             Explore your Enterprise Knowledge Graph with natural language queries and visualize entity relationships, affinities, and more.
           </p>

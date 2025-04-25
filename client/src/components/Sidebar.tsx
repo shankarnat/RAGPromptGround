@@ -87,8 +87,8 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
         },
         { 
           name: "EKG Setup", 
-          id: "kg-dmo", 
-          href: "/kg/dmo" 
+          id: "kg-ekg", 
+          href: "/kg/ekg" 
         },
         { 
           name: "Query Playground", 

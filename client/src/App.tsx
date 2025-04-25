@@ -46,6 +46,7 @@ function Router() {
       {/* Knowledge Graph routes */}
       <Route path="/kg/template" component={TemplateSelection} />
       <Route path="/kg/dmo" component={EKGSetup} />
+      <Route path="/kg/ekg" component={EKGSetup} /> {/* Alias for EKGSetup page */}
       <Route path="/kg/edge">
         <Redirect to="/kg/dmo" />
       </Route>
