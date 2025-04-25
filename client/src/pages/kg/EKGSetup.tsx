@@ -10,6 +10,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
 import { 
   FileText, 
   User, 
@@ -982,7 +984,7 @@ const EKGSetup: React.FC = () => {
   // Right panel content with tabs for DMOs, Edges, and Analytics
   const rightPanelContent = (
     <div className="space-y-4">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dmos' | 'edges' | 'analytics')} className="w-full">
         <TabsList className="grid grid-cols-3">
           <TabsTrigger value="dmos" className="text-xs">
             EKG Entities
@@ -1058,14 +1060,248 @@ const EKGSetup: React.FC = () => {
             </div>
             
             <div className="pt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/kg/analytics')}
-                className="w-full"
-              >
-                Advanced Analytics Configuration
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Advanced Analytics Configuration
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl">
+                  <DialogHeader>
+                    <DialogTitle>Advanced Analytics Configuration</DialogTitle>
+                    <DialogDescription>
+                      Fine-tune your analytics parameters and settings for the Enterprise Knowledge Graph.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  {/* Analytics Configuration Content */}
+                  <div className="mt-4 space-y-6">
+                    <Tabs defaultValue="who-knows-who">
+                      <TabsList className="grid grid-cols-2 w-full">
+                        <TabsTrigger value="who-knows-who">Who Knows Who</TabsTrigger>
+                        <TabsTrigger value="who-does-what">Who Does What</TabsTrigger>
+                      </TabsList>
+                      
+                      {/* Who Knows Who Tab */}
+                      <TabsContent value="who-knows-who" className="space-y-4 pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                          <div className="space-y-4">
+                            <div>
+                              <h3 className="text-sm font-medium mb-2">Weight Factors</h3>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <Label htmlFor="frequency-weight" className="text-xs">
+                                      Interaction Frequency
+                                    </Label>
+                                    <span className="text-xs font-medium">0.6</span>
+                                  </div>
+                                  <Slider
+                                    id="frequency-weight"
+                                    min={0}
+                                    max={1}
+                                    step={0.1}
+                                    defaultValue={[0.6]}
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <Label htmlFor="duration-weight" className="text-xs">
+                                      Relationship Duration
+                                    </Label>
+                                    <span className="text-xs font-medium">0.3</span>
+                                  </div>
+                                  <Slider
+                                    id="duration-weight"
+                                    min={0}
+                                    max={1}
+                                    step={0.1}
+                                    defaultValue={[0.3]}
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <Label htmlFor="recency-weight" className="text-xs">
+                                      Recency Factor
+                                    </Label>
+                                    <span className="text-xs font-medium">0.1</span>
+                                  </div>
+                                  <Slider
+                                    id="recency-weight"
+                                    min={0}
+                                    max={1}
+                                    step={0.1}
+                                    defaultValue={[0.1]}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h3 className="text-sm font-medium mb-2">Time Decay</h3>
+                              <div className="space-y-4">
+                                <div className="flex items-center space-x-2">
+                                  <Switch id="time-decay-toggle" defaultChecked />
+                                  <Label htmlFor="time-decay-toggle">Enable Time Decay</Label>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="half-life" className="text-xs">
+                                    Half-life (days)
+                                  </Label>
+                                  <Input
+                                    id="half-life"
+                                    type="number"
+                                    defaultValue="90"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <h3 className="text-sm font-medium mb-2">Threshold Settings</h3>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <Label htmlFor="min-weight" className="text-xs">
+                                      Minimum Relationship Weight
+                                    </Label>
+                                    <span className="text-xs font-medium">0.3</span>
+                                  </div>
+                                  <Slider
+                                    id="min-weight"
+                                    min={0}
+                                    max={1}
+                                    step={0.1}
+                                    defaultValue={[0.3]}
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="min-interactions" className="text-xs">
+                                    Minimum Interactions
+                                  </Label>
+                                  <Input
+                                    id="min-interactions"
+                                    type="number"
+                                    defaultValue="5"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </TabsContent>
+                      
+                      {/* Who Does What Tab */}
+                      <TabsContent value="who-does-what" className="space-y-4 pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                          <div className="space-y-4">
+                            <div>
+                              <h3 className="text-sm font-medium mb-2">Content Type Weights</h3>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <Label htmlFor="document-weight" className="text-xs">
+                                      Document Weight
+                                    </Label>
+                                    <span className="text-xs font-medium">0.6</span>
+                                  </div>
+                                  <Slider
+                                    id="document-weight"
+                                    min={0}
+                                    max={1}
+                                    step={0.1}
+                                    defaultValue={[0.6]}
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <Label htmlFor="project-weight" className="text-xs">
+                                      Project Weight
+                                    </Label>
+                                    <span className="text-xs font-medium">0.4</span>
+                                  </div>
+                                  <Slider
+                                    id="project-weight"
+                                    min={0}
+                                    max={1}
+                                    step={0.1}
+                                    defaultValue={[0.4]}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <h3 className="text-sm font-medium mb-2">Expertise Settings</h3>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <Label htmlFor="expertise-threshold" className="text-xs">
+                                      Expertise Threshold
+                                    </Label>
+                                    <span className="text-xs font-medium">0.7</span>
+                                  </div>
+                                  <Slider
+                                    id="expertise-threshold"
+                                    min={0}
+                                    max={1}
+                                    step={0.1}
+                                    defaultValue={[0.7]}
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="topic-extraction-method" className="text-xs">
+                                    Topic Extraction Method
+                                  </Label>
+                                  <Select defaultValue="tf-idf">
+                                    <SelectTrigger id="topic-extraction-method">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="tf-idf">TF-IDF</SelectItem>
+                                      <SelectItem value="bert">BERT Embeddings</SelectItem>
+                                      <SelectItem value="lda">LDA Topic Modeling</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="min-frequency" className="text-xs">
+                                    Min. Topic Frequency
+                                  </Label>
+                                  <Input
+                                    id="min-frequency"
+                                    type="number"
+                                    defaultValue="3"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button type="submit">Save Changes</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </TabsContent>
