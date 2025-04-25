@@ -16,6 +16,7 @@ import TemplateSelection from "@/pages/kg/TemplateSelection";
 import EKGSetup from "@/pages/kg/EKGSetup";
 import Mapping from "@/pages/kg/Mapping";
 import AnalyticsConfiguration from "@/pages/kg/AnalyticsConfig";
+import Playground from "@/pages/kg/Playground";
 import Share from "@/pages/kg/Share";
 
 function Router() {
@@ -50,6 +51,7 @@ function Router() {
       </Route>
       <Route path="/kg/analytics" component={AnalyticsConfiguration} />
       <Route path="/kg/mapping" component={Mapping} />
+      <Route path="/kg/playground" component={Playground} />
       <Route path="/kg/share" component={Share} />
       
       <Route component={NotFound} />

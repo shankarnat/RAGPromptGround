@@ -91,6 +91,11 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
           href: "/kg/dmo" 
         },
         { 
+          name: "Query Playground", 
+          id: "kg-playground", 
+          href: "/kg/playground" 
+        },
+        { 
           name: "Save & Share", 
           id: "kg-share", 
           href: "/kg/share" 
