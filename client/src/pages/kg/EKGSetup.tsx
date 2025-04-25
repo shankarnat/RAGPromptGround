@@ -3687,7 +3687,10 @@ const AnalyticsConfigModal: React.FC = () => {
     );
   };
   
-  // Add a function to render the playground view
+  // State for visualization/playground view
+  const [visualizationView, setVisualizationView] = useState<'visualization' | 'playground'>('visualization');
+  
+  // Render the playground view
   const renderEKGQueryPlayground = () => {
     return (
       <div className="border rounded-lg p-4 h-[calc(100vh-250px)] flex flex-col space-y-4">
@@ -3724,25 +3727,79 @@ const AnalyticsConfigModal: React.FC = () => {
     );
   };
   
+  // Simple right panel for demonstration
+  const rightPanel = (
+    <div className="p-4">
+      <h3 className="text-lg font-semibold mb-3">EKG Configuration</h3>
+      <p className="text-sm text-gray-500 mb-4">
+        Configure your Enterprise Knowledge Graph settings.
+      </p>
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="ekg-name">EKG Name</Label>
+          <Input id="ekg-name" placeholder="Enter a name for your EKG" className="mt-1" />
+        </div>
+        <div>
+          <Label htmlFor="ekg-description">Description</Label>
+          <Input id="ekg-description" placeholder="Describe your EKG" className="mt-1" />
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch id="public-ekg" />
+          <Label htmlFor="public-ekg">Make EKG public</Label>
+        </div>
+      </div>
+    </div>
+  );
+  
+  // Navigation handlers
+  const handleNextStep = () => {
+    // Navigate to next step
+    console.log("Navigating to next step");
+  };
+  
+  const handlePreviousStep = () => {
+    // Navigate to previous step
+    console.log("Navigating to previous step");
+  };
+  
   // Render everything
   return (
     <KnowledgeGraphLayout
       title="EKG Setup"
-      rightPanelContent={rightPanelContent}
+      rightPanelContent={rightPanel}
       currentStep={2}
       totalSteps={5}
-      onNext={handleNext}
-      onPrevious={handlePrevious}
+      onNext={handleNextStep}
+      onPrevious={handlePreviousStep}
     >
       <div className="flex flex-col space-y-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={visualizationView} onValueChange={(value) => setVisualizationView(value as 'visualization' | 'playground')} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="visualization">Visualization</TabsTrigger>
             <TabsTrigger value="playground">Query Playground</TabsTrigger>
           </TabsList>
           
           <TabsContent value="visualization" className="mt-4">
-            {renderGraph()}
+            {/* Original graph visualization */}
+            <div className="border rounded-lg p-4">
+              <h3 className="text-xl font-semibold mb-4">Enterprise Knowledge Graph Structure</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                This visualization shows your EKG structure with entities and relationships.
+              </p>
+              <div className="flex items-center justify-center h-[400px] bg-gray-50 rounded-lg border">
+                {/* We'll replace this with actual graph when it's fixed */}
+                <div className="text-center">
+                  <svg width="200" height="200" viewBox="0 0 100 100">
+                    <circle cx="50" cy="30" r="20" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" />
+                    <circle cx="30" cy="70" r="20" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" />
+                    <circle cx="70" cy="70" r="20" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" />
+                    <line x1="50" y1="30" x2="30" y2="70" stroke="#94a3b8" strokeWidth="2" />
+                    <line x1="50" y1="30" x2="70" y2="70" stroke="#94a3b8" strokeWidth="2" />
+                  </svg>
+                  <p className="mt-4 text-gray-500">Graph visualization</p>
+                </div>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="playground" className="mt-4">
@@ -3750,7 +3807,6 @@ const AnalyticsConfigModal: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-      {renderSourceToEKGMappingModal()}
     </KnowledgeGraphLayout>
   );
 };
