@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { transformSlackToEKG } from '@/lib/slack';
 import KnowledgeGraphLayout from '@/components/KnowledgeGraphLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -56,11 +57,11 @@ import {
   ArrowLeftRight, 
   Trash2,
   Edit, 
-  Check, 
-  ChevronDown,
-  Download,
-  ChevronUp,
+  Check,
   Database,
+  ChevronDown,
+  ChevronUp,
+  Download,
   ShoppingCart,
   Briefcase,
   Building,
@@ -123,10 +124,14 @@ interface EdgeAttribute {
 
 // Combined EKG Setup Component (DMO Selection + Edge Configuration)
 const EKGSetup: React.FC = () => {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<'dmos' | 'edges' | 'analytics' | 'mapping'>('dmos');
   const [visualizationView, setVisualizationView] = useState<'visualization' | 'playground'>('visualization');
   const svgRef = useRef<SVGSVGElement>(null);
+  
+  // Parse URL search params
+  const getSearchParams = () => new URLSearchParams(location.split('?')[1] || '');
+  const isSlackTemplate = getSearchParams().get('template') === 'slack';
   
   // Modal state for Source-to-EKG mapping
   const [showMappingModal, setShowMappingModal] = useState(false);
@@ -170,6 +175,150 @@ const EKGSetup: React.FC = () => {
       default:
         return <FileText className="h-3 w-3 text-gray-500" />;
     }
+  };
+  
+  // Query Playground function
+  const renderQueryPlayground = () => {
+    const [query, setQuery] = useState('');
+    const [isQuerying, setIsQuerying] = useState(false);
+    
+    const handleQuerySubmit = () => {
+      if (!query.trim()) return;
+      
+      setIsQuerying(true);
+      
+      // In a real implementation, this would call the query API
+      // For now, we'll just simulate a delay
+      setTimeout(() => {
+        setIsQuerying(false);
+      }, 1500);
+    };
+    
+    const handleExampleClick = (example: string) => {
+      setQuery(example);
+    };
+
+    return (
+      <div className="border rounded-lg p-4">
+        <h3 className="text-xl font-semibold mb-4">EKG Query Playground</h3>
+        <p className="text-sm text-gray-500 mb-6">
+          Ask natural language questions about your graph and see the results visualized.
+        </p>
+        
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Input 
+              placeholder="Ask a question about your EKG..." 
+              className="flex-1"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <Button 
+              onClick={handleQuerySubmit}
+              disabled={isQuerying}
+            >
+              {isQuerying ? (
+                <>
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  Querying...
+                </>
+              ) : (
+                <>
+                  <Search className="mr-2 h-4 w-4" />
+                  Query
+                </>
+              )}
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="text-sm font-medium mb-2">Example Queries</h4>
+              <div className="space-y-2 text-sm">
+                <div 
+                  className="p-2 bg-gray-50 rounded-md border cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleExampleClick("Who has collaborated with Sarah Johnson?")}
+                >
+                  Who has collaborated with Sarah Johnson?
+                </div>
+                <div 
+                  className="p-2 bg-gray-50 rounded-md border cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleExampleClick("What channels is John Smith a member of?")}
+                >
+                  What channels is John Smith a member of?
+                </div>
+                <div 
+                  className="p-2 bg-gray-50 rounded-md border cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleExampleClick("Show me all interactions in the general channel")}
+                >
+                  Show me all interactions in the general channel
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium mb-2">Query Details</h4>
+              <div className="p-3 bg-gray-50 rounded-md border h-[200px] overflow-y-auto">
+                {isQuerying ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader className="h-6 w-6 text-gray-400 animate-spin" />
+                  </div>
+                ) : query ? (
+                  <div className="text-xs font-mono">
+                    <p className="text-gray-700 font-semibold mb-2">Query Execution Plan:</p>
+                    <p className="text-gray-600">1. Parse natural language query</p>
+                    <p className="text-gray-600">2. Identify entities and relationships</p>
+                    <p className="text-gray-600">3. Generate graph traversal pattern</p>
+                    <p className="text-gray-600">4. Execute traversal on EKG</p>
+                    <p className="text-gray-600">5. Return matching paths</p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 italic">Run a query to see details here...</p>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="text-sm font-medium mb-2">Results</h4>
+            <div className="border rounded-md p-4 bg-gray-50 flex items-center justify-center h-[300px]">
+              {isQuerying ? (
+                <div className="text-center">
+                  <Loader className="h-12 w-12 mx-auto text-gray-300 animate-spin mb-2" />
+                  <p>Processing query...</p>
+                </div>
+              ) : query ? (
+                <div className="flex items-center justify-center w-full h-full">
+                  <svg width="320" height="200" viewBox="0 0 320 200">
+                    {/* Simple visualization for demo purposes */}
+                    <circle cx="160" cy="60" r="30" fill="#d1fae5" stroke="#10b981" strokeWidth="2" />
+                    <text x="160" y="65" textAnchor="middle" className="text-sm">Sarah Johnson</text>
+                    
+                    <circle cx="80" cy="140" r="30" fill="#e2e8f0" stroke="#64748b" strokeWidth="2" />
+                    <text x="80" y="145" textAnchor="middle" className="text-sm">John Smith</text>
+                    
+                    <circle cx="240" cy="140" r="30" fill="#e2e8f0" stroke="#64748b" strokeWidth="2" />
+                    <text x="240" y="145" textAnchor="middle" className="text-sm">Robert Williams</text>
+                    
+                    <line x1="160" y1="60" x2="80" y2="140" stroke="#64748b" strokeWidth="2" />
+                    <line x1="160" y1="60" x2="240" y2="140" stroke="#64748b" strokeWidth="2" />
+                    
+                    <text x="110" y="90" className="text-xs">collaborates</text>
+                    <text x="200" y="90" className="text-xs">collaborates</text>
+                  </svg>
+                </div>
+              ) : (
+                <div className="text-center text-gray-500">
+                  <Database className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                  <p>Run a query to see results</p>
+                  <p className="text-xs text-gray-400 mt-1">Results will be displayed as an interactive graph</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
   
   // Check if a DMO has any fields mapped to it
@@ -256,6 +405,55 @@ const EKGSetup: React.FC = () => {
     centralityAnalysis: false,
     communityDetection: false
   });
+  
+  // Set up Slack template if selected
+  useEffect(() => {
+    if (isSlackTemplate) {
+      // In a real implementation, this would call the Slack API
+      // For now, we'll create a mock Slack graph data structure
+      const mockSlackGraphData = {
+        nodes: [
+          { id: 'u1', label: 'John Smith', type: 'user', data: {} },
+          { id: 'u2', label: 'Sarah Johnson', type: 'user', data: {} },
+          { id: 'c1', label: 'general', type: 'channel', data: {} }
+        ],
+        edges: [
+          { id: 'e1', source: 'u1', target: 'u2', label: 'interacts_with', weight: 5 },
+          { id: 'e2', source: 'u1', target: 'c1', label: 'member_of', weight: 1 }
+        ]
+      };
+      
+      // Transform Slack data into EKG settings
+      const slackEKGSettings = transformSlackToEKG(mockSlackGraphData);
+      
+      // Apply Slack template settings
+      if (slackEKGSettings.dmos) {
+        setDmos(prev => {
+          // Keep required DMOs, replace optional ones with Slack template DMOs
+          const requiredDMOs = prev.filter(dmo => dmo.required);
+          const slackDMOs = slackEKGSettings.dmos.map(dmo => ({
+            ...dmo,
+            icon: dmo.id === 'person' ? <User className="h-6 w-6 text-green-500" /> : 
+                  dmo.id === 'channel' ? <MessageSquare className="h-6 w-6 text-blue-500" /> : 
+                  <Star className="h-6 w-6 text-amber-500" />
+          }));
+          
+          return [...requiredDMOs, ...slackDMOs.filter(dmo => !requiredDMOs.some(r => r.id === dmo.id))];
+        });
+      }
+      
+      if (slackEKGSettings.edges) {
+        setEdges(slackEKGSettings.edges);
+      }
+      
+      if (slackEKGSettings.enabledAnalytics) {
+        setEnabledAnalytics(slackEKGSettings.enabledAnalytics);
+      }
+      
+      // Set the initial tab to edges to emphasize the relationships
+      setActiveTab('edges');
+    }
+  }, [isSlackTemplate]);
   
   // Initial EKG DMOs
   const [dmos, setDmos] = useState<DMO[]>([
@@ -3996,7 +4194,7 @@ const AnalyticsConfigModal: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="playground" className="mt-4">
-            {renderEKGQueryPlayground()}
+            {renderQueryPlayground()}
           </TabsContent>
         </Tabs>
       </div>
