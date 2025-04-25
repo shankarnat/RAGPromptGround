@@ -66,7 +66,13 @@ import {
   Truck,
   MapPin,
   HelpCircle,
-  Users
+  Users,
+  AlertCircle,
+  Key,
+  Text,
+  Hash,
+  Type,
+  Trash
 } from 'lucide-react';
 
 // DMO (Data Model Object) Interfaces
@@ -95,11 +101,95 @@ interface EdgeAttribute {
   type: 'string' | 'number' | 'date' | 'boolean';
 }
 
+// Source-to-EKG mapping interfaces
+interface Field {
+  id: string;
+  name: string;
+  type: 'id' | 'string' | 'number' | 'date' | 'boolean';
+  description: string;
+  isPrimaryKey?: boolean;
+  isRequired?: boolean;
+}
+
+interface DataModelObject {
+  id: string;
+  name: string;
+  fields: Field[];
+}
+
 // Combined EKG Setup Component (DMO Selection + Edge Configuration)
 const EKGSetup: React.FC = () => {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<'dmos' | 'edges' | 'analytics'>('dmos');
+  const [activeTab, setActiveTab] = useState<'dmos' | 'edges' | 'analytics' | 'mapping'>('dmos');
   const svgRef = useRef<SVGSVGElement>(null);
+  
+  // Source-to-EKG mapping state
+  const [searchSourceTerm, setSearchSourceTerm] = useState('');
+  const [searchEKGTerm, setSearchEKGTerm] = useState('');
+  const [collapsedSourceSections, setCollapsedSourceSections] = useState<string[]>([]);
+  const [collapsedEKGSections, setCollapsedEKGSections] = useState<string[]>([]);
+  const [activeLine, setActiveLine] = useState<[string, string] | null>(null);
+  const [mappedFields, setMappedFields] = useState<Record<string, string>>({});
+  
+  // Source DMOs for mapping
+  const [sourceDMOs, setSourceDMOs] = useState<DataModelObject[]>([
+    {
+      id: 'file',
+      name: 'File',
+      fields: [
+        { id: 'file_id', name: 'file_id', type: 'id', description: 'Unique identifier', isPrimaryKey: true, isRequired: true },
+        { id: 'file_name', name: 'file_name', type: 'string', description: 'Name of the file', isRequired: true },
+        { id: 'file_path', name: 'file_path', type: 'string', description: 'File path' },
+        { id: 'created_at', name: 'created_at', type: 'date', description: 'Creation timestamp' },
+        { id: 'modified_at', name: 'modified_at', type: 'date', description: 'Last modified timestamp' },
+        { id: 'size', name: 'size', type: 'number', description: 'File size in bytes' },
+        { id: 'mime_type', name: 'mime_type', type: 'string', description: 'MIME type' },
+        { id: 'creator_id', name: 'creator_id', type: 'id', description: 'Creator reference' },
+      ]
+    },
+    {
+      id: 'user',
+      name: 'User',
+      fields: [
+        { id: 'user_id', name: 'user_id', type: 'id', description: 'Unique identifier', isPrimaryKey: true, isRequired: true },
+        { id: 'email', name: 'email', type: 'string', description: 'Email address', isRequired: true },
+        { id: 'name', name: 'name', type: 'string', description: 'Full name', isRequired: true },
+        { id: 'department', name: 'department', type: 'string', description: 'Department name' },
+        { id: 'role', name: 'role', type: 'string', description: 'Job role or title' },
+        { id: 'joined_at', name: 'joined_at', type: 'date', description: 'Join date' }
+      ]
+    }
+  ]);
+  
+  // EKG DMOs for mapping
+  const [ekgDMOs, setEkgDMOs] = useState<DataModelObject[]>([
+    {
+      id: 'document',
+      name: 'Document',
+      fields: [
+        { id: 'content_id', name: 'content_id', type: 'id', description: 'Unique identifier', isPrimaryKey: true, isRequired: true },
+        { id: 'title', name: 'title', type: 'string', description: 'Content title', isRequired: true },
+        { id: 'path', name: 'path', type: 'string', description: 'Content location' },
+        { id: 'created_date', name: 'created_date', type: 'date', description: 'Creation date' },
+        { id: 'modified_date', name: 'modified_date', type: 'date', description: 'Modification date' },
+        { id: 'size_bytes', name: 'size_bytes', type: 'number', description: 'Content size' },
+        { id: 'type', name: 'type', type: 'string', description: 'Content type' },
+        { id: 'creator', name: 'creator', type: 'id', description: 'Creator reference' },
+      ]
+    },
+    {
+      id: 'person',
+      name: 'Person',
+      fields: [
+        { id: 'user_id', name: 'user_id', type: 'id', description: 'Unique identifier', isPrimaryKey: true, isRequired: true },
+        { id: 'email_address', name: 'email_address', type: 'string', description: 'Email', isRequired: true },
+        { id: 'display_name', name: 'display_name', type: 'string', description: 'Display name', isRequired: true },
+        { id: 'org_unit', name: 'org_unit', type: 'string', description: 'Organizational unit' },
+        { id: 'user_type', name: 'user_type', type: 'string', description: 'Type of user' },
+        { id: 'start_date', name: 'start_date', type: 'date', description: 'Start date' }
+      ]
+    }
+  ]);
   
   // State for DMO Selection
   const [showNewDMO, setShowNewDMO] = useState(false);
