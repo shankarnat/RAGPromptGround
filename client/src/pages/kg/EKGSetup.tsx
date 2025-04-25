@@ -1346,7 +1346,8 @@ const EKGSetup: React.FC = () => {
 
   // Navigation handlers
   const handleNext = () => {
-    navigate('/kg/analytics');
+    // Navigate to Query Playground (step 3)
+    navigate('/kg/playground');
   };
 
   const handlePrevious = () => {

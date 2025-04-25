@@ -701,8 +701,8 @@ const AnalyticsConfiguration: React.FC = () => {
   
   // Navigation handlers
   const handleNext = () => {
-    // Navigate to the Share (step 4)
-    navigate('/kg/share');
+    // Navigate to the Query Playground (step 3)
+    navigate('/kg/playground');
   };
   
   const handlePrevious = () => {
