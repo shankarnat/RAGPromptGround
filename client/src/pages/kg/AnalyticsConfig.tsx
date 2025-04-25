@@ -1293,14 +1293,69 @@ const AnalyticsConfiguration: React.FC = () => {
             </div>
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              {/* Analytics Preview Playground - Center Stage */}
+              <div className="mb-8">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Analytics Visualization Playground</CardTitle>
+                    <CardDescription>
+                      Interactive preview of your analytics configuration
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="bg-gray-50 rounded-md p-6 min-h-[400px]">
+                      {renderAnalyticsPreview()}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-blue-50 border-blue-200 mt-4">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start">
+                      <div className="mr-4 mt-1">
+                        <Network className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium text-blue-800 mb-2">Analytics Insights</h3>
+                        <p className="text-sm text-blue-700 mb-4">
+                          Your analytics configuration will enable these insights:
+                        </p>
+                        <ul className="list-disc list-inside text-sm text-blue-700 space-y-2">
+                          {analyticsPipeline.some(c => (c.id.includes('collaborates') || c.id.includes('knows')) && c.active) && (
+                            <li>Identification of key relationships and collaboration patterns between people</li>
+                          )}
+                          {analyticsPipeline.some(c => c.id.includes('created') && c.active) && (
+                            <li>Expertise mapping showing who specializes in which topics and activities</li>
+                          )}
+                          {analyticsPipeline.some(c => (c.id.includes('betweenness') || c.id.includes('pagerank')) && c.active) && (
+                            <li>Identification of key influencers and central nodes in your knowledge graph</li>
+                          )}
+                          {analyticsPipeline.some(c => c.id.includes('community') && c.active) && (
+                            <li>Discovery of natural communities and clusters of related entities</li>
+                          )}
+                          {analyticsPipeline.some(c => c.id.includes('similarity') && c.active) && (
+                            <li>Similarity and relevance analysis between content and people</li>
+                          )}
+                          {!analyticsPipeline.some(c => c.active) && (
+                            <li>No analytics currently enabled. Select at least one to generate insights.</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Tabs for Builder Interface - Below Playground */}
               <TabsList className="grid grid-cols-2 mb-6">
                 <TabsTrigger value="builder" className="flex items-center">
                   <Layers className="h-4 w-4 mr-2" />
                   Analytics Builder
                 </TabsTrigger>
                 <TabsTrigger value="preview" className="flex items-center">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Analytics Preview
+                  <Settings className="h-4 w-4 mr-2" />
+                  Advanced Configuration
                 </TabsTrigger>
               </TabsList>
               
@@ -1637,50 +1692,154 @@ const AnalyticsConfiguration: React.FC = () => {
                 <div className="space-y-6">
                   <Card>
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Analytics Preview</CardTitle>
+                      <CardTitle className="text-lg">Advanced Configuration</CardTitle>
                       <CardDescription>
-                        Visualization of the configured analytics
+                        Fine-tune analytics parameters and settings
                       </CardDescription>
                     </CardHeader>
                     
-                    <CardContent>
-                      <div className="bg-gray-50 rounded-md p-6 min-h-[400px]">
-                        {renderAnalyticsPreview()}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-blue-50 border-blue-200">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start">
-                        <div className="mr-4 mt-1">
-                          <Network className="h-8 w-8 text-blue-600" />
+                    <CardContent className="space-y-6">
+                      {/* Advanced settings options */}
+                      <div className="bg-gray-50 rounded-md p-4">
+                        <h3 className="text-md font-medium mb-4">Global Analytics Settings</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium">Threshold Settings</h4>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <Label htmlFor="min-weight" className="text-xs">
+                                  Minimum Relationship Weight
+                                </Label>
+                                <span className="text-xs font-medium">0.3</span>
+                              </div>
+                              <Slider
+                                id="min-weight"
+                                min={0}
+                                max={1}
+                                step={0.1}
+                                value={[0.3]}
+                                className="w-full"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <Label htmlFor="expertise-threshold" className="text-xs">
+                                  Expertise Threshold
+                                </Label>
+                                <span className="text-xs font-medium">0.7</span>
+                              </div>
+                              <Slider
+                                id="expertise-threshold"
+                                min={0}
+                                max={1}
+                                step={0.1}
+                                value={[0.7]}
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium">Time Decay Settings</h4>
+                            
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="time-decay-toggle" className="text-xs">
+                                Enable Time Decay
+                              </Label>
+                              <Switch
+                                id="time-decay-toggle"
+                                checked={true}
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="half-life" className="text-xs">
+                                Half-life (days)
+                              </Label>
+                              <Input
+                                id="half-life"
+                                type="number"
+                                value="90"
+                                className="h-8 text-xs"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-medium text-blue-800 mb-2">Analytics Insights</h3>
-                          <p className="text-sm text-blue-700 mb-4">
-                            Your analytics configuration will enable these insights:
-                          </p>
-                          <ul className="list-disc list-inside text-sm text-blue-700 space-y-2">
-                            {analyticsPipeline.some(c => (c.id.includes('collaborates') || c.id.includes('knows')) && c.active) && (
-                              <li>Identification of key relationships and collaboration patterns between people</li>
-                            )}
-                            {analyticsPipeline.some(c => c.id.includes('created') && c.active) && (
-                              <li>Expertise mapping showing who specializes in which topics and activities</li>
-                            )}
-                            {analyticsPipeline.some(c => (c.id.includes('betweenness') || c.id.includes('pagerank')) && c.active) && (
-                              <li>Identification of key influencers and central nodes in your knowledge graph</li>
-                            )}
-                            {analyticsPipeline.some(c => c.id.includes('community') && c.active) && (
-                              <li>Discovery of natural communities and clusters of related entities</li>
-                            )}
-                            {analyticsPipeline.some(c => c.id.includes('similarity') && c.active) && (
-                              <li>Similarity and relevance analysis between content and people</li>
-                            )}
-                            {!analyticsPipeline.some(c => c.active) && (
-                              <li>No analytics currently enabled. Select at least one to generate insights.</li>
-                            )}
-                          </ul>
+                      </div>
+                      
+                      {/* More advanced options */}
+                      <div className="bg-gray-50 rounded-md p-4">
+                        <h3 className="text-md font-medium mb-4">Visualization Settings</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium">Network Diagram Settings</h4>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="layout-algorithm" className="text-xs">
+                                Layout Algorithm
+                              </Label>
+                              <Select defaultValue="force-directed">
+                                <SelectTrigger id="layout-algorithm" className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="force-directed" className="text-xs">Force-directed</SelectItem>
+                                  <SelectItem value="circular" className="text-xs">Circular</SelectItem>
+                                  <SelectItem value="hierarchical" className="text-xs">Hierarchical</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="node-size" className="text-xs">
+                                Node Size Based On
+                              </Label>
+                              <Select defaultValue="degree">
+                                <SelectTrigger id="node-size" className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="degree" className="text-xs">Connection Degree</SelectItem>
+                                  <SelectItem value="centrality" className="text-xs">Centrality</SelectItem>
+                                  <SelectItem value="equal" className="text-xs">Equal Size</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium">Color & Styling</h4>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="color-scheme" className="text-xs">
+                                Color Scheme
+                              </Label>
+                              <Select defaultValue="blue-to-red">
+                                <SelectTrigger id="color-scheme" className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="blue-to-red" className="text-xs">Blue to Red</SelectItem>
+                                  <SelectItem value="green-to-purple" className="text-xs">Green to Purple</SelectItem>
+                                  <SelectItem value="categorical" className="text-xs">Categorical</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="show-labels" className="text-xs">
+                                Show Node Labels
+                              </Label>
+                              <Switch
+                                id="show-labels"
+                                checked={true}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
