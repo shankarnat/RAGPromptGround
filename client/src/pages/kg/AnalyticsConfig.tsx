@@ -701,11 +701,13 @@ const AnalyticsConfiguration: React.FC = () => {
   
   // Navigation handlers
   const handleNext = () => {
-    navigate('/kg/mapping');
+    // Navigate to the Share (step 4)
+    navigate('/kg/share');
   };
   
   const handlePrevious = () => {
-    navigate('/kg/edge');
+    // Navigate back to EKG Setup (step 2)
+    navigate('/kg/ekg');
   };
   
   // Generate preview of the analytics
@@ -1275,7 +1277,7 @@ const AnalyticsConfiguration: React.FC = () => {
     <KnowledgeGraphLayout
       title="Graph Analytics Configuration"
       rightPanelContent={rightPanelContent}
-      currentStep={4}
+      currentStep={3}
       totalSteps={4}  // 4 steps: Template, Setup, Playground, Share
       onNext={handleNext}
       onPrevious={handlePrevious}
