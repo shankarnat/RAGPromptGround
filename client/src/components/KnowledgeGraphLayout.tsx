@@ -31,11 +31,8 @@ const KnowledgeGraphLayout: React.FC<KnowledgeGraphLayoutProps> = ({
     switch(currentStep) {
       case 1: return 'kg-template';
       case 2: return 'kg-dmo';
-      case 3: return 'kg-edge';
-      case 4: return 'kg-analytics';
-      case 5: return 'kg-mapping';
-      case 6: return 'kg-visualization';
-      case 7: return 'kg-share';
+      case 3: return 'kg-playground';
+      case 4: return 'kg-share';
       default: return 'kg-template';
     }
   };

@@ -101,7 +101,7 @@ const TemplateSelection: React.FC = () => {
       title="Template Selection"
       rightPanelContent={rightPanelContent}
       currentStep={1}
-      totalSteps={7}
+      totalSteps={4}
       onNext={selectedTemplate ? handleNext : undefined}
     >
       <div className="max-w-4xl mx-auto">

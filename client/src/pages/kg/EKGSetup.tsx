@@ -4148,13 +4148,13 @@ const AnalyticsConfigModal: React.FC = () => {
   
   // Navigation handlers
   const handleNextStep = () => {
-    // Navigate to next step
-    console.log("Navigating to next step");
+    // Navigate to Query Playground (step 3)
+    navigate('/kg/playground');
   };
   
   const handlePreviousStep = () => {
-    // Navigate to previous step
-    console.log("Navigating to previous step");
+    // Navigate to Template Selection (step 1)
+    navigate('/kg/template');
   };
   
   // Render everything
@@ -4163,7 +4163,7 @@ const AnalyticsConfigModal: React.FC = () => {
       title="EKG Setup"
       rightPanelContent={rightPanel}
       currentStep={2}
-      totalSteps={5}
+      totalSteps={4}
       onNext={handleNextStep}
       onPrevious={handlePreviousStep}
     >
