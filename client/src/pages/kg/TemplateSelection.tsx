@@ -57,7 +57,13 @@ const TemplateSelection: React.FC = () => {
   ];
 
   const handleNext = () => {
-    navigate('/kg/dmo');
+    if (selectedTemplate === 'slack') {
+      // For Slack template, navigate to EKG setup with Slack preset settings
+      navigate('/kg/dmo?template=slack');
+    } else {
+      // For other templates, just navigate to DMO selection
+      navigate('/kg/dmo');
+    }
   };
 
   // Group templates
