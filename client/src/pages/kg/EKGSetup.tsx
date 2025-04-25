@@ -137,6 +137,52 @@ const EKGSetup: React.FC = () => {
   const [activeLine, setActiveLine] = useState<[string, string] | null>(null);
   const [mappedFields, setMappedFields] = useState<Record<string, string>>({});
   
+  // Helper function to remove a mapping
+  const removeMapping = (sourceId: string) => {
+    const newMappedFields = { ...mappedFields };
+    delete newMappedFields[sourceId];
+    setMappedFields(newMappedFields);
+  };
+  
+  // Helper function to add a new mapping
+  const addMapping = (sourceId: string, targetId: string) => {
+    setMappedFields(prev => ({
+      ...prev,
+      [sourceId]: targetId
+    }));
+  };
+  
+  // Helper function to get icon for data type
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'id':
+        return <Tag className="h-3 w-3 text-blue-500" />;
+      case 'string':
+        return <MessageSquare className="h-3 w-3 text-green-500" />;
+      case 'number':
+        return <BarChart3 className="h-3 w-3 text-amber-500" />;
+      case 'date':
+        return <Calendar className="h-3 w-3 text-purple-500" />;
+      case 'boolean':
+        return <Check className="h-3 w-3 text-red-500" />;
+      default:
+        return <FileText className="h-3 w-3 text-gray-500" />;
+    }
+  };
+  
+  // Check if a DMO has any fields mapped to it
+  const isDMOMapped = (dmoId: string) => {
+    return Object.values(mappedFields).some(targetId => {
+      for (const dmo of ekgDMOs) {
+        const field = dmo.fields.find(f => f.id === targetId);
+        if (field && dmo.id === dmoId) {
+          return true;
+        }
+      }
+      return false;
+    });
+  };
+  
   // Source DMOs for mapping
   const [sourceDMOs, setSourceDMOs] = useState<DataModelObject[]>([
     {
@@ -646,12 +692,6 @@ const EKGSetup: React.FC = () => {
       [sourceFieldId]: ekgFieldId
     }));
   };
-
-  const removeMapping = (sourceFieldId: string) => {
-    const newMappings = { ...mappedFields };
-    delete newMappings[sourceFieldId];
-    setMappedFields(newMappings);
-  };
   
   const filterFields = (fields: Field[], searchTerm: string) => {
     if (!searchTerm) return fields;
@@ -672,20 +712,7 @@ const EKGSetup: React.FC = () => {
     }
   };
   
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'id':
-        return <Key className="h-4 w-4 text-purple-500" />;
-      case 'string':
-        return <Text className="h-4 w-4 text-blue-500" />;
-      case 'number':
-        return <Hash className="h-4 w-4 text-red-500" />;
-      case 'date':
-        return <Calendar className="h-4 w-4 text-orange-500" />;
-      default:
-        return <Type className="h-4 w-4 text-gray-500" />;
-    }
-  };
+  // Function is already defined earlier
 
   // Helper function to check if a DMO has mappings
   const hasMappings = (dmoId: string): boolean => {
@@ -1743,7 +1770,128 @@ const EKGSetup: React.FC = () => {
           <EdgeDefinitionsPanel />
         </TabsContent>
         <TabsContent value="mapping" className="pt-4">
-          <SourceToEKGMappingPanel />
+          <div className="space-y-4">
+            <h2 className="text-md font-medium">Source-to-EKG Mapping</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Map your source data models to EKG entities to create intelligent connections.
+            </p>
+            
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Mapping Dashboard</CardTitle>
+                <CardDescription>
+                  View and manage field mappings between source data and EKG entities
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-sm font-medium">Mapping Status</h3>
+                      <p className="text-xs text-gray-500">
+                        {Object.keys(mappedFields).length > 0 
+                          ? `${Object.keys(mappedFields).length} field mappings defined` 
+                          : "No mappings defined yet"}
+                      </p>
+                    </div>
+                    
+                    <Button onClick={() => setShowMappingModal(true)}>
+                      {Object.keys(mappedFields).length > 0 ? "Edit Mappings" : "Create Mappings"}
+                    </Button>
+                  </div>
+                  
+                  {Object.keys(mappedFields).length > 0 && (
+                    <div className="border rounded-md p-4 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-medium">Current Mappings</h4>
+                        <Badge variant="outline" className="text-xs">
+                          {Object.keys(mappedFields).length} Fields
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {Object.entries(mappedFields).map(([sourceId, targetId]) => {
+                          // Find source field details
+                          let sourceField;
+                          let sourceDmo;
+                          for (const dmo of sourceDMOs) {
+                            const field = dmo.fields.find(f => f.id === sourceId);
+                            if (field) {
+                              sourceField = field;
+                              sourceDmo = dmo;
+                              break;
+                            }
+                          }
+                          
+                          // Find target field details
+                          let targetField;
+                          let targetDmo;
+                          for (const dmo of ekgDMOs) {
+                            const field = dmo.fields.find(f => f.id === targetId);
+                            if (field) {
+                              targetField = field;
+                              targetDmo = dmo;
+                              break;
+                            }
+                          }
+                          
+                          if (!sourceField || !targetField || !sourceDmo || !targetDmo) {
+                            return null;
+                          }
+                          
+                          return (
+                            <div 
+                              key={sourceId} 
+                              className="flex items-center justify-between p-2 border rounded-md bg-gray-50 text-xs"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium">{sourceDmo.name}</span>
+                                <span>.</span>
+                                <span>{sourceField.name}</span>
+                                <span>{getTypeIcon(sourceField.type)}</span>
+                              </div>
+                              
+                              <ArrowRight className="h-3 w-3 text-gray-400 mx-2" />
+                              
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium">{targetDmo.name}</span>
+                                <span>.</span>
+                                <span>{targetField.name}</span>
+                                <span>{getTypeIcon(targetField.type)}</span>
+                              </div>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 ml-2"
+                                onClick={() => removeMapping(sourceId)}
+                              >
+                                <Trash2 className="h-3 w-3 text-red-500" />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {Object.keys(mappedFields).length === 0 && (
+                    <div className="border border-dashed rounded-md p-8 flex flex-col items-center justify-center text-center">
+                      <ArrowLeftRight className="h-8 w-8 text-gray-300 mb-2" />
+                      <h3 className="text-sm font-medium">No Mappings Defined</h3>
+                      <p className="text-xs text-gray-500 mt-1 mb-4">
+                        Create field mappings between your source data and EKG entities
+                      </p>
+                      <Button size="sm" onClick={() => setShowMappingModal(true)}>
+                        Create First Mapping
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
         <TabsContent value="analytics" className="pt-4">
           <div className="space-y-4">
