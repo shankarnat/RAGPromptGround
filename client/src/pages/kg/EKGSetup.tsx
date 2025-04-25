@@ -74,7 +74,8 @@ import {
   Text,
   Hash,
   Type,
-  Trash
+  Trash,
+  Loader
 } from 'lucide-react';
 
 // DMO (Data Model Object) Interfaces
@@ -177,26 +178,29 @@ const EKGSetup: React.FC = () => {
     }
   };
   
+  // States for Query Playground
+  const [query, setQuery] = useState('');
+  const [isQuerying, setIsQuerying] = useState(false);
+  
+  // Query Playground handlers
+  const handleQuerySubmit = () => {
+    if (!query.trim()) return;
+    
+    setIsQuerying(true);
+    
+    // In a real implementation, this would call the query API
+    // For now, we'll just simulate a delay
+    setTimeout(() => {
+      setIsQuerying(false);
+    }, 1500);
+  };
+  
+  const handleExampleClick = (example: string) => {
+    setQuery(example);
+  };
+
   // Query Playground function
   const renderQueryPlayground = () => {
-    const [query, setQuery] = useState('');
-    const [isQuerying, setIsQuerying] = useState(false);
-    
-    const handleQuerySubmit = () => {
-      if (!query.trim()) return;
-      
-      setIsQuerying(true);
-      
-      // In a real implementation, this would call the query API
-      // For now, we'll just simulate a delay
-      setTimeout(() => {
-        setIsQuerying(false);
-      }, 1500);
-    };
-    
-    const handleExampleClick = (example: string) => {
-      setQuery(example);
-    };
 
     return (
       <div className="border rounded-lg p-4">
