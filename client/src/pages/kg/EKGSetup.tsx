@@ -587,143 +587,174 @@ const EKGSetup: React.FC = () => {
     });
     
     return (
-      <svg ref={svgRef} width="100%" height="400" viewBox="0 0 600 400" className="border rounded-lg">
-        {/* Edge connections */}
-        {filteredEdges.map((edge) => {
-          const fromPos = nodePositions[edge.fromNodeType];
-          const toPos = nodePositions[edge.toNodeType];
-          
-          if (!fromPos || !toPos) return null;
-          
-          return (
-            <g key={edge.id}>
-              {/* Edge line */}
-              <line 
-                x1={fromPos.x} 
-                y1={fromPos.y} 
-                x2={toPos.x} 
-                y2={toPos.y} 
-                stroke={getStrokeColor(edge)} 
-                strokeWidth="2" 
-                markerEnd={getMarkerEnd(edge)} 
-                strokeDasharray={getStrokeDashArray(edge)} 
-              />
-              
-              {/* Edge label */}
-              <text 
-                x={(fromPos.x + toPos.x) / 2} 
-                y={(fromPos.y + toPos.y) / 2 - 10} 
-                textAnchor="middle" 
-                fill="#4b5563" 
-                fontSize="12" 
-                fontWeight="medium"
-                className="select-none"
-              >
-                {edge.name}
-              </text>
-              
-              {/* Reverse arrow for bidirectional edges */}
-              {edge.isBidirectional && (
+      <div className="relative">
+        <svg ref={svgRef} width="100%" height="400" viewBox="0 0 600 400" className="border rounded-lg">
+          {/* Edge connections */}
+          {filteredEdges.map((edge) => {
+            const fromPos = nodePositions[edge.fromNodeType];
+            const toPos = nodePositions[edge.toNodeType];
+            
+            if (!fromPos || !toPos) return null;
+            
+            return (
+              <g key={edge.id}>
+                {/* Edge line */}
                 <line 
-                  x1={toPos.x} 
-                  y1={toPos.y} 
-                  x2={fromPos.x} 
-                  y2={fromPos.y} 
-                  stroke="transparent" 
+                  x1={fromPos.x} 
+                  y1={fromPos.y} 
+                  x2={toPos.x} 
+                  y2={toPos.y} 
+                  stroke={getStrokeColor(edge)} 
                   strokeWidth="2" 
                   markerEnd={getMarkerEnd(edge)} 
+                  strokeDasharray={getStrokeDashArray(edge)} 
                 />
-              )}
-            </g>
-          );
-        })}
-        
-        {/* DMO nodes */}
-        {selectedDMOs.map(dmo => {
-          const pos = nodePositions[dmo.id];
-          if (!pos) return null;
+                
+                {/* Edge label */}
+                <text 
+                  x={(fromPos.x + toPos.x) / 2} 
+                  y={(fromPos.y + toPos.y) / 2 - 10} 
+                  textAnchor="middle" 
+                  fill="#4b5563" 
+                  fontSize="12" 
+                  fontWeight="medium"
+                  className="select-none"
+                >
+                  {edge.name}
+                </text>
+                
+                {/* Reverse arrow for bidirectional edges */}
+                {edge.isBidirectional && (
+                  <line 
+                    x1={toPos.x} 
+                    y1={toPos.y} 
+                    x2={fromPos.x} 
+                    y2={fromPos.y} 
+                    stroke="transparent" 
+                    strokeWidth="2" 
+                    markerEnd={getMarkerEnd(edge)} 
+                  />
+                )}
+              </g>
+            );
+          })}
           
-          return (
-            <g key={dmo.id}>
-              {/* Node circle */}
-              <circle 
-                cx={pos.x} 
-                cy={pos.y} 
-                r="35" 
-                fill={dmo.required ? "#f0fdf4" : "#f9fafb"} 
-                stroke={dmo.required ? "#10b981" : "#6b7280"} 
-                strokeWidth="2" 
-                className="cursor-pointer"
-              />
-              
-              {/* Node icon */}
-              <foreignObject x={pos.x - 15} y={pos.y - 15} width="30" height="30">
-                <div className="flex items-center justify-center h-full">
-                  {React.cloneElement(dmo.icon as React.ReactElement, { className: "h-6 w-6" })}
-                </div>
-              </foreignObject>
-              
-              {/* Node name */}
-              <text 
-                x={pos.x} 
-                y={pos.y + 25} 
-                textAnchor="middle" 
-                fill="#374151" 
-                fontSize="12" 
-                fontWeight="medium"
-                className="select-none"
-              >
-                {dmo.name}
-              </text>
+          {/* DMO nodes */}
+          {selectedDMOs.map(dmo => {
+            const pos = nodePositions[dmo.id];
+            if (!pos) return null;
+            
+            return (
+              <g key={dmo.id}>
+                {/* Node circle */}
+                <circle 
+                  cx={pos.x} 
+                  cy={pos.y} 
+                  r="35" 
+                  fill={dmo.required ? "#f0fdf4" : "#f9fafb"} 
+                  stroke={dmo.required ? "#10b981" : "#6b7280"} 
+                  strokeWidth="2" 
+                  className="cursor-pointer"
+                />
+                
+                {/* Node icon */}
+                <foreignObject x={pos.x - 15} y={pos.y - 15} width="30" height="30">
+                  <div className="flex items-center justify-center h-full">
+                    {React.cloneElement(dmo.icon as React.ReactElement, { className: "h-6 w-6" })}
+                  </div>
+                </foreignObject>
+                
+                {/* Node name */}
+                <text 
+                  x={pos.x} 
+                  y={pos.y + 25} 
+                  textAnchor="middle" 
+                  fill="#374151" 
+                  fontSize="12" 
+                  fontWeight="medium"
+                  className="select-none"
+                >
+                  {dmo.name}
+                </text>
+              </g>
+            );
+          })}
+          
+          {/* Arrow marker definition */}
+          <defs>
+            {/* Multiple arrowhead markers with different colors */}
+            <marker 
+              id="arrowhead" 
+              markerWidth="10" 
+              markerHeight="7" 
+              refX="9" 
+              refY="3.5" 
+              orient="auto"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+            </marker>
+            <marker 
+              id="arrowhead-orange" 
+              markerWidth="10" 
+              markerHeight="7" 
+              refX="9" 
+              refY="3.5" 
+              orient="auto"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill="#ff5722" />
+            </marker>
+            <marker 
+              id="arrowhead-green" 
+              markerWidth="10" 
+              markerHeight="7" 
+              refX="9" 
+              refY="3.5" 
+              orient="auto"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill="#4caf50" />
+            </marker>
+            <marker 
+              id="arrowhead-teal" 
+              markerWidth="10" 
+              markerHeight="7" 
+              refX="9" 
+              refY="3.5" 
+              orient="auto"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill="#009688" />
+            </marker>
+          </defs>
+          
+          {/* Graph Legend */}
+          <g transform="translate(20, 360)">
+            <rect x="0" y="0" width="560" height="32" fill="#f9fafb" stroke="#e5e7eb" strokeWidth="1" rx="4" />
+            
+            {/* EKG DMO/Node */}
+            <g transform="translate(15, 16)">
+              <circle cx="0" cy="0" r="6" fill="#f9fafb" stroke="#6b7280" strokeWidth="1.5" />
+              <text x="12" y="4" fontSize="10" fill="#4b5563">EKG DMO/Node</text>
             </g>
-          );
-        })}
-        
-        {/* Arrow marker definition */}
-        <defs>
-          {/* Multiple arrowhead markers with different colors */}
-          <marker 
-            id="arrowhead" 
-            markerWidth="10" 
-            markerHeight="7" 
-            refX="9" 
-            refY="3.5" 
-            orient="auto"
-          >
-            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
-          </marker>
-          <marker 
-            id="arrowhead-orange" 
-            markerWidth="10" 
-            markerHeight="7" 
-            refX="9" 
-            refY="3.5" 
-            orient="auto"
-          >
-            <polygon points="0 0, 10 3.5, 0 7" fill="#ff5722" />
-          </marker>
-          <marker 
-            id="arrowhead-green" 
-            markerWidth="10" 
-            markerHeight="7" 
-            refX="9" 
-            refY="3.5" 
-            orient="auto"
-          >
-            <polygon points="0 0, 10 3.5, 0 7" fill="#4caf50" />
-          </marker>
-          <marker 
-            id="arrowhead-teal" 
-            markerWidth="10" 
-            markerHeight="7" 
-            refX="9" 
-            refY="3.5" 
-            orient="auto"
-          >
-            <polygon points="0 0, 10 3.5, 0 7" fill="#009688" />
-          </marker>
-        </defs>
-      </svg>
+            
+            {/* Regular Edge */}
+            <g transform="translate(125, 16)">
+              <line x1="-15" y1="0" x2="5" y2="0" stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrowhead)" />
+              <text x="12" y="4" fontSize="10" fill="#4b5563">Regular Relationship</text>
+            </g>
+            
+            {/* Who Knows Who Analytics */}
+            <g transform="translate(270, 16)">
+              <line x1="-15" y1="0" x2="5" y2="0" stroke="#ff5722" strokeWidth="2" strokeDasharray="4 2" markerEnd="url(#arrowhead-orange)" />
+              <text x="12" y="4" fontSize="10" fill="#4b5563">Who Knows Who</text>
+            </g>
+            
+            {/* Who Does What Analytics */}
+            <g transform="translate(415, 16)">
+              <line x1="-15" y1="0" x2="5" y2="0" stroke="#4caf50" strokeWidth="2" strokeDasharray="4 2" markerEnd="url(#arrowhead-green)" />
+              <text x="12" y="4" fontSize="10" fill="#4b5563">Who Does What</text>
+            </g>
+          </g>
+        </svg>
+      </div>
     );
   };
 
