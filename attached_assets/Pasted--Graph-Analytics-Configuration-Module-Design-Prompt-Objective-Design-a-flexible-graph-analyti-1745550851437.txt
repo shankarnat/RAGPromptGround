@@ -1,0 +1,79 @@
+# Graph Analytics Configuration Module - Design Prompt
+
+## Objective
+Design a flexible graph analytics configuration interface that can adapt to any user activity or product context within the Knowledge Graph creation workflow, with "Who Knows Who" and "Who Does What" analytics pre-configured by default.
+
+## Core Requirements
+
+### Analytics Framework
+- Create a modular, extensible interface for configuring analytical queries
+- Support diverse data sources and activity types across any product or platform
+- Enable template-based analytics configuration with customization options
+- Implement plugin architecture for adding new analytics algorithms
+- Pre-configure "Who Knows Who" and "Who Does What" as default analytics options
+
+### Default Analytics Configuration
+1. "Who Knows Who" Default Configuration:
+   - Pre-populated entity relationship settings for person-to-person connections
+   - Default weight parameters for common interaction types (messages, collaborations, meetings)
+   - Standard time decay settings for relationship strength
+   - Suggested minimum threshold values for affinity scores
+   - Ready-to-use visualization settings optimized for social network display
+
+2. "Who Does What" Default Configuration:
+   - Pre-populated settings for person-to-content/activity connections
+   - Default content type categorization and weighting
+   - Standard expertise threshold settings
+   - Pre-configured topic extraction parameters
+   - Ready-to-use visualization settings for expertise and activity mapping
+
+### User Interface Components
+- Left Rail: Step navigation showing "Graph Analytics Configuration" highlighted
+- Middle Section: Dynamic visualization preview that updates based on selected analytics
+- Right Rail: Configurable analytics panel with abstracted parameter settings
+
+### Affinity Analysis Framework
+1. Universal Connector System:
+   - Entity-agnostic relationship definition (not limited to people or specific content types)
+   - Abstract interaction types that can map to any product's activity model
+   - Dynamic property mapping for different interaction contexts
+
+2. Configuration Components:
+   - Entity Relationship Builder (for any entity types, not just people)
+   - Interaction Weight Calculator (customizable for any activity type)
+   - Temporal Influence Controls (recency/frequency parameters)
+   - Threshold Configuration (minimum criteria for significance)
+   - Algorithm Selection (matrix factorization, collaborative filtering, etc.)
+
+3. Parameter Abstraction:
+   - Create metadata-driven parameter definitions
+   - Allow domain-specific terminology mapping
+   - Support numeric, categorical, boolean, and complex parameter types
+   - Include parameter validation based on entity and relationship types
+
+### Visualization Options
+- Provide rendering options adaptable to different entity types
+- Support multiple visualization modes (graph, heatmap, matrix, etc.)
+- Allow custom styling based on entity attributes
+- Enable interactive exploration with entity-appropriate actions
+
+## Technical Approach
+- Implement a schema-driven configuration system
+- Develop abstraction layers for entity types and relationships
+- Create adapter patterns for different data sources
+- Use metadata to drive UI rendering and validation
+- Implement a plugin system for extensibility
+
+## Implementation Considerations
+- The system should not hardcode assumptions about specific platforms (Slack, Google Drive, etc.)
+- Analytics algorithms should be parameterized and abstracted from specific data structures
+- Visualization components should render based on relationship types, not specific entities
+- Configuration options should adapt based on the selected entity and relationship types
+- All terminology should be configurable to match domain-specific language
+- Default configurations should be easily applied but also fully customizable
+
+## User Experience Flow
+1. User arrives at Graph Analytics Configuration step
+2. System automatically shows "Who Knows Who" and "Who Does What" as pre-configured options with checkboxes selected
+3. Preview visualization shows a sample of both analytics applied to the current graph
+4. User can adjust parameters, add additional analytics, or proceed with defaults
