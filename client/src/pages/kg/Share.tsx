@@ -25,7 +25,12 @@ import {
 } from 'lucide-react';
 
 const Share = () => {
-  const [location, navigate] = useLocation();
+  const [location, setLocation] = useLocation();
+  
+  // Navigation helper function
+  const navigate = (path: string) => {
+    setLocation(path);
+  };
   
   // Sample data for Analytics DMOs
   const analyticsDMOs = [
@@ -129,7 +134,7 @@ const Share = () => {
   
   // Navigation handlers
   const handlePrevious = () => {
-    navigate('/kg/dmo');
+    navigate('/kg/playground');
   };
   
   // Right panel content
