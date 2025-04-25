@@ -12,7 +12,39 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  DndContext,
+  closestCenter,
+  MouseSensor,
+  TouchSensor,
+  DragOverlay,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  UniqueIdentifier
+} from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { 
+  Network, 
+  BarChart3,
+  PieChart,
+  LineChart,
+  Search, 
+  Clock, 
+  Zap, 
+  List, 
+  Settings,
+  Eye,
+  Lightbulb,
+  UserCog,
+  Workflow,
+  Layers,
+  GripVertical,
+  PlusSquare,
   FileText, 
   User, 
   MessageSquare, 
@@ -22,7 +54,7 @@ import {
   Star,
   ArrowRight, 
   ArrowLeftRight, 
-  Trash2, 
+  Trash2,
   Edit, 
   Check, 
   ChevronDown,
@@ -33,7 +65,8 @@ import {
   Building,
   Truck,
   MapPin,
-  HelpCircle
+  HelpCircle,
+  Users
 } from 'lucide-react';
 
 // DMO (Data Model Object) Interfaces
@@ -1070,235 +1103,19 @@ const EKGSetup: React.FC = () => {
                     Advanced Analytics Configuration
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl">
+                <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Advanced Analytics Configuration</DialogTitle>
+                    <DialogTitle>Analytics Configuration</DialogTitle>
                     <DialogDescription>
-                      Fine-tune your analytics parameters and settings for the Enterprise Knowledge Graph.
+                      Configure your Enterprise Knowledge Graph analytics workflow with drag and drop components.
                     </DialogDescription>
                   </DialogHeader>
                   
-                  {/* Analytics Configuration Content */}
-                  <div className="mt-4 space-y-6">
-                    <Tabs defaultValue="who-knows-who">
-                      <TabsList className="grid grid-cols-2 w-full">
-                        <TabsTrigger value="who-knows-who">Who Knows Who</TabsTrigger>
-                        <TabsTrigger value="who-does-what">Who Does What</TabsTrigger>
-                      </TabsList>
-                      
-                      {/* Who Knows Who Tab */}
-                      <TabsContent value="who-knows-who" className="space-y-4 pt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-sm font-medium mb-2">Weight Factors</h3>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <div className="flex justify-between">
-                                    <Label htmlFor="frequency-weight" className="text-xs">
-                                      Interaction Frequency
-                                    </Label>
-                                    <span className="text-xs font-medium">0.6</span>
-                                  </div>
-                                  <Slider
-                                    id="frequency-weight"
-                                    min={0}
-                                    max={1}
-                                    step={0.1}
-                                    defaultValue={[0.6]}
-                                  />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <div className="flex justify-between">
-                                    <Label htmlFor="duration-weight" className="text-xs">
-                                      Relationship Duration
-                                    </Label>
-                                    <span className="text-xs font-medium">0.3</span>
-                                  </div>
-                                  <Slider
-                                    id="duration-weight"
-                                    min={0}
-                                    max={1}
-                                    step={0.1}
-                                    defaultValue={[0.3]}
-                                  />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <div className="flex justify-between">
-                                    <Label htmlFor="recency-weight" className="text-xs">
-                                      Recency Factor
-                                    </Label>
-                                    <span className="text-xs font-medium">0.1</span>
-                                  </div>
-                                  <Slider
-                                    id="recency-weight"
-                                    min={0}
-                                    max={1}
-                                    step={0.1}
-                                    defaultValue={[0.1]}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-sm font-medium mb-2">Time Decay</h3>
-                              <div className="space-y-4">
-                                <div className="flex items-center space-x-2">
-                                  <Switch id="time-decay-toggle" defaultChecked />
-                                  <Label htmlFor="time-decay-toggle">Enable Time Decay</Label>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <Label htmlFor="half-life" className="text-xs">
-                                    Half-life (days)
-                                  </Label>
-                                  <Input
-                                    id="half-life"
-                                    type="number"
-                                    defaultValue="90"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <h3 className="text-sm font-medium mb-2">Threshold Settings</h3>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <div className="flex justify-between">
-                                    <Label htmlFor="min-weight" className="text-xs">
-                                      Minimum Relationship Weight
-                                    </Label>
-                                    <span className="text-xs font-medium">0.3</span>
-                                  </div>
-                                  <Slider
-                                    id="min-weight"
-                                    min={0}
-                                    max={1}
-                                    step={0.1}
-                                    defaultValue={[0.3]}
-                                  />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <Label htmlFor="min-interactions" className="text-xs">
-                                    Minimum Interactions
-                                  </Label>
-                                  <Input
-                                    id="min-interactions"
-                                    type="number"
-                                    defaultValue="5"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </TabsContent>
-                      
-                      {/* Who Does What Tab */}
-                      <TabsContent value="who-does-what" className="space-y-4 pt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-sm font-medium mb-2">Content Type Weights</h3>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <div className="flex justify-between">
-                                    <Label htmlFor="document-weight" className="text-xs">
-                                      Document Weight
-                                    </Label>
-                                    <span className="text-xs font-medium">0.6</span>
-                                  </div>
-                                  <Slider
-                                    id="document-weight"
-                                    min={0}
-                                    max={1}
-                                    step={0.1}
-                                    defaultValue={[0.6]}
-                                  />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <div className="flex justify-between">
-                                    <Label htmlFor="project-weight" className="text-xs">
-                                      Project Weight
-                                    </Label>
-                                    <span className="text-xs font-medium">0.4</span>
-                                  </div>
-                                  <Slider
-                                    id="project-weight"
-                                    min={0}
-                                    max={1}
-                                    step={0.1}
-                                    defaultValue={[0.4]}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-sm font-medium mb-2">Expertise Settings</h3>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <div className="flex justify-between">
-                                    <Label htmlFor="expertise-threshold" className="text-xs">
-                                      Expertise Threshold
-                                    </Label>
-                                    <span className="text-xs font-medium">0.7</span>
-                                  </div>
-                                  <Slider
-                                    id="expertise-threshold"
-                                    min={0}
-                                    max={1}
-                                    step={0.1}
-                                    defaultValue={[0.7]}
-                                  />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <Label htmlFor="topic-extraction-method" className="text-xs">
-                                    Topic Extraction Method
-                                  </Label>
-                                  <Select defaultValue="tf-idf">
-                                    <SelectTrigger id="topic-extraction-method">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="tf-idf">TF-IDF</SelectItem>
-                                      <SelectItem value="bert">BERT Embeddings</SelectItem>
-                                      <SelectItem value="lda">LDA Topic Modeling</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <Label htmlFor="min-frequency" className="text-xs">
-                                    Min. Topic Frequency
-                                  </Label>
-                                  <Input
-                                    id="min-frequency"
-                                    type="number"
-                                    defaultValue="3"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  </div>
+                  {/* Full Analytics Configuration from AnalyticsConfig.tsx */}
+                  <AnalyticsConfigModal />
                   
-                  <DialogFooter>
-                    <Button type="submit">Save Changes</Button>
+                  <DialogFooter className="mt-4">
+                    <Button type="submit">Apply Changes</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -1334,6 +1151,981 @@ const EKGSetup: React.FC = () => {
         </Card>
       </div>
     </KnowledgeGraphLayout>
+  );
+};
+
+// Analytics Config Modal Component
+// This implements the relevant parts of AnalyticsConfig.tsx in a modal dialog
+interface AnalyticsComponent {
+  id: string;
+  type: 'entity' | 'relationship' | 'algorithm' | 'visualization';
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  category?: string;
+  compatibleWith?: string[];
+  parameters?: Record<string, any>;
+}
+
+interface EntityType {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+}
+
+interface RelationshipType {
+  id: string;
+  name: string;
+  sourceEntityType: string;
+  targetEntityType: string;
+  properties: {
+    id: string;
+    name: string;
+    type: 'number' | 'string' | 'boolean' | 'date';
+  }[];
+}
+
+interface VisualizationOption {
+  id: string;
+  name: string;
+  type: 'network' | 'matrix' | 'heatmap' | 'bar' | 'line' | 'pie';
+  icon: React.ReactNode;
+  description: string;
+}
+
+// Define Sortable Item component
+const SortableItem = ({ id, children, handle = true }: { id: string, children: React.ReactNode, handle?: boolean }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: 'relative' as const,
+    zIndex: isDragging ? 1000 : 1
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className={`mb-4 ${isDragging ? 'z-50' : ''}`}>
+      {handle ? (
+        <div className="flex">
+          <div 
+            className="cursor-grab p-2 flex items-center justify-center text-gray-400 hover:text-gray-600" 
+            {...attributes} 
+            {...listeners}
+          >
+            <GripVertical className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            {children}
+          </div>
+        </div>
+      ) : (
+        <div {...attributes} {...listeners}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Component Library Item
+const ComponentLibraryItem = ({ 
+  component, 
+  onAddToPipeline 
+}: { 
+  component: AnalyticsComponent, 
+  onAddToPipeline: (component: AnalyticsComponent) => void 
+}) => {
+  return (
+    <div 
+      className="border rounded-md p-3 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
+      onClick={() => onAddToPipeline(component)}
+    >
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-gray-100 rounded-md">
+          {component.icon}
+        </div>
+        <div>
+          <h4 className="text-sm font-medium">{component.name}</h4>
+          <p className="text-xs text-gray-500">{component.description}</p>
+        </div>
+        <div className="ml-auto">
+          <PlusSquare className="h-5 w-5 text-gray-400 hover:text-blue-500" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Pipeline Component Item
+const PipelineComponentItem = ({ 
+  component, 
+  onRemove, 
+  isActive, 
+  onToggleActive 
+}: { 
+  component: AnalyticsComponent & { active: boolean }, 
+  onRemove: () => void, 
+  isActive: boolean, 
+  onToggleActive: () => void 
+}) => {
+  return (
+    <div className={`border rounded-md p-3 ${isActive ? 'border-blue-500 bg-blue-50' : 'bg-white'}`}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center space-x-3">
+          <div className={`p-2 rounded-md ${isActive ? 'bg-blue-100' : 'bg-gray-100'}`}>
+            {component.icon}
+          </div>
+          <div>
+            <h4 className="text-sm font-medium">{component.name}</h4>
+            <p className="text-xs text-gray-500">{component.type}</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch
+            checked={isActive}
+            onCheckedChange={onToggleActive}
+          />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove();
+            }}
+          >
+            <Trash2 className="h-4 w-4 text-gray-400" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AnalyticsConfigModal: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<string>('builder');
+  
+  // Configure DnD sensors
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    })
+  );
+  
+  // Entity types
+  const [entityTypes] = useState<EntityType[]>([
+    { id: 'person', name: 'Person', icon: <Users className="h-4 w-4 text-blue-500" /> },
+    { id: 'document', name: 'Document', icon: <FileText className="h-4 w-4 text-gray-500" /> },
+    { id: 'project', name: 'Project', icon: <Briefcase className="h-4 w-4 text-amber-500" /> },
+  ]);
+  
+  // Relationship types
+  const [relationships] = useState<RelationshipType[]>([
+    { 
+      id: 'collaborates', 
+      name: 'Collaborates With', 
+      sourceEntityType: 'person',
+      targetEntityType: 'person',
+      properties: [
+        { id: 'frequency', name: 'Frequency', type: 'number' },
+        { id: 'last_interaction', name: 'Last Interaction', type: 'date' },
+        { id: 'strength', name: 'Relationship Strength', type: 'number' }
+      ]
+    },
+    { 
+      id: 'knows', 
+      name: 'Knows', 
+      sourceEntityType: 'person',
+      targetEntityType: 'person',
+      properties: [
+        { id: 'duration', name: 'Duration (years)', type: 'number' },
+        { id: 'context', name: 'Context', type: 'string' }
+      ]
+    },
+    { 
+      id: 'created', 
+      name: 'Created', 
+      sourceEntityType: 'person',
+      targetEntityType: 'document',
+      properties: [
+        { id: 'date', name: 'Creation Date', type: 'date' },
+        { id: 'role', name: 'Creation Role', type: 'string' }
+      ]
+    },
+    { 
+      id: 'works_on', 
+      name: 'Works On', 
+      sourceEntityType: 'person',
+      targetEntityType: 'project',
+      properties: [
+        { id: 'role', name: 'Role', type: 'string' },
+        { id: 'contribution', name: 'Contribution Level', type: 'number' },
+        { id: 'start_date', name: 'Start Date', type: 'date' }
+      ]
+    }
+  ]);
+  
+  // Visualization options
+  const [visualizationOptions] = useState<VisualizationOption[]>([
+    { 
+      id: 'network', 
+      name: 'Network Diagram', 
+      type: 'network', 
+      icon: <Network className="h-4 w-4" />,
+      description: 'Shows entities as nodes and relationships as connections'
+    },
+    { 
+      id: 'heatmap', 
+      name: 'Heatmap', 
+      type: 'heatmap', 
+      icon: <PieChart className="h-4 w-4" />,
+      description: 'Visualizes relationship intensity using color gradients'
+    },
+    { 
+      id: 'matrix', 
+      name: 'Relationship Matrix', 
+      type: 'matrix', 
+      icon: <BarChart3 className="h-4 w-4" />,
+      description: 'Displays relationships between entities in a grid format'
+    }
+  ]);
+  
+  // Component library
+  const [componentLibrary] = useState<AnalyticsComponent[]>([
+    // Entity types
+    {
+      id: 'entity-person',
+      type: 'entity',
+      name: 'Person Entity',
+      description: 'Users, employees, and individuals',
+      icon: <Users className="h-4 w-4 text-blue-500" />,
+      category: 'entity'
+    },
+    {
+      id: 'entity-document',
+      type: 'entity',
+      name: 'Document Entity',
+      description: 'Files, articles, and documents',
+      icon: <FileText className="h-4 w-4 text-gray-500" />,
+      category: 'entity'
+    },
+    {
+      id: 'entity-project',
+      type: 'entity',
+      name: 'Project Entity',
+      description: 'Work items and projects',
+      icon: <Briefcase className="h-4 w-4 text-amber-500" />,
+      category: 'entity'
+    },
+    
+    // Relationships
+    {
+      id: 'rel-collaborates',
+      type: 'relationship',
+      name: 'Collaborates With',
+      description: 'Person-to-person collaboration',
+      icon: <Network className="h-4 w-4 text-purple-500" />,
+      category: 'relationship',
+      compatibleWith: ['entity-person'],
+      parameters: {
+        weight: 0.8,
+        timeDecay: true
+      }
+    },
+    {
+      id: 'rel-knows',
+      type: 'relationship',
+      name: 'Knows',
+      description: 'Person-to-person knowledge relationship',
+      icon: <Network className="h-4 w-4 text-indigo-500" />,
+      category: 'relationship',
+      compatibleWith: ['entity-person'],
+      parameters: {
+        weight: 0.6,
+        timeDecay: false
+      }
+    },
+    {
+      id: 'rel-created',
+      type: 'relationship',
+      name: 'Created',
+      description: 'Person-to-document creation action',
+      icon: <ArrowRight className="h-4 w-4 text-green-500" />,
+      category: 'relationship',
+      compatibleWith: ['entity-person', 'entity-document'],
+      parameters: {
+        weight: 0.9,
+        timeDecay: true
+      }
+    },
+    
+    // Algorithms
+    {
+      id: 'algo-betweenness',
+      type: 'algorithm',
+      name: 'Betweenness Centrality',
+      description: 'Identifies bridge nodes in the network',
+      icon: <Network className="h-4 w-4 text-blue-500" />,
+      category: 'algorithm',
+      parameters: {
+        normalization: true,
+        directed: false
+      }
+    },
+    {
+      id: 'algo-pagerank',
+      type: 'algorithm',
+      name: 'PageRank',
+      description: 'Identifies influential nodes',
+      icon: <Zap className="h-4 w-4 text-amber-500" />,
+      category: 'algorithm',
+      parameters: {
+        dampingFactor: 0.85,
+        iterations: 100
+      }
+    },
+    
+    // Visualizations
+    {
+      id: 'vis-network',
+      type: 'visualization',
+      name: 'Network Diagram',
+      description: 'Visualize entities and relationships as a graph',
+      icon: <Network className="h-4 w-4 text-gray-500" />,
+      category: 'visualization',
+      parameters: {
+        layout: 'force-directed',
+        nodeSize: 'degree'
+      }
+    },
+    {
+      id: 'vis-heatmap',
+      type: 'visualization',
+      name: 'Heatmap',
+      description: 'Color intensity represents relationship strength',
+      icon: <PieChart className="h-4 w-4 text-red-500" />,
+      category: 'visualization',
+      parameters: {
+        colorScheme: 'blue-to-red',
+        normalize: true
+      }
+    }
+  ]);
+  
+  // Analytics pipeline - using type assertion to handle the issues
+  const [analyticsPipeline, setAnalyticsPipeline] = useState<(AnalyticsComponent & { active: boolean, id: string })[]>([
+    // Pre-configured "Who Knows Who" analytics components
+    {
+      ...(componentLibrary.find(c => c.id === 'entity-person') as AnalyticsComponent),
+      id: 'pipeline-person-1',
+      active: true
+    },
+    {
+      ...(componentLibrary.find(c => c.id === 'rel-collaborates') as AnalyticsComponent),
+      id: 'pipeline-collaborates',
+      active: true
+    },
+    {
+      ...(componentLibrary.find(c => c.id === 'rel-knows') as AnalyticsComponent),
+      id: 'pipeline-knows',
+      active: true
+    },
+    {
+      ...(componentLibrary.find(c => c.id === 'algo-pagerank') as AnalyticsComponent),
+      id: 'pipeline-pagerank',
+      active: true
+    },
+    {
+      ...(componentLibrary.find(c => c.id === 'vis-network') as AnalyticsComponent),
+      id: 'pipeline-network-1',
+      active: true
+    }
+  ]);
+  
+  // State for active componentId
+  const [activeComponentId, setActiveComponentId] = useState<string | null>(null);
+  const [componentFilter, setComponentFilter] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
+    entity: true,
+    relationship: true,
+    algorithm: true,
+    visualization: true
+  });
+  
+  // DnD handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveComponentId(event.active.id as string);
+  };
+  
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setAnalyticsPipeline((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+    
+    setActiveComponentId(null);
+  };
+  
+  const handleAddComponent = (component: AnalyticsComponent) => {
+    const newId = `pipeline-${component.id}-${Date.now()}`;
+    
+    setAnalyticsPipeline(prev => [
+      ...prev,
+      {
+        ...component,
+        id: newId,
+        active: true
+      }
+    ]);
+  };
+  
+  const handleRemoveComponent = (id: string) => {
+    setAnalyticsPipeline(prev => prev.filter(item => item.id !== id));
+  };
+  
+  const handleToggleComponentActive = (id: string) => {
+    setAnalyticsPipeline(prev => 
+      prev.map(item => 
+        item.id === id 
+          ? { ...item, active: !item.active } 
+          : item
+      )
+    );
+  };
+  
+  const handleToggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Render analytics preview
+  const renderAnalyticsPreview = () => {
+    // Check if we have at least one visualization component
+    const hasVisualization = analyticsPipeline.some(
+      item => item.type === 'visualization' && item.active
+    );
+    
+    if (!hasVisualization) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+          <Eye className="h-16 w-16 text-gray-200 mb-4" />
+          <p className="text-gray-500 font-medium mb-2">No Visualization Selected</p>
+          <p className="text-gray-400 text-sm">
+            Add a visualization component to your pipeline to see a preview
+          </p>
+        </div>
+      );
+    }
+    
+    // Default visualization - Force-directed graph for "Who Knows Who" analytics
+    return (
+      <div className="flex items-center justify-center">
+        <div className="relative w-full max-w-4xl">
+          <div className="absolute top-2 right-2 flex space-x-1">
+            <Button variant="outline" size="sm" className="h-7 px-2">
+              <Settings className="h-3.5 w-3.5 mr-1" />
+              <span className="text-xs">Settings</span>
+            </Button>
+            <Button variant="outline" size="sm" className="h-7 px-2">
+              <Eye className="h-3.5 w-3.5 mr-1" />
+              <span className="text-xs">View</span>
+            </Button>
+          </div>
+          
+          <svg width="100%" height="360" viewBox="0 0 800 360">
+            {/* Network sample visualization */}
+            <g transform="translate(400, 180)">
+              {/* Nodes */}
+              <circle cx="0" cy="0" r="20" fill="#3b82f6" opacity="0.8" />
+              <circle cx="-100" cy="-80" r="15" fill="#3b82f6" opacity="0.8" />
+              <circle cx="120" cy="-60" r="15" fill="#3b82f6" opacity="0.8" />
+              <circle cx="80" cy="100" r="15" fill="#3b82f6" opacity="0.8" />
+              <circle cx="-90" cy="90" r="15" fill="#3b82f6" opacity="0.8" />
+              <circle cx="-150" cy="0" r="15" fill="#3b82f6" opacity="0.8" />
+              <circle cx="200" cy="20" r="15" fill="#3b82f6" opacity="0.8" />
+              
+              {/* Labels */}
+              <text x="0" y="0" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="10">Person 1</text>
+              <text x="-100" y="-80" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="8">Person 2</text>
+              <text x="120" y="-60" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="8">Person 3</text>
+              <text x="80" y="100" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="8">Person 4</text>
+              <text x="-90" y="90" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="8">Person 5</text>
+              <text x="-150" y="0" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="8">Person 6</text>
+              <text x="200" y="20" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="8">Person 7</text>
+              
+              {/* Edges */}
+              <line x1="0" y1="0" x2="-100" y2="-80" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+              <line x1="0" y1="0" x2="120" y2="-60" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+              <line x1="0" y1="0" x2="80" y2="100" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+              <line x1="0" y1="0" x2="-90" y2="90" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+              <line x1="0" y1="0" x2="-150" y2="0" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+              <line x1="0" y1="0" x2="200" y2="20" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+              <line x1="-100" y1="-80" x2="120" y2="-60" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+              <line x1="120" y1="-60" x2="200" y2="20" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+              <line x1="80" y1="100" x2="-90" y2="90" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+              <line x1="-90" y1="90" x2="-150" y2="0" stroke="#94a3b8" strokeWidth="2" opacity="0.6" />
+            </g>
+          </svg>
+        </div>
+      </div>
+    );
+  };
+  
+  // Filtered component library
+  const filteredComponents = componentFilter
+    ? componentLibrary.filter(component => 
+        component.name.toLowerCase().includes(componentFilter.toLowerCase()) ||
+        component.description.toLowerCase().includes(componentFilter.toLowerCase()) ||
+        component.type.toLowerCase().includes(componentFilter.toLowerCase())
+      )
+    : componentLibrary;
+
+  // Main render function
+  return (
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-3">
+          <TabsTrigger value="builder">Builder</TabsTrigger>
+          <TabsTrigger value="preview">Preview</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="builder" className="pt-4">
+          <div className="space-y-6">
+            {/* Analytics Preview Playground - Center Stage */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Analytics Visualization Playground</CardTitle>
+                <CardDescription>
+                  Interactive preview of your analytics configuration
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="bg-gray-50 rounded-md p-6 min-h-[400px]">
+                  {renderAnalyticsPreview()}
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Builder Panels */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Component Library */}
+              <div>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Component Library</CardTitle>
+                    <CardDescription>
+                      Drag components to build your pipeline
+                    </CardDescription>
+                    <div className="relative mt-2">
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input 
+                        placeholder="Search components..."
+                        className="pl-8"
+                        value={componentFilter || ''}
+                        onChange={(e) => setComponentFilter(e.target.value || null)}
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="max-h-[400px] overflow-y-auto">
+                    <div className="space-y-4">
+                      {/* Entity Components */}
+                      <div>
+                        <div 
+                          className="flex items-center justify-between cursor-pointer mb-2"
+                          onClick={() => handleToggleSection('entity')}
+                        >
+                          <h3 className="text-sm font-medium">Entity Components</h3>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            {expandedSections.entity ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {expandedSections.entity && (
+                          <div className="space-y-2">
+                            {filteredComponents
+                              .filter(component => component.type === 'entity')
+                              .map(component => (
+                                <ComponentLibraryItem
+                                  key={component.id}
+                                  component={component}
+                                  onAddToPipeline={handleAddComponent}
+                                />
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Relationship Components */}
+                      <div>
+                        <div 
+                          className="flex items-center justify-between cursor-pointer mb-2"
+                          onClick={() => handleToggleSection('relationship')}
+                        >
+                          <h3 className="text-sm font-medium">Relationship Components</h3>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            {expandedSections.relationship ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {expandedSections.relationship && (
+                          <div className="space-y-2">
+                            {filteredComponents
+                              .filter(component => component.type === 'relationship')
+                              .map(component => (
+                                <ComponentLibraryItem
+                                  key={component.id}
+                                  component={component}
+                                  onAddToPipeline={handleAddComponent}
+                                />
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Algorithm Components */}
+                      <div>
+                        <div 
+                          className="flex items-center justify-between cursor-pointer mb-2"
+                          onClick={() => handleToggleSection('algorithm')}
+                        >
+                          <h3 className="text-sm font-medium">Algorithm Components</h3>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            {expandedSections.algorithm ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {expandedSections.algorithm && (
+                          <div className="space-y-2">
+                            {filteredComponents
+                              .filter(component => component.type === 'algorithm')
+                              .map(component => (
+                                <ComponentLibraryItem
+                                  key={component.id}
+                                  component={component}
+                                  onAddToPipeline={handleAddComponent}
+                                />
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Visualization Components */}
+                      <div>
+                        <div 
+                          className="flex items-center justify-between cursor-pointer mb-2"
+                          onClick={() => handleToggleSection('visualization')}
+                        >
+                          <h3 className="text-sm font-medium">Visualization Components</h3>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            {expandedSections.visualization ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {expandedSections.visualization && (
+                          <div className="space-y-2">
+                            {filteredComponents
+                              .filter(component => component.type === 'visualization')
+                              .map(component => (
+                                <ComponentLibraryItem
+                                  key={component.id}
+                                  component={component}
+                                  onAddToPipeline={handleAddComponent}
+                                />
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Analytics Pipeline */}
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Analytics Pipeline</CardTitle>
+                    <CardDescription>
+                      Configure your analytics workflow
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="space-y-2">
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext 
+                          items={analyticsPipeline.map(item => item.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {analyticsPipeline.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-[300px] text-center">
+                              <Layers className="h-16 w-16 text-gray-200 mb-4" />
+                              <p className="text-gray-400 mb-2">Drag and drop components here</p>
+                              <p className="text-gray-300 text-sm">Build your analytics pipeline by adding components from the library</p>
+                            </div>
+                          ) : (
+                            <div>
+                              {/* "Who Knows Who" section */}
+                              <div className="mb-4">
+                                <div className="flex items-center mb-2">
+                                  <Badge className="mr-2">Default</Badge>
+                                  <h3 className="font-medium">Who Knows Who</h3>
+                                </div>
+                                {analyticsPipeline
+                                  .slice(0, 5)
+                                  .map(component => (
+                                    <SortableItem key={component.id} id={component.id}>
+                                      <PipelineComponentItem
+                                        component={component}
+                                        onRemove={() => handleRemoveComponent(component.id)}
+                                        isActive={component.active}
+                                        onToggleActive={() => handleToggleComponentActive(component.id)}
+                                      />
+                                    </SortableItem>
+                                  ))}
+                              </div>
+                              
+                              {/* Custom components */}
+                              {analyticsPipeline.length > 5 && (
+                                <div>
+                                  <div className="flex items-center mb-2">
+                                    <Badge variant="outline" className="mr-2">Custom</Badge>
+                                    <h3 className="font-medium">Custom Analytics</h3>
+                                  </div>
+                                  {analyticsPipeline
+                                    .slice(5)
+                                    .map(component => (
+                                      <SortableItem key={component.id} id={component.id}>
+                                        <PipelineComponentItem
+                                          component={component}
+                                          onRemove={() => handleRemoveComponent(component.id)}
+                                          isActive={component.active}
+                                          onToggleActive={() => handleToggleComponentActive(component.id)}
+                                        />
+                                      </SortableItem>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Drag overlay */}
+                          <DragOverlay>
+                            {activeComponentId ? (
+                              <div className="border rounded-md p-3 bg-blue-50 border-blue-200 shadow-md">
+                                {analyticsPipeline.find(item => item.id === activeComponentId)?.name}
+                              </div>
+                            ) : null}
+                          </DragOverlay>
+                        </SortableContext>
+                      </DndContext>
+                    </div>
+                  </CardContent>
+                  
+                  <CardFooter className="pt-0">
+                    <Button variant="outline" size="sm" className="ml-auto">
+                      Save Configuration
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="preview" className="pt-4">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Advanced Configuration</CardTitle>
+                <CardDescription>
+                  Fine-tune analytics parameters and settings
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
+                {/* Advanced settings options */}
+                <div className="bg-gray-50 rounded-md p-4">
+                  <h3 className="text-sm font-medium mb-3">Who Knows Who Analytics</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="frequency-weight">Interaction Frequency Weight</Label>
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>0</span>
+                          <span>0.6</span>
+                          <span>1.0</span>
+                        </div>
+                        <Slider
+                          id="frequency-weight"
+                          defaultValue={[0.6]}
+                          max={1}
+                          step={0.1}
+                          className="py-1"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="time-decay">Time Decay Factor</Label>
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>0</span>
+                          <span>0.3</span>
+                          <span>1.0</span>
+                        </div>
+                        <Slider
+                          id="time-decay"
+                          defaultValue={[0.3]}
+                          max={1}
+                          step={0.1}
+                          className="py-1"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="relationship-threshold">Minimum Relationship Strength</Label>
+                        <Select defaultValue="0.3">
+                          <SelectTrigger id="relationship-threshold">
+                            <SelectValue placeholder="Select threshold" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0.1">0.1 (Very Low)</SelectItem>
+                            <SelectItem value="0.2">0.2 (Low)</SelectItem>
+                            <SelectItem value="0.3">0.3 (Medium)</SelectItem>
+                            <SelectItem value="0.5">0.5 (High)</SelectItem>
+                            <SelectItem value="0.7">0.7 (Very High)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="normalize-weight" defaultChecked />
+                        <Label htmlFor="normalize-weight">Normalize Relationship Weights</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="filter-outliers" />
+                        <Label htmlFor="filter-outliers">Filter Outlier Connections</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="settings" className="pt-4">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Analytics Settings</CardTitle>
+                <CardDescription>
+                  Configure general analytics settings
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="analytics-name">Analytics Configuration Name</Label>
+                    <Input id="analytics-name" defaultValue="EKG Analytics" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="auto-refresh">Auto-Refresh Interval</Label>
+                    <Select defaultValue="3600">
+                      <SelectTrigger id="auto-refresh">
+                        <SelectValue placeholder="Select interval" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Manual refresh only</SelectItem>
+                        <SelectItem value="300">Every 5 minutes</SelectItem>
+                        <SelectItem value="900">Every 15 minutes</SelectItem>
+                        <SelectItem value="1800">Every 30 minutes</SelectItem>
+                        <SelectItem value="3600">Every hour</SelectItem>
+                        <SelectItem value="86400">Every day</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="block mb-1">Data Scope</Label>
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="scope-documents" defaultChecked />
+                        <Label htmlFor="scope-documents">Include Documents</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="scope-people" defaultChecked />
+                        <Label htmlFor="scope-people">Include People</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="scope-projects" defaultChecked />
+                        <Label htmlFor="scope-projects">Include Projects</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="scope-departments" />
+                        <Label htmlFor="scope-departments">Include Departments</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
