@@ -29,7 +29,7 @@ const TemplateSelection: React.FC = () => {
     {
       id: 'slack',
       name: 'Activity Graph from Slack',
-      description: 'Create a knowledge graph from Slack workspace data',
+      description: 'Map Slack communication data to understand user interactions with content and other users',
       icon: <MessageSquare className="h-8 w-8 text-blue-500" />,
       group: 'template'
     },

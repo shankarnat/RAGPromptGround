@@ -283,7 +283,7 @@ export interface SlackGraphData {
 }
 
 /**
- * Transforms Slack graph data into the EKG data model format
+ * Transforms Slack graph data into the EKG data model format with Activity-User-Content structure
  */
 export const transformSlackToEKG = (graphData: SlackGraphData) => {
   // Extract user and channel nodes
@@ -306,52 +306,188 @@ export const transformSlackToEKG = (graphData: SlackGraphData) => {
   
   // Set up default EKG settings for Slack data
   const ekgSettings = {
-    // DMOs will include Person and Channel
+    // DMOs will include User, Content, Activity, and Channel
     dmos: [
       {
-        id: 'person',
-        name: 'Person',
-        description: 'Person or user entity from Slack',
+        id: 'user',
+        name: 'User',
+        description: 'User profiles from Slack workspace',
         selected: true,
-        required: true
+        required: true,
+        fields: [
+          { id: 'user_id', name: 'user_id', type: 'string', isPrimaryKey: true },
+          { id: 'display_name', name: 'display_name', type: 'string', isRequired: true },
+          { id: 'email', name: 'email', type: 'string', isRequired: false },
+          { id: 'title', name: 'title', type: 'string', isRequired: false },
+          { id: 'team', name: 'team', type: 'string', isRequired: false }
+        ]
+      },
+      {
+        id: 'content',
+        name: 'Content',
+        description: 'Messages and files shared in Slack',
+        selected: true,
+        required: true,
+        fields: [
+          { id: 'content_id', name: 'content_id', type: 'string', isPrimaryKey: true },
+          { id: 'type', name: 'type', type: 'string', isRequired: true },
+          { id: 'text', name: 'text', type: 'string', isRequired: false },
+          { id: 'timestamp', name: 'timestamp', type: 'date', isRequired: true },
+          { id: 'channel_id', name: 'channel_id', type: 'string', isRequired: true },
+          { id: 'thread_ts', name: 'thread_ts', type: 'string', isRequired: false },
+          { id: 'filename', name: 'filename', type: 'string', isRequired: false },
+          { id: 'filetype', name: 'filetype', type: 'string', isRequired: false },
+          { id: 'url', name: 'url', type: 'string', isRequired: false }
+        ]
+      },
+      {
+        id: 'activity',
+        name: 'Activity',
+        description: 'User actions and interactions in Slack',
+        selected: true,
+        required: true,
+        fields: [
+          { id: 'activity_id', name: 'activity_id', type: 'string', isPrimaryKey: true },
+          { id: 'activity_type', name: 'activity_type', type: 'string', isRequired: true },
+          { id: 'timestamp', name: 'timestamp', type: 'date', isRequired: true },
+          { id: 'actor_id', name: 'actor_id', type: 'string', isRequired: true },
+          { id: 'target_id', name: 'target_id', type: 'string', isRequired: false }
+        ]
       },
       {
         id: 'channel',
         name: 'Channel',
-        description: 'Channel from Slack workspace',
+        description: 'Channels in Slack workspace',
         selected: true,
-        required: true
+        required: false,
+        fields: [
+          { id: 'channel_id', name: 'channel_id', type: 'string', isPrimaryKey: true },
+          { id: 'name', name: 'name', type: 'string', isRequired: true },
+          { id: 'topic', name: 'topic', type: 'string', isRequired: false },
+          { id: 'member_count', name: 'member_count', type: 'number', isRequired: false }
+        ]
       }
     ],
     
-    // Edges will include Collaborates and MemberOf
+    // Edges will define the Activity-User-Content relationships
     edges: [
+      // User -> Content relationships
       {
-        id: 'collaborates',
-        name: 'Collaborates',
-        fromNodeType: 'person',
-        toNodeType: 'person',
-        isBidirectional: true,
+        id: 'authored',
+        name: 'Authored',
+        description: 'User created this content',
+        fromNodeType: 'user',
+        toNodeType: 'content',
+        isBidirectional: false,
         attributes: [
-          { id: 'collab-1', name: 'interaction_count', type: 'number' }
+          { id: 'created_at', name: 'created_at', type: 'date' }
         ]
       },
       {
-        id: 'member_of',
-        name: 'MemberOf',
-        fromNodeType: 'person',
-        toNodeType: 'channel',
+        id: 'reacted',
+        name: 'Reacted',
+        description: 'User reacted to this content',
+        fromNodeType: 'user',
+        toNodeType: 'content',
+        isBidirectional: false,
+        attributes: [
+          { id: 'reaction_type', name: 'reaction_type', type: 'string' },
+          { id: 'timestamp', name: 'timestamp', type: 'date' }
+        ]
+      },
+      {
+        id: 'edited',
+        name: 'Edited',
+        description: 'User edited this content',
+        fromNodeType: 'user',
+        toNodeType: 'content',
+        isBidirectional: false,
+        attributes: [
+          { id: 'edited_at', name: 'edited_at', type: 'date' }
+        ]
+      },
+      {
+        id: 'mentioned',
+        name: 'Mentioned',
+        description: 'User was mentioned in this content',
+        fromNodeType: 'user',
+        toNodeType: 'content',
         isBidirectional: false,
         attributes: []
+      },
+      
+      // User -> User relationships
+      {
+        id: 'collaborates',
+        name: 'Collaborates',
+        description: 'Users interacting in the same thread',
+        fromNodeType: 'user',
+        toNodeType: 'user',
+        isBidirectional: true,
+        attributes: [
+          { id: 'interaction_count', name: 'interaction_count', type: 'number' },
+          { id: 'last_interaction', name: 'last_interaction', type: 'date' }
+        ]
+      },
+      
+      // Activity -> User relationship
+      {
+        id: 'performed_by',
+        name: 'PerformedBy',
+        description: 'Activity performed by this user',
+        fromNodeType: 'activity',
+        toNodeType: 'user',
+        isBidirectional: false,
+        attributes: []
+      },
+      
+      // Activity -> Content relationship
+      {
+        id: 'performed_on',
+        name: 'PerformedOn',
+        description: 'Activity targeting this content',
+        fromNodeType: 'activity',
+        toNodeType: 'content',
+        isBidirectional: false,
+        attributes: []
+      },
+      
+      // User -> Channel relationship
+      {
+        id: 'member_of',
+        name: 'MemberOf',
+        description: 'User is a member of this channel',
+        fromNodeType: 'user',
+        toNodeType: 'channel',
+        isBidirectional: false,
+        attributes: [
+          { id: 'joined_at', name: 'joined_at', type: 'date' }
+        ]
       }
     ],
     
-    // Analytics: who knows who is enabled by default for slack data
+    // Analytics configuration optimized for Slack data
     enabledAnalytics: {
       whoKnowsWho: true,
       whoDoesWhat: true,
       centralityAnalysis: true,
-      communityDetection: false
+      communityDetection: true,
+      // Slack-specific analytics configs
+      slackAnalytics: {
+        // "Who Knows Who" configuration
+        whoKnowsWhoConfig: {
+          messageReplyWeight: 3,    // Weight message replies higher
+          reactionWeight: 1,         // Reactions are lower weight
+          directMessageWeight: 5,    // Direct messages indicate strong connection
+          channelCoPresenceWeight: 0.5  // Being in same channel is weak connection
+        },
+        // "Who Does What" configuration
+        whoDoesWhatConfig: {
+          enableTopicExtraction: true,
+          enableFileExpertiseTracking: true,
+          enableChannelTopicExpertise: true
+        }
+      }
     }
   };
   

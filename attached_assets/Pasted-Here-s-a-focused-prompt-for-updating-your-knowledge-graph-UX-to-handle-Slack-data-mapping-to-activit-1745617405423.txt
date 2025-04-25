@@ -1,0 +1,92 @@
+Here's a focused prompt for updating your knowledge graph UX to handle Slack data mapping to activity, user, and content DMOs:
+
+```
+# Slack Activity Graph Integration - Knowledge Graph UX Enhancement
+
+## Objective
+Update the Knowledge Graph UX to support efficient mapping of Slack data to Activity-User-Content graph structure, with automated edge creation and intuitive data mapping.
+
+## Data Source Mapping Requirements
+
+### Slack Data Source Components
+- User data (profiles, user IDs, metadata)
+- Message data (text, timestamps, thread info, reactions)
+- File data (shared files, attachments, links)
+- Channel data (workspaces, channels, membership)
+- Activity data (message posting, reactions, file sharing, mentions)
+
+### Target DMO Structure
+1. User DMO:
+   - Maps directly to Slack user profiles
+   - Key fields: user_id, display_name, email, title, team
+   
+2. Content DMO:
+   - Maps to Slack messages and files
+   - Message fields: message_id, text, timestamp, channel_id, thread_ts
+   - File fields: file_id, filename, filetype, url, timestamp
+
+3. Activity DMO:
+   - Maps to user actions in Slack
+   - Types: PostMessage, EditMessage, ReactToMessage, ShareFile, MentionUser, etc.
+   - Fields: activity_id, activity_type, timestamp, actor_id, target_id
+
+## UX Enhancement Requirements
+
+### Template Selection Screen
+- Add "Slack Activity Graph" as a prominent template option
+- Show visual preview of the Activity-User-Content structure
+- Include description: "Map Slack communication data to understand user interactions with content and other users"
+
+### DMO Drag & Drop Interface
+- Auto-populate Slack-specific DMOs when template is selected
+- Allow drag-and-drop of User, Content, and Activity DMOs onto the canvas
+- Visualize DMOs with Slack-themed icons for easy identification
+
+### Automated Edge Creation
+- Automatically generate the following edges when DMOs are placed:
+  1. User → Content (Authored): When a user creates a message or uploads a file
+  2. User → Content (Reacted): When a user reacts to a message
+  3. User → Content (Edited): When a user edits their message
+  4. User → Content (Mentioned): When content mentions a user
+  5. User → User (Collaboration): When users interact in the same thread
+  6. Activity → User (Performed By): Linking activities to users who performed them
+  7. Activity → Content (Performed On): Linking activities to target content
+
+### Field Mapping Interface
+- Pre-populate field mappings for common Slack data structures
+- Provide Slack-specific field descriptions and examples
+- Include validation rules for Slack-specific data types
+- Show sample data from Slack API for reference
+
+### Edge Configuration UI Enhancements
+- Edge type templates specific to Slack interactions
+- Pre-configured conditions for Slack data relationships
+- Visual distinction between direct and derived relationships
+- Quick toggle for common Slack activity relationships
+
+### Affinity Calculation Defaults
+- "Who Knows Who" configuration optimized for Slack interaction patterns:
+  - Weight message replies higher than reactions
+  - Consider channel co-presence as weak connection
+  - Account for direct message frequency
+  
+- "Who Does What" configuration tailored to Slack content:
+  - Topic extraction from message content
+  - File sharing and type expertise tracking
+  - Channel topic expertise identification
+
+## Implementation Guidance
+- Use Slack API structure as reference for field naming and relationships
+- Implement Slack-specific data validation during mapping
+- Ensure datetime handling accounts for Slack's timestamp format
+- Provide clear visual feedback when edges are auto-generated
+- Allow easy customization of the default Slack template settings
+
+## Success Criteria
+- Users can create a complete Activity-User-Content graph from Slack data in 50% less time than manual configuration
+- All key Slack interaction types are represented in the resulting knowledge graph
+- Affinity calculations accurately reflect communication patterns within Slack
+- Users can easily understand the meaning of auto-generated edges
+```
+
+This prompt provides specific guidance for updating your knowledge graph UX to handle Slack data, with a focus on the Activity-User-Content relationship model and automatic edge creation between these DMOs. It includes both technical requirements and UX considerations to ensure a smooth implementation.​​​​​​​​​​​​​​​​
