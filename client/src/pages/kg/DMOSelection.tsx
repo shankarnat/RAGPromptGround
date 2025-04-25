@@ -30,45 +30,53 @@ const DMOSelection: React.FC = () => {
   const [showNewDMO, setShowNewDMO] = useState(false);
   const [newDMOName, setNewDMOName] = useState('');
   
-  // Initial DMOs
+  // Initial EKG DMOs
   const [dmos, setDmos] = useState<DMO[]>([
     {
       id: 'document',
       name: 'Document',
-      description: 'File or document entity',
+      description: 'Document or content entity in the EKG',
       icon: <FileText className="h-6 w-6 text-blue-500" />,
       required: true,
       selected: true
     },
     {
-      id: 'user',
-      name: 'User',
-      description: 'Person or user entity',
+      id: 'person',
+      name: 'Person',
+      description: 'Person or user entity in the enterprise',
       icon: <User className="h-6 w-6 text-green-500" />,
       required: true,
       selected: true
     },
     {
-      id: 'conversation',
-      name: 'Conversation',
-      description: 'Chat or discussion thread',
+      id: 'concept',
+      name: 'Concept',
+      description: 'Abstract idea or knowledge concept',
       icon: <MessageSquare className="h-6 w-6 text-purple-500" />,
       required: false,
-      selected: false
+      selected: true
     },
     {
-      id: 'event',
-      name: 'Event',
-      description: 'Calendar event or meeting',
+      id: 'project',
+      name: 'Project',
+      description: 'Enterprise project or initiative',
       icon: <Calendar className="h-6 w-6 text-orange-500" />,
       required: false,
-      selected: false
+      selected: true
     },
     {
-      id: 'tag',
-      name: 'Tag',
-      description: 'Label or category',
+      id: 'department',
+      name: 'Department',
+      description: 'Organizational unit or team',
       icon: <Tag className="h-6 w-6 text-red-500" />,
+      required: false,
+      selected: true
+    },
+    {
+      id: 'process',
+      name: 'Process',
+      description: 'Business process or workflow',
+      icon: <Star className="h-6 w-6 text-amber-500" />,
       required: false,
       selected: false
     }
@@ -107,12 +115,12 @@ const DMOSelection: React.FC = () => {
     navigate('/kg/template');
   };
 
-  // Configuration panel content - moved DMO selection here
+  // Configuration panel content - moved EKG DMO selection here
   const rightPanelContent = (
     <div className="space-y-6">
-      <h2 className="text-md font-medium">Select Data Model Objects</h2>
+      <h2 className="text-md font-medium">Select EKG Data Model Objects</h2>
       <p className="text-sm text-gray-600 mb-4">
-        Choose which entities to include in your knowledge graph.
+        Choose which entities to include in your enterprise knowledge graph.
       </p>
       
       <div className="space-y-4">
@@ -146,7 +154,7 @@ const DMOSelection: React.FC = () => {
           <div className="p-3 border rounded-md bg-gray-50">
             <div className="flex items-center space-x-2 mb-3">
               <Input
-                placeholder="Enter DMO name"
+                placeholder="Enter EKG entity name"
                 value={newDMOName}
                 onChange={e => setNewDMOName(e.target.value)}
                 className="flex-1"
@@ -176,7 +184,7 @@ const DMOSelection: React.FC = () => {
             onClick={() => setShowNewDMO(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Custom DMO
+            Add Custom EKG Entity
           </Button>
         )}
       </div>
@@ -192,7 +200,7 @@ const DMOSelection: React.FC = () => {
         <svg width="400" height="300" viewBox="0 0 400 300">
           {/* Central circle representing the knowledge graph */}
           <circle cx="200" cy="150" r="40" fill="#e0e7ff" stroke="#4f46e5" strokeWidth="2" />
-          <text x="200" y="155" textAnchor="middle" fill="#4f46e5" fontSize="12" fontWeight="bold">Knowledge Graph</text>
+          <text x="200" y="155" textAnchor="middle" fill="#4f46e5" fontSize="12" fontWeight="bold">Enterprise KG</text>
           
           {/* DMO nodes arranged in a circle around the central node */}
           {selectedDMOs.map((dmo, index) => {
@@ -245,7 +253,7 @@ const DMOSelection: React.FC = () => {
 
   return (
     <KnowledgeGraphLayout
-      title="DMO Selection"
+      title="EKG Data Models"
       rightPanelContent={rightPanelContent}
       currentStep={2}
       totalSteps={7}
@@ -257,9 +265,9 @@ const DMOSelection: React.FC = () => {
         <div className="w-full">
           <Card>
             <CardContent className="pt-6">
-              <h2 className="text-lg font-medium mb-4">Knowledge Graph Structure</h2>
+              <h2 className="text-lg font-medium mb-4">Enterprise Knowledge Graph Structure</h2>
               <p className="text-gray-600 mb-6">
-                This visualization shows how your selected DMOs will be organized in the knowledge graph.
+                This visualization shows how your selected EKG entities will be organized in the enterprise knowledge graph.
               </p>
               <GraphVisualization />
             </CardContent>
