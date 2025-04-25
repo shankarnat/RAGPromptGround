@@ -63,7 +63,7 @@ interface EdgeAttribute {
 // Combined EKG Setup Component (DMO Selection + Edge Configuration)
 const EKGSetup: React.FC = () => {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState('dmos');
+  const [activeTab, setActiveTab] = useState<'dmos' | 'edges' | 'analytics'>('dmos');
   const svgRef = useRef<SVGSVGElement>(null);
   
   // State for DMO Selection
@@ -979,16 +979,19 @@ const EKGSetup: React.FC = () => {
     </div>
   );
 
-  // Right panel content with tabs for DMO and Edge selection
+  // Right panel content with tabs for DMOs, Edges, and Analytics
   const rightPanelContent = (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2">
+        <TabsList className="grid grid-cols-3">
           <TabsTrigger value="dmos" className="text-xs">
             EKG Entities
           </TabsTrigger>
           <TabsTrigger value="edges" className="text-xs">
             Relationships
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs">
+            Analytics
           </TabsTrigger>
         </TabsList>
         <TabsContent value="dmos" className="pt-4">
@@ -996,6 +999,75 @@ const EKGSetup: React.FC = () => {
         </TabsContent>
         <TabsContent value="edges" className="pt-4">
           <EdgeDefinitionsPanel />
+        </TabsContent>
+        <TabsContent value="analytics" className="pt-4">
+          <div className="space-y-4">
+            <h2 className="text-md font-medium">Analytics Configuration</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Configure analytics to extract insights from your knowledge graph. 
+            </p>
+            
+            <div className="space-y-4">
+              <div className="flex items-start space-x-2">
+                <div className="mt-0.5 h-3 w-3 rounded-full bg-blue-500"></div>
+                <div>
+                  <p className="text-xs font-medium">Who Knows Who</p>
+                  <p className="text-xs text-gray-600">Analyzes relationships between people</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Switch id="wkw-toggle" checked={true} />
+                    <Label htmlFor="wkw-toggle" className="text-xs">Enable</Label>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-2">
+                <div className="mt-0.5 h-3 w-3 rounded-full bg-green-500"></div>
+                <div>
+                  <p className="text-xs font-medium">Who Does What</p>
+                  <p className="text-xs text-gray-600">Identifies expertise and activities</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Switch id="wdw-toggle" checked={true} />
+                    <Label htmlFor="wdw-toggle" className="text-xs">Enable</Label>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-2">
+                <div className="mt-0.5 h-3 w-3 rounded-full bg-purple-500"></div>
+                <div>
+                  <p className="text-xs font-medium">Centrality Analysis</p>
+                  <p className="text-xs text-gray-600">Identifies key influencers and central nodes</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Switch id="centrality-toggle" />
+                    <Label htmlFor="centrality-toggle" className="text-xs">Enable</Label>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-2">
+                <div className="mt-0.5 h-3 w-3 rounded-full bg-amber-500"></div>
+                <div>
+                  <p className="text-xs font-medium">Community Detection</p>
+                  <p className="text-xs text-gray-600">Discovers clusters of related entities</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Switch id="community-toggle" />
+                    <Label htmlFor="community-toggle" className="text-xs">Enable</Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/kg/analytics')}
+                className="w-full"
+              >
+                Advanced Analytics Configuration
+              </Button>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
