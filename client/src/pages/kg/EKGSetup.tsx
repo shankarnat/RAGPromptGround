@@ -131,9 +131,9 @@ const EKGSetup: React.FC = () => {
   
   // Source-to-EKG mapping state
   const [searchSourceTerm, setSearchSourceTerm] = useState('');
-  const [searchEKGTerm, setSearchEKGTerm] = useState('');
+  const [searchEkgTerm, setSearchEkgTerm] = useState(''); 
   const [collapsedSourceSections, setCollapsedSourceSections] = useState<string[]>([]);
-  const [collapsedEKGSections, setCollapsedEKGSections] = useState<string[]>([]);
+  const [collapsedEkgSections, setCollapsedEkgSections] = useState<string[]>([]);
   const [activeLine, setActiveLine] = useState<[string, string] | null>(null);
   const [mappedFields, setMappedFields] = useState<Record<string, string>>({});
   
@@ -677,9 +677,9 @@ const EKGSetup: React.FC = () => {
         : [...prev, dmoId]
     );
   };
-
-  const toggleEKGSection = (dmoId: string) => {
-    setCollapsedEKGSections(prev => 
+  
+  const toggleEkgSection = (dmoId: string) => {
+    setCollapsedEkgSections(prev => 
       prev.includes(dmoId) 
         ? prev.filter(id => id !== dmoId) 
         : [...prev, dmoId]
@@ -2050,7 +2050,213 @@ const EKGSetup: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-      {renderSourceToEKGMappingModal()}
+      
+      {/* Source-to-EKG Mapping Modal */}
+      <Dialog open={showMappingModal} onOpenChange={setShowMappingModal}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Source-to-EKG Field Mapping</DialogTitle>
+            <DialogDescription>
+              Connect your source data models to EKG entities by mapping fields between them.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
+            {/* Source Models */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Source Data Models</h3>
+                <div className="relative w-full max-w-[180px]">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search source fields..."
+                    value={searchSourceTerm}
+                    onChange={(e) => setSearchSourceTerm(e.target.value)}
+                    className="pl-8 h-9 text-sm"
+                  />
+                </div>
+              </div>
+              
+              <div className="border rounded-md overflow-hidden bg-gray-50">
+                <div className="max-h-[400px] overflow-y-auto p-1">
+                  {sourceDMOs.map((dmo) => {
+                    const isCollapsed = collapsedSourceSections.includes(dmo.id);
+                    const filteredFields = dmo.fields.filter(field => 
+                      field.name.toLowerCase().includes(searchSourceTerm.toLowerCase()) ||
+                      field.description?.toLowerCase().includes(searchSourceTerm.toLowerCase()) ||
+                      dmo.name.toLowerCase().includes(searchSourceTerm.toLowerCase())
+                    );
+                    
+                    if (filteredFields.length === 0) return null;
+                    
+                    return (
+                      <div key={dmo.id} className="mb-2">
+                        <div 
+                          className="flex items-center justify-between p-2 bg-white rounded-md cursor-pointer hover:bg-gray-100"
+                          onClick={() => toggleSourceSection(dmo.id)}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1.5 rounded bg-gray-100">
+                              {dmo.icon}
+                            </div>
+                            <span className="font-medium text-sm">{dmo.name}</span>
+                          </div>
+                          <Button variant="ghost" size="sm" className="p-0 h-6 w-6">
+                            {isCollapsed ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronUp className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {!isCollapsed && (
+                          <div className="pl-4 py-1 space-y-1">
+                            {filteredFields.map((field) => (
+                              <div 
+                                key={field.id}
+                                className={`p-2 rounded-md text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between
+                                  ${activeLine && activeLine[0] === field.id ? 'bg-amber-50 border border-amber-200' : ''}
+                                `}
+                                onClick={() => {
+                                  if (activeLine && activeLine[0] === field.id) {
+                                    // Deselect if already selected
+                                    setActiveLine(null);
+                                  } else {
+                                    setActiveLine([field.id, activeLine ? activeLine[1] : '']);
+                                  }
+                                }}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <span>{field.name}</span>
+                                  <span className="text-xs text-gray-500">{getTypeIcon(field.type)}</span>
+                                </div>
+                                {activeLine && activeLine[0] === field.id && (
+                                  <Check className="h-4 w-4 text-amber-500" />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            
+            {/* EKG Entities */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">EKG Entities</h3>
+                <div className="relative w-full max-w-[180px]">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search EKG fields..."
+                    value={searchEkgTerm}
+                    onChange={(e) => setSearchEkgTerm(e.target.value)}
+                    className="pl-8 h-9 text-sm"
+                  />
+                </div>
+              </div>
+              
+              <div className="border rounded-md overflow-hidden bg-gray-50">
+                <div className="max-h-[400px] overflow-y-auto p-1">
+                  {ekgDMOs.map((dmo) => {
+                    const isCollapsed = collapsedEkgSections.includes(dmo.id);
+                    const filteredFields = dmo.fields.filter(field => 
+                      field.name.toLowerCase().includes(searchEkgTerm.toLowerCase()) ||
+                      field.description?.toLowerCase().includes(searchEkgTerm.toLowerCase()) ||
+                      dmo.name.toLowerCase().includes(searchEkgTerm.toLowerCase())
+                    );
+                    
+                    if (filteredFields.length === 0) return null;
+                    
+                    return (
+                      <div key={dmo.id} className="mb-2">
+                        <div 
+                          className="flex items-center justify-between p-2 bg-white rounded-md cursor-pointer hover:bg-gray-100"
+                          onClick={() => toggleEkgSection(dmo.id)}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1.5 rounded bg-gray-100">
+                              {dmo.icon}
+                            </div>
+                            <span className="font-medium text-sm">{dmo.name}</span>
+                          </div>
+                          <Button variant="ghost" size="sm" className="p-0 h-6 w-6">
+                            {isCollapsed ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronUp className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {!isCollapsed && (
+                          <div className="pl-4 py-1 space-y-1">
+                            {filteredFields.map((field) => (
+                              <div 
+                                key={field.id}
+                                className={`p-2 rounded-md text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between
+                                  ${activeLine && activeLine[1] === field.id ? 'bg-amber-50 border border-amber-200' : ''}
+                                `}
+                                onClick={() => {
+                                  if (activeLine && activeLine[1] === field.id) {
+                                    // Deselect if already selected
+                                    setActiveLine(null);
+                                  } else {
+                                    setActiveLine([activeLine ? activeLine[0] : '', field.id]);
+                                  }
+                                }}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <span>{field.name}</span>
+                                  <span className="text-xs text-gray-500">{getTypeIcon(field.type)}</span>
+                                </div>
+                                {activeLine && activeLine[1] === field.id && (
+                                  <Check className="h-4 w-4 text-amber-500" />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex justify-between items-center mt-6">
+            <div>
+              {activeLine && (activeLine[0] || activeLine[1]) && (
+                <p className="text-sm text-gray-600">
+                  {activeLine[0] && activeLine[1] ? 'Ready to create mapping' : 'Select both source and target fields'}
+                </p>
+              )}
+            </div>
+            <div className="space-x-2">
+              <Button variant="outline" onClick={() => setShowMappingModal(false)}>
+                Cancel
+              </Button>
+              <Button 
+                disabled={!activeLine || !activeLine[0] || !activeLine[1]}
+                onClick={() => {
+                  if (activeLine && activeLine[0] && activeLine[1]) {
+                    addMapping(activeLine[0], activeLine[1]);
+                    setActiveLine(null);
+                    setShowMappingModal(false);
+                  }
+                }}
+              >
+                Create Mapping
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </KnowledgeGraphLayout>
   );
 };
