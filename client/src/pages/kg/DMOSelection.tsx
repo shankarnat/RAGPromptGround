@@ -270,55 +270,49 @@ const DMOSelection: React.FC = () => {
     
     // Special visualization for Slack Activity-User-Content structure
     if (selectedTemplate === 'slack' && selectedDMOs.some(dmo => dmo.id === 'activity')) {
+      // Find all node types
+      const hasUser = selectedDMOs.some(dmo => dmo.id === 'user');
+      const hasContent = selectedDMOs.some(dmo => dmo.id === 'content');
+      const hasActivity = selectedDMOs.some(dmo => dmo.id === 'activity');
+      const hasChannel = selectedDMOs.some(dmo => dmo.id === 'channel');
+      
       return (
         <div className="bg-white rounded-lg border p-6 min-h-[400px] flex items-center justify-center">
           <svg width="500" height="400" viewBox="0 0 500 400">
-            {(() => {
-              // Find nodes
-              const userNode = selectedDMOs.find(dmo => dmo.id === 'user');
-              const contentNode = selectedDMOs.find(dmo => dmo.id === 'content');
-              const activityNode = selectedDMOs.find(dmo => dmo.id === 'activity');
-              const channelNode = selectedDMOs.find(dmo => dmo.id === 'channel');
-              
-              return (
-                <>
-                  {/* User node */}
-                  {userNode && (
-                    <g>
-                      <circle cx="200" cy="150" r="40" fill="#f0fdf4" stroke="#10b981" strokeWidth="2" />
-                      <text x="200" y="155" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="bold">User</text>
-                    </g>
-                  )}
-                  
-                  {/* Content node */}
-                  {contentNode && (
-                    <g>
-                      <circle cx="350" cy="150" r="40" fill="#f0fdf4" stroke="#3b82f6" strokeWidth="2" />
-                      <text x="350" y="155" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="bold">Content</text>
-                    </g>
-                  )}
-                  
-                  {/* Activity node */}
-                  {activityNode && (
-                    <g>
-                      <circle cx="275" cy="275" r="40" fill="#f0fdf4" stroke="#8b5cf6" strokeWidth="2" />
-                      <text x="275" y="280" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="bold">Activity</text>
-                    </g>
-                  )}
-                  
-                  {/* Channel node */}
-                  {channelNode && (
-                    <g>
-                      <circle cx="125" cy="275" r="35" fill="#f9fafb" stroke="#6b7280" strokeWidth="2" />
-                      <text x="125" y="280" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="bold">Channel</text>
-                    </g>
-                  )}
-                </>
-              );
-            })()}
+            {/* User node */}
+            {hasUser && (
+              <g>
+                <circle cx="200" cy="150" r="40" fill="#f0fdf4" stroke="#10b981" strokeWidth="2" />
+                <text x="200" y="155" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="bold">User</text>
+              </g>
+            )}
+            
+            {/* Content node */}
+            {hasContent && (
+              <g>
+                <circle cx="350" cy="150" r="40" fill="#f0fdf4" stroke="#3b82f6" strokeWidth="2" />
+                <text x="350" y="155" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="bold">Content</text>
+              </g>
+            )}
+            
+            {/* Activity node */}
+            {hasActivity && (
+              <g>
+                <circle cx="275" cy="275" r="40" fill="#f0fdf4" stroke="#8b5cf6" strokeWidth="2" />
+                <text x="275" y="280" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="bold">Activity</text>
+              </g>
+            )}
+            
+            {/* Channel node */}
+            {hasChannel && (
+              <g>
+                <circle cx="125" cy="275" r="35" fill="#f9fafb" stroke="#6b7280" strokeWidth="2" />
+                <text x="125" y="280" textAnchor="middle" fill="#374151" fontSize="12" fontWeight="bold">Channel</text>
+              </g>
+            )}
             
             {/* Draw edges for User-Content relationships */}
-            {userNode && contentNode && (
+            {hasUser && hasContent && (
               <g>
                 <line x1="240" y1="150" x2="310" y2="150" stroke="#3b82f6" strokeWidth="2" />
                 <text x="275" y="140" textAnchor="middle" fill="#3b82f6" fontSize="10">Authored/Reacted</text>
@@ -326,7 +320,7 @@ const DMOSelection: React.FC = () => {
             )}
             
             {/* Draw edges for User-User collaboration */}
-            {userNode && (
+            {hasUser && (
               <g>
                 <path d="M190,110 C175,75 225,75 210,110" stroke="#10b981" strokeWidth="2" fill="transparent" />
                 <text x="200" y="85" textAnchor="middle" fill="#10b981" fontSize="10">Collaborates</text>
@@ -334,7 +328,7 @@ const DMOSelection: React.FC = () => {
             )}
             
             {/* Draw edges from Activity to User (PerformedBy) */}
-            {activityNode && userNode && (
+            {hasActivity && hasUser && (
               <g>
                 <line x1="245" y1="240" x2="215" y2="190" stroke="#8b5cf6" strokeWidth="2" />
                 <text x="215" y="220" textAnchor="middle" fill="#8b5cf6" fontSize="10">Performed By</text>
@@ -342,7 +336,7 @@ const DMOSelection: React.FC = () => {
             )}
             
             {/* Draw edges from Activity to Content (PerformedOn) */}
-            {activityNode && contentNode && (
+            {hasActivity && hasContent && (
               <g>
                 <line x1="305" y1="240" x2="335" y2="190" stroke="#8b5cf6" strokeWidth="2" />
                 <text x="335" y="220" textAnchor="middle" fill="#8b5cf6" fontSize="10">Performed On</text>
@@ -350,7 +344,7 @@ const DMOSelection: React.FC = () => {
             )}
             
             {/* Draw edges for Member Of relationship */}
-            {userNode && channelNode && (
+            {hasUser && hasChannel && (
               <g>
                 <line x1="175" y1="185" x2="145" y2="240" stroke="#6b7280" strokeWidth="2" />
                 <text x="145" y="220" textAnchor="middle" fill="#6b7280" fontSize="10">Member Of</text>
@@ -375,6 +369,15 @@ const DMOSelection: React.FC = () => {
               <text x="35" y="78" fontSize="9">Membership</text>
             </g>
           </svg>
+          
+          {/* Description of the Activity-User-Content model */}
+          <div className="absolute bottom-8 right-8 bg-white p-3 border rounded-md shadow-sm max-w-xs">
+            <h3 className="text-sm font-medium mb-1">Slack Activity Graph</h3>
+            <p className="text-xs text-gray-600">
+              This model represents how user activities create relationships 
+              between users and content in Slack data.
+            </p>
+          </div>
         </div>
       );
     }
