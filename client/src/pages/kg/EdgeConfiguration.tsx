@@ -729,7 +729,7 @@ const EdgeConfiguration: React.FC = () => {
       title="Edge Configuration"
       rightPanelContent={rightPanelContent}
       currentStep={3}
-      totalSteps={7}
+      totalSteps={4}  // 4 steps: Template, Setup, Playground, Share
       onNext={handleNext}
       onPrevious={handlePrevious}
     >

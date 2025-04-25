@@ -214,7 +214,7 @@ const Mapping: React.FC = () => {
     <KnowledgeGraphLayout
       title="Source-to-EKG Mapping"
       rightPanelContent={rightPanelContent}
-      currentStep={5}
+      currentStep={2}  // Step 2: Setup
       totalSteps={4}  // 4 steps: Template, Setup, Playground, Share
       onNext={handleNext}
       onPrevious={handlePrevious}

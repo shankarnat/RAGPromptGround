@@ -1276,7 +1276,7 @@ const AnalyticsConfiguration: React.FC = () => {
       title="Graph Analytics Configuration"
       rightPanelContent={rightPanelContent}
       currentStep={4}
-      totalSteps={7}
+      totalSteps={4}  // 4 steps: Template, Setup, Playground, Share
       onNext={handleNext}
       onPrevious={handlePrevious}
     >
