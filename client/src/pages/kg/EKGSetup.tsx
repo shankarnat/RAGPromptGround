@@ -3021,6 +3021,339 @@ const AnalyticsConfigModal: React.FC = () => {
       </Tabs>
     </div>
   );
+  
+  // Source-to-EKG Mapping Modal
+  const renderSourceToEKGMappingModal = () => {
+    return (
+      <Dialog open={showMappingModal} onOpenChange={setShowMappingModal}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Source-to-EKG Field Mapping</DialogTitle>
+            <DialogDescription>
+              Connect your source data models to EKG entities by mapping fields between them.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
+            {/* Source Models */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Source Data Models</h3>
+                <div className="relative w-full max-w-[180px]">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search source fields..."
+                    value={searchSourceTerm}
+                    onChange={(e) => setSearchSourceTerm(e.target.value)}
+                    className="pl-8 h-9 text-sm"
+                  />
+                </div>
+              </div>
+              
+              <div className="border rounded-md overflow-hidden bg-gray-50">
+                <div className="max-h-[400px] overflow-y-auto p-1">
+                  {sourceDMOs.map((dmo) => {
+                    const isCollapsed = collapsedSourceSections.includes(dmo.id);
+                    const filteredFields = dmo.fields.filter(field => 
+                      field.name.toLowerCase().includes(searchSourceTerm.toLowerCase()) ||
+                      field.description?.toLowerCase().includes(searchSourceTerm.toLowerCase()) ||
+                      dmo.name.toLowerCase().includes(searchSourceTerm.toLowerCase())
+                    );
+                    
+                    if (filteredFields.length === 0 && searchSourceTerm) return null;
+                    
+                    return (
+                      <div key={dmo.id} className="mb-2">
+                        <div 
+                          className="flex items-center justify-between p-2 bg-gray-100 rounded cursor-pointer"
+                          onClick={() => {
+                            if (isCollapsed) {
+                              setCollapsedSourceSections(collapsedSourceSections.filter(id => id !== dmo.id));
+                            } else {
+                              setCollapsedSourceSections([...collapsedSourceSections, dmo.id]);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center">
+                            <FileText className="h-4 w-4 text-blue-500 mr-2" />
+                            <span className="font-medium text-sm">{dmo.name}</span>
+                          </div>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            {isCollapsed ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronUp className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {!isCollapsed && (
+                          <div className="pl-4 pt-1 pb-1">
+                            {filteredFields.map((field) => (
+                              <div 
+                                key={field.id} 
+                                className={`
+                                  flex items-center justify-between p-2 rounded-md text-sm cursor-pointer my-1
+                                  ${Object.keys(mappedFields).includes(field.id) ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-100 border border-transparent'}
+                                  ${activeLine && activeLine[0] === field.id ? 'bg-amber-50 border border-amber-200' : ''}
+                                `}
+                                onClick={() => {
+                                  if (activeLine && activeLine[0] === field.id) {
+                                    setActiveLine(null);
+                                  } else {
+                                    setActiveLine([field.id, activeLine ? activeLine[1] : '']);
+                                  }
+                                }}
+                              >
+                                <div className="flex items-center">
+                                  <span className="flex items-center">
+                                    {getTypeIcon(field.type)}
+                                    <span className="ml-2">{field.name}</span>
+                                  </span>
+                                  {field.isPrimaryKey && (
+                                    <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 h-4">PK</Badge>
+                                  )}
+                                </div>
+                                
+                                {Object.keys(mappedFields).includes(field.id) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeMapping(field.id);
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3 text-red-500" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            
+            {/* EKG Models */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">EKG Entities</h3>
+                <div className="relative w-full max-w-[180px]">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search EKG fields..."
+                    value={searchEKGTerm}
+                    onChange={(e) => setSearchEKGTerm(e.target.value)}
+                    className="pl-8 h-9 text-sm"
+                  />
+                </div>
+              </div>
+              
+              <div className="border rounded-md overflow-hidden bg-gray-50">
+                <div className="max-h-[400px] overflow-y-auto p-1">
+                  {ekgDMOs.map((dmo) => {
+                    const isCollapsed = collapsedEKGSections.includes(dmo.id);
+                    const filteredFields = dmo.fields.filter(field => 
+                      field.name.toLowerCase().includes(searchEKGTerm.toLowerCase()) ||
+                      field.description?.toLowerCase().includes(searchEKGTerm.toLowerCase()) ||
+                      dmo.name.toLowerCase().includes(searchEKGTerm.toLowerCase())
+                    );
+                    
+                    if (filteredFields.length === 0 && searchEKGTerm) return null;
+                    
+                    return (
+                      <div key={dmo.id} className="mb-2">
+                        <div 
+                          className="flex items-center justify-between p-2 bg-gray-100 rounded cursor-pointer"
+                          onClick={() => {
+                            if (isCollapsed) {
+                              setCollapsedEKGSections(collapsedEKGSections.filter(id => id !== dmo.id));
+                            } else {
+                              setCollapsedEKGSections([...collapsedEKGSections, dmo.id]);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center">
+                            {dmo.id === 'person' ? (
+                              <User className="h-4 w-4 text-green-500 mr-2" />
+                            ) : (
+                              <FileText className="h-4 w-4 text-blue-500 mr-2" />
+                            )}
+                            <span className="font-medium text-sm">{dmo.name}</span>
+                          </div>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            {isCollapsed ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronUp className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {!isCollapsed && (
+                          <div className="pl-4 pt-1 pb-1">
+                            {filteredFields.map((field) => (
+                              <div 
+                                key={field.id} 
+                                className={`
+                                  flex items-center justify-between p-2 rounded-md text-sm cursor-pointer my-1
+                                  ${Object.values(mappedFields).includes(field.id) ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-100 border border-transparent'}
+                                  ${activeLine && activeLine[1] === field.id ? 'bg-amber-50 border border-amber-200' : ''}
+                                `}
+                                onClick={() => {
+                                  if (activeLine && activeLine[1] === field.id) {
+                                    setActiveLine(null);
+                                  } else {
+                                    setActiveLine([activeLine ? activeLine[0] : '', field.id]);
+                                  }
+                                }}
+                              >
+                                <div className="flex items-center">
+                                  <span className="flex items-center">
+                                    {getTypeIcon(field.type)}
+                                    <span className="ml-2">{field.name}</span>
+                                  </span>
+                                  {field.isPrimaryKey && (
+                                    <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 h-4">PK</Badge>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Connection lines visualization */}
+          <div className="mt-6 border-t pt-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium">Current Mappings</h3>
+              <Button 
+                size="sm" 
+                disabled={!activeLine || !activeLine[0] || !activeLine[1]}
+                onClick={() => {
+                  if (activeLine && activeLine[0] && activeLine[1]) {
+                    addMapping(activeLine[0], activeLine[1]);
+                    setActiveLine(null);
+                  }
+                }}
+              >
+                Create Mapping
+              </Button>
+            </div>
+            
+            <div className="border rounded-md p-4 bg-gray-50 min-h-[120px]">
+              {Object.keys(mappedFields).length > 0 ? (
+                <div className="space-y-2">
+                  {Object.entries(mappedFields).map(([sourceId, targetId]) => {
+                    // Find source field details
+                    let sourceField;
+                    let sourceDmo;
+                    for (const dmo of sourceDMOs) {
+                      const field = dmo.fields.find(f => f.id === sourceId);
+                      if (field) {
+                        sourceField = field;
+                        sourceDmo = dmo;
+                        break;
+                      }
+                    }
+                    
+                    // Find target field details
+                    let targetField;
+                    let targetDmo;
+                    for (const dmo of ekgDMOs) {
+                      const field = dmo.fields.find(f => f.id === targetId);
+                      if (field) {
+                        targetField = field;
+                        targetDmo = dmo;
+                        break;
+                      }
+                    }
+                    
+                    if (!sourceField || !targetField || !sourceDmo || !targetDmo) {
+                      return null;
+                    }
+                    
+                    return (
+                      <div 
+                        key={sourceId} 
+                        className="flex items-center justify-between p-2 border rounded-md bg-white"
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span className="font-medium text-xs">{sourceDmo.name}</span>
+                          <span className="text-xs text-gray-500">.</span>
+                          <span className="text-xs">{sourceField.name}</span>
+                          <span>{getTypeIcon(sourceField.type)}</span>
+                        </div>
+                        
+                        <div className="flex items-center px-2">
+                          <div className="w-16 h-0 border-t border-dashed border-gray-400"></div>
+                          <ArrowRight className="h-3 w-3 text-gray-500 mx-1" />
+                          <div className="w-16 h-0 border-t border-dashed border-gray-400"></div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-1">
+                          <span className="font-medium text-xs">{targetDmo.name}</span>
+                          <span className="text-xs text-gray-500">.</span>
+                          <span className="text-xs">{targetField.name}</span>
+                          <span>{getTypeIcon(targetField.type)}</span>
+                        </div>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 ml-2"
+                          onClick={() => removeMapping(sourceId)}
+                        >
+                          <Trash2 className="h-3 w-3 text-red-500" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[120px] text-center">
+                  <p className="text-sm text-gray-500">
+                    No mappings defined yet. Select a source field and EKG field, then click "Create Mapping".
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter className="mt-6">
+            <Button variant="outline" onClick={() => setShowMappingModal(false)}>Cancel</Button>
+            <Button onClick={() => setShowMappingModal(false)}>Save Mappings</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+  
+  // Render everything
+  return (
+    <KnowledgeGraphLayout
+      title="EKG Setup"
+      rightPanelContent={rightPanelContent}
+      currentStep={2}
+      totalSteps={5}
+      onNext={handleNext}
+      onPrevious={handlePrevious}
+    >
+      {renderContent()}
+      {renderSourceToEKGMappingModal()}
+    </KnowledgeGraphLayout>
+  );
 };
 
 export default EKGSetup;
