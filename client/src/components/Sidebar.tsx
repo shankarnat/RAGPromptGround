@@ -86,14 +86,9 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
           href: "/kg/template" 
         },
         { 
-          name: "EKG Data Models", 
+          name: "EKG Setup", 
           id: "kg-dmo", 
           href: "/kg/dmo" 
-        },
-        { 
-          name: "Edge Configuration", 
-          id: "kg-edge", 
-          href: "/kg/edge" 
         },
         { 
           name: "Analytics Config", 

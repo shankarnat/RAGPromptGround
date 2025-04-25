@@ -13,9 +13,8 @@ import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 
 // Knowledge Graph pages
 import TemplateSelection from "@/pages/kg/TemplateSelection";
-import DMOSelection from "@/pages/kg/DMOSelection";
+import EKGSetup from "@/pages/kg/EKGSetup";
 import Mapping from "@/pages/kg/Mapping";
-import EdgeConfiguration from "@/pages/kg/EdgeConfiguration";
 import AnalyticsConfiguration from "@/pages/kg/AnalyticsConfig";
 
 function Router() {
@@ -44,8 +43,10 @@ function Router() {
       
       {/* Knowledge Graph routes */}
       <Route path="/kg/template" component={TemplateSelection} />
-      <Route path="/kg/dmo" component={DMOSelection} />
-      <Route path="/kg/edge" component={EdgeConfiguration} />
+      <Route path="/kg/dmo" component={EKGSetup} />
+      <Route path="/kg/edge">
+        <Redirect to="/kg/dmo" />
+      </Route>
       <Route path="/kg/analytics" component={AnalyticsConfiguration} />
       <Route path="/kg/mapping" component={Mapping} />
       
