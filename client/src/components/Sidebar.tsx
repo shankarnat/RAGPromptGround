@@ -91,21 +91,6 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
           href: "/kg/dmo" 
         },
         { 
-          name: "Analytics Config", 
-          id: "kg-analytics", 
-          href: "/kg/analytics" 
-        },
-        { 
-          name: "Source-to-EKG Mapping", 
-          id: "kg-mapping", 
-          href: "/kg/mapping" 
-        },
-        { 
-          name: "Visualization", 
-          id: "kg-visualization", 
-          href: "/kg/visualization" 
-        },
-        { 
           name: "Save & Share", 
           id: "kg-share", 
           href: "/kg/share" 
