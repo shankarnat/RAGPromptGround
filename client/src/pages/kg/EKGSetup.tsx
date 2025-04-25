@@ -2050,6 +2050,7 @@ const EKGSetup: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      {renderSourceToEKGMappingModal()}
     </KnowledgeGraphLayout>
   );
 };
