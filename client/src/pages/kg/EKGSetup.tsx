@@ -741,48 +741,122 @@ const EKGSetup: React.FC = () => {
   
   // Interactive Graph Visualization
   const renderGraph = () => {
+    // Get selected EKG DMOs
     const selectedDMOs = dmos.filter(dmo => dmo.selected);
+    
+    // Create an array to track all nodes to display (EKG DMOs + mapped source DMOs)
+    const allNodesToDisplay: Array<{
+      id: string;
+      name: string;
+      icon: React.ReactNode;
+      isSource?: boolean;
+      mappedToId?: string; // For source DMOs, indicates which EKG DMO they map to
+    }> = [...selectedDMOs.map(dmo => ({
+      id: dmo.id,
+      name: dmo.name,
+      icon: dmo.icon,
+      isSource: false
+    }))];
+    
+    // Custom edges for source-to-EKG mappings
+    const mappingEdges: Array<{
+      id: string;
+      from: string;
+      to: string;
+      label: string;
+      isMappingEdge: boolean;
+    }> = [];
+    
+    // Check which source DMOs have mappings to EKG entities
+    const sourceMappings = new Map<string, Set<string>>();
+    
+    // Process all field mappings to find which source DMOs map to which EKG DMOs
+    for (const [sourceFieldId, targetFieldId] of Object.entries(mappedFields)) {
+      // Find which source DMO this field belongs to
+      let sourceDmoId: string | null = null;
+      let targetDmoId: string | null = null;
+      
+      // Find source DMO ID
+      for (const dmo of sourceDMOs) {
+        if (dmo.fields.some(f => f.id === sourceFieldId)) {
+          sourceDmoId = dmo.id;
+          break;
+        }
+      }
+      
+      // Find target EKG DMO ID
+      for (const dmo of ekgDMOs) {
+        if (dmo.fields.some(f => f.id === targetFieldId)) {
+          targetDmoId = dmo.id;
+          break;
+        }
+      }
+      
+      if (sourceDmoId && targetDmoId) {
+        // Add to our mapping tracking
+        if (!sourceMappings.has(sourceDmoId)) {
+          sourceMappings.set(sourceDmoId, new Set());
+        }
+        sourceMappings.get(sourceDmoId)!.add(targetDmoId);
+      }
+    }
+    
+    // Add source DMOs to visualization if they have mappings
+    sourceMappings.forEach((targetDmoIds, sourceDmoId) => {
+      const sourceDmo = sourceDMOs.find(dmo => dmo.id === sourceDmoId);
+      if (sourceDmo) {
+        // Add source DMO to nodes list
+        allNodesToDisplay.push({
+          id: `source_${sourceDmo.id}`,
+          name: sourceDmo.name,
+          icon: sourceDmo.id === 'file' ? <FileText className="h-6 w-6 text-blue-500" /> : <User className="h-6 w-6 text-green-500" />,
+          isSource: true
+        });
+        
+        // Add edges for each mapping
+        targetDmoIds.forEach(targetDmoId => {
+          // Only add edge if target DMO is in the selected list
+          if (selectedDMOs.some(dmo => dmo.id === targetDmoId)) {
+            mappingEdges.push({
+              id: `mapping_${sourceDmo.id}_to_${targetDmoId}`,
+              from: `source_${sourceDmo.id}`,
+              to: targetDmoId,
+              label: "Mapped To",
+              isMappingEdge: true
+            });
+          }
+        });
+      }
+    });
     
     // Highlight mapped DMOs
     const getMappedStatus = (dmoId: string): { isMapped: boolean, mappedToId: string | null } => {
       const isMapped = hasMappings(dmoId);
       
-      // For EKG DMOs (document/person), find which source DMOs map to them
-      if (dmoId === 'document' || dmoId === 'person') {
-        // Find a source DMO that maps to this EKG DMO
-        for (const sourceDmo of sourceDMOs) {
-          for (const field of sourceDmo.fields) {
-            if (field.id in mappedFields) {
-              const targetFieldId = mappedFields[field.id];
-              const targetEkgDmo = ekgDMOs.find(ekgDmo => 
-                ekgDmo.fields.some(f => f.id === targetFieldId && ekgDmo.id === dmoId)
-              );
-              if (targetEkgDmo) {
-                return { isMapped, mappedToId: sourceDmo.id };
-              }
-            }
-          }
-        }
-      }
-      // For source DMOs, find which EKG DMO they map to
-      else if (dmoId === 'file' || dmoId === 'user') {
+      // For source DMOs that start with "source_", extract the real ID
+      if (dmoId.startsWith('source_')) {
+        const realId = dmoId.substring(7); // Remove "source_" prefix
+        
         // Find which EKG DMO this source DMO maps to
-        const sourceDmo = sourceDMOs.find(dmo => dmo.id === dmoId);
-        if (sourceDmo) {
-          for (const field of sourceDmo.fields) {
-            if (field.id in mappedFields) {
-              const targetFieldId = mappedFields[field.id];
-              for (const ekgDmo of ekgDMOs) {
-                if (ekgDmo.fields.some(f => f.id === targetFieldId)) {
-                  return { isMapped, mappedToId: ekgDmo.id };
-                }
-              }
-            }
+        if (sourceMappings.has(realId)) {
+          // Just pick the first one for coloring purposes
+          const targetDmoIds = Array.from(sourceMappings.get(realId)!);
+          if (targetDmoIds.length > 0) {
+            return { isMapped: true, mappedToId: targetDmoIds[0] };
           }
         }
+        return { isMapped: false, mappedToId: null };
       }
       
-      return { isMapped, mappedToId: null };
+      // For EKG DMOs (document/person, etc.), check if any source DMO maps to them
+      const mappedFromSourceDmo = Array.from(sourceMappings.entries())
+        .find(([_, targetSet]) => targetSet.has(dmoId));
+      
+      if (mappedFromSourceDmo) {
+        return { isMapped: true, mappedToId: `source_${mappedFromSourceDmo[0]}` };
+      }
+      
+      return { isMapped: false, mappedToId: null };
     };
     
     // Filter edges based on enabled analytics
@@ -810,15 +884,29 @@ const EKGSetup: React.FC = () => {
       return true;
     });
     
+    // Combine regular edges with mapping edges
+    const allEdges = [
+      ...filteredEdges,
+      ...mappingEdges.map(mappingEdge => ({
+        id: mappingEdge.id,
+        fromNodeType: mappingEdge.from,
+        toNodeType: mappingEdge.to,
+        name: mappingEdge.label,
+        isBidirectional: false,
+        attributes: [],
+        isMappingEdge: true
+      }))
+    ];
+    
     // Generate node positions in a circular layout
     const nodePositions: Record<string, { x: number, y: number }> = {};
     const centerX = 300;
     const centerY = 300; // Move the center point down to utilize vertical space better
     const radius = 220; // Increase the radius to spread out nodes in the larger space
     
-    selectedDMOs.forEach((dmo, index) => {
-      const angle = (index / selectedDMOs.length) * 2 * Math.PI;
-      nodePositions[dmo.id] = {
+    allNodesToDisplay.forEach((node, index) => {
+      const angle = (index / allNodesToDisplay.length) * 2 * Math.PI;
+      nodePositions[node.id] = {
         x: centerX + radius * Math.cos(angle),
         y: centerY + radius * Math.sin(angle)
       };
@@ -828,8 +916,8 @@ const EKGSetup: React.FC = () => {
       <div className="flex flex-col space-y-2">
         <div className="border rounded-lg overflow-auto" style={{ height: 'calc(100vh - 250px)' }}>
           <svg ref={svgRef} width="100%" height="800" viewBox="0 0 600 600">
-            {/* Edge connections */}
-            {filteredEdges.map((edge) => {
+            {/* Edge connections - includes both regular edges and mapping edges */}
+            {allEdges.map((edge) => {
               const fromPos = nodePositions[edge.fromNodeType];
               const toPos = nodePositions[edge.toNodeType];
               
@@ -919,48 +1007,63 @@ const EKGSetup: React.FC = () => {
               );
             })}
             
-            {/* DMO nodes */}
-            {selectedDMOs.map(dmo => {
-              const pos = nodePositions[dmo.id];
+            {/* All DMO nodes (includes EKG and source DMOs) */}
+            {allNodesToDisplay.map(node => {
+              const pos = nodePositions[node.id];
               if (!pos) return null;
               
               // Check if this DMO is mapped
-              const { isMapped, mappedToId } = getMappedStatus(dmo.id);
+              const { isMapped, mappedToId } = getMappedStatus(node.id);
               
               // Choose border color and width based on mapping status
               const getNodeStyleProps = () => {
-                // Default styling
-                const defaultStyle = {
-                  fill: dmo.required ? "#f0fdf4" : "#f9fafb",
-                  stroke: dmo.required ? "#10b981" : "#6b7280",
-                  strokeWidth: 1.5
-                };
-                
-                // If this is a mapped EKG node (document or person)
-                if (isMapped && (dmo.id === 'document' || dmo.id === 'person')) {
+                // Default EKG node styling
+                if (!node.isSource) {
+                  const dmo = dmos.find(d => d.id === node.id);
+                  const defaultStyle = {
+                    fill: dmo?.required ? "#f0fdf4" : "#f9fafb",
+                    stroke: dmo?.required ? "#10b981" : "#6b7280",
+                    strokeWidth: 1.5
+                  };
+                  
+                  // If this is a mapped EKG node (document or person, etc.)
+                  if (isMapped) {
+                    return {
+                      fill: "#e0f2fe", // Light blue background
+                      stroke: "#3b82f6", // Blue border
+                      strokeWidth: 2 // Thicker border
+                    };
+                  }
+                  
+                  return defaultStyle;
+                } 
+                // Source DMO styling
+                else {
+                  // If source DMO is mapped to an EKG entity
+                  if (isMapped) {
+                    return {
+                      fill: "#e0f7fa", // Light teal background
+                      stroke: "#06b6d4", // Teal border
+                      strokeWidth: 2 // Thicker border
+                    };
+                  }
+                  
+                  // Default source DMO style
                   return {
-                    fill: "#e0f2fe", // Light blue background
-                    stroke: "#3b82f6", // Blue border
-                    strokeWidth: 2 // Thicker border
+                    fill: "#f5f5f5", // Light gray background
+                    stroke: "#94a3b8", // Gray border
+                    strokeWidth: 1.5
                   };
                 }
-                
-                // If this is a mapped source node (file or user)
-                if (isMapped && (dmo.id === 'file' || dmo.id === 'user')) {
-                  return {
-                    fill: "#e0f7fa", // Light teal background
-                    stroke: "#06b6d4", // Teal border
-                    strokeWidth: 2 // Thicker border
-                  };
-                }
-                
-                return defaultStyle;
               };
               
               const nodeStyle = getNodeStyleProps();
               
+              // Add a dashed border for source DMOs
+              const borderDash = node.isSource ? "2,2" : "none";
+              
               return (
-                <g key={dmo.id}>
+                <g key={node.id}>
                   {/* Node circle - reduced size by 60% */}
                   <circle 
                     cx={pos.x} 
@@ -969,13 +1072,14 @@ const EKGSetup: React.FC = () => {
                     fill={nodeStyle.fill} 
                     stroke={nodeStyle.stroke} 
                     strokeWidth={nodeStyle.strokeWidth} 
+                    strokeDasharray={borderDash}
                     className="cursor-pointer"
                   />
                   
                   {/* Node icon - reduced size */}
                   <foreignObject x={pos.x - 6} y={pos.y - 6} width="12" height="12">
                     <div className="flex items-center justify-center h-full">
-                      {React.cloneElement(dmo.icon as React.ReactElement, { className: "h-3 w-3" })}
+                      {React.cloneElement(node.icon as React.ReactElement, { className: "h-3 w-3" })}
                     </div>
                   </foreignObject>
                   
@@ -989,8 +1093,23 @@ const EKGSetup: React.FC = () => {
                     fontWeight="medium"
                     className="select-none"
                   >
-                    {dmo.name}
+                    {node.name}
                   </text>
+                  
+                  {/* Add "Source" label for source DMOs */}
+                  {node.isSource && (
+                    <text 
+                      x={pos.x} 
+                      y={pos.y + 18} 
+                      textAnchor="middle" 
+                      fill="#64748b" 
+                      fontSize="5" 
+                      fontStyle="italic"
+                      className="select-none"
+                    >
+                      (Source)
+                    </text>
+                  )}
                   
                   {/* Mapping indicator if this node is mapped */}
                   {isMapped && (
@@ -998,7 +1117,7 @@ const EKGSetup: React.FC = () => {
                       cx={pos.x + 12} 
                       cy={pos.y - 8} 
                       r="4" 
-                      fill={dmo.id === 'document' || dmo.id === 'person' ? "#3b82f6" : "#06b6d4"} 
+                      fill={node.isSource ? "#06b6d4" : "#3b82f6"} 
                       stroke="#fff" 
                       strokeWidth="1" 
                     />
