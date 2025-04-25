@@ -190,7 +190,7 @@ const EdgeConfiguration: React.FC = () => {
   };
 
   const handlePrevious = () => {
-    navigate('/kg/mapping');
+    navigate('/kg/dmo');
   };
 
   // Help panel content
