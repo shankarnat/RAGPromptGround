@@ -78,7 +78,6 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       icon: <Network className="h-5 w-5 mr-3 text-gray-500" />, 
       id: "kg", 
       href: "#",
-      optional: true,
       subnav: [
         { 
           name: "Template Selection", 
