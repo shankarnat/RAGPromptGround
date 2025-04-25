@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import KnowledgeGraphLayout from "@/components/KnowledgeGraphLayout";
+import { useLocation } from 'wouter';
 
 interface QueryNode {
   id: string;
@@ -31,9 +32,26 @@ interface QueryResult {
 }
 
 const Playground: React.FC = () => {
+  const [location, setLocation] = useLocation();
   const [queryResults, setQueryResults] = useState<QueryResult | null>(null);
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
   const queryInputRef = useRef<string>('');
+  
+  // Navigation helper function
+  const navigate = (path: string) => {
+    setLocation(path);
+  };
+  
+  // Navigation handlers
+  const handleNextStep = () => {
+    // Navigate to Share page (step 4)
+    navigate('/kg/share');
+  };
+  
+  const handlePreviousStep = () => {
+    // Navigate back to EKG Setup (step 2)
+    navigate('/kg/ekg');
+  };
   
   // Sample queries for users to try
   const sampleQueries = [
@@ -212,6 +230,8 @@ const Playground: React.FC = () => {
       rightPanelContent={rightPanel}
       currentStep={3}
       totalSteps={4}
+      onNext={handleNextStep}
+      onPrevious={handlePreviousStep}
     >
       <div className="border rounded-lg p-4 h-[calc(100vh-250px)] flex flex-col space-y-4 overflow-hidden">
         <div className="flex flex-col space-y-2">
