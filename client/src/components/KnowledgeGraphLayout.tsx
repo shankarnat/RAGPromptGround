@@ -1,6 +1,7 @@
 import React, { ReactNode, useState } from 'react';
 import { ChevronLeft, ChevronRight, HelpCircle, X, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Sidebar from '@/components/Sidebar';
 
 interface KnowledgeGraphLayoutProps {
   title: string;
@@ -25,10 +26,25 @@ const KnowledgeGraphLayout: React.FC<KnowledgeGraphLayoutProps> = ({
 }) => {
   const [isHelpPanelOpen, setIsHelpPanelOpen] = useState(true);
 
+  // Determine active page ID based on currentStep
+  const getActivePageId = () => {
+    switch(currentStep) {
+      case 1: return 'kg-template';
+      case 2: return 'kg-dmo';
+      case 3: return 'kg-mapping';
+      case 4: return 'kg-edge';
+      case 5: return 'kg-analytics';
+      case 6: return 'kg-visualization';
+      case 7: return 'kg-share';
+      default: return 'kg-template';
+    }
+  };
+
   return (
-    <div className="flex flex-1 h-full overflow-hidden">
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
+      <Sidebar activePage={getActivePageId()} />
+      
+      <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div>
@@ -69,26 +85,31 @@ const KnowledgeGraphLayout: React.FC<KnowledgeGraphLayoutProps> = ({
           </div>
         </div>
         
-        {/* Main visualization area */}
-        <div className="flex-1 overflow-auto bg-gray-50 p-6">
-          {children}
-        </div>
-      </div>
-      
-      {/* Right panel (collapsible) */}
-      {showHelpPanel && isHelpPanelOpen && (
-        <div className="w-80 border-l border-gray-200 bg-white overflow-y-auto">
-          <div className="p-6">
-            <div className="mb-6">
-              <h2 className="text-lg font-medium mb-2 text-gray-900">Configuration</h2>
-              <p className="text-sm text-gray-500">
-                Configure settings for this step of the knowledge graph creation process.
-              </p>
+        {/* Main content with right panel */}
+        <main className="flex-1 overflow-auto p-6 bg-gray-50">
+          <div className="flex space-x-6 h-full">
+            {/* Main visualization area */}
+            <div className="flex-1 min-w-0">
+              {children}
             </div>
-            {rightPanelContent}
+            
+            {/* Right panel (collapsible) */}
+            {showHelpPanel && isHelpPanelOpen && (
+              <div className="w-80 lg:w-96 flex-shrink-0 bg-white rounded-lg border shadow-sm overflow-hidden">
+                <div className="p-6">
+                  <div className="mb-6">
+                    <h2 className="text-lg font-medium mb-2 text-gray-900">Configuration</h2>
+                    <p className="text-sm text-gray-500">
+                      Configure settings for this step of the knowledge graph creation process.
+                    </p>
+                  </div>
+                  {rightPanelContent}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        </main>
+      </div>
     </div>
   );
 };
