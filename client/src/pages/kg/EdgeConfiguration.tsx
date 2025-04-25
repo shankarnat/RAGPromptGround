@@ -186,10 +186,12 @@ const EdgeConfiguration: React.FC = () => {
   };
 
   const handleNext = () => {
+    // Navigate to the Analytics Configuration page
     navigate('/kg/analytics');
   };
 
   const handlePrevious = () => {
+    // Navigate back to DMO Selection
     navigate('/kg/dmo');
   };
 
@@ -404,7 +406,7 @@ const EdgeConfiguration: React.FC = () => {
     <KnowledgeGraphLayout
       title="Edge Configuration"
       rightPanelContent={rightPanelContent}
-      currentStep={4}
+      currentStep={3}
       totalSteps={7}
       onNext={handleNext}
       onPrevious={handlePrevious}
