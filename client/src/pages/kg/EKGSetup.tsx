@@ -105,6 +105,14 @@ const EKGSetup: React.FC = () => {
   const [showNewDMO, setShowNewDMO] = useState(false);
   const [newDMOName, setNewDMOName] = useState('');
   
+  // Analytics enabled state
+  const [enabledAnalytics, setEnabledAnalytics] = useState({
+    whoKnowsWho: true,
+    whoDoesWhat: true,
+    centralityAnalysis: false,
+    communityDetection: false
+  });
+  
   // Initial EKG DMOs
   const [dmos, setDmos] = useState<DMO[]>([
     {
@@ -469,10 +477,30 @@ const EKGSetup: React.FC = () => {
   // Interactive Graph Visualization
   const renderGraph = () => {
     const selectedDMOs = dmos.filter(dmo => dmo.selected);
-    const validEdges = edges.filter(edge => {
+    
+    // Filter edges based on enabled analytics
+    const filteredEdges = edges.filter(edge => {
       const fromDMO = getDMOById(edge.fromNodeType);
       const toDMO = getDMOById(edge.toNodeType);
-      return fromDMO?.selected && toDMO?.selected;
+      
+      // Basic edge filtering - both nodes must be selected
+      const basicFilter = fromDMO?.selected && toDMO?.selected;
+      if (!basicFilter) return false;
+      
+      // Analytics-based filtering
+      if (edge.fromNodeType === 'person' && edge.toNodeType === 'person') {
+        // Person-to-person relationships (Who Knows Who analytics)
+        return enabledAnalytics.whoKnowsWho;
+      }
+      
+      if ((edge.fromNodeType === 'person' && edge.toNodeType === 'project') || 
+          (edge.fromNodeType === 'person' && edge.toNodeType === 'document')) {
+        // Person-to-project or Person-to-document relationships (Who Does What analytics)
+        return enabledAnalytics.whoDoesWhat;
+      }
+      
+      // Default to showing the edge if it doesn't match specific analytics
+      return true;
     });
     
     // Generate node positions in a circular layout
@@ -492,7 +520,7 @@ const EKGSetup: React.FC = () => {
     return (
       <svg ref={svgRef} width="100%" height="400" viewBox="0 0 600 400" className="border rounded-lg">
         {/* Edge connections */}
-        {validEdges.map(edge => {
+        {filteredEdges.map((edge) => {
           const fromPos = nodePositions[edge.fromNodeType];
           const toPos = nodePositions[edge.toNodeType];
           
@@ -1049,7 +1077,16 @@ const EKGSetup: React.FC = () => {
                   <p className="text-xs font-medium">Who Knows Who</p>
                   <p className="text-xs text-gray-600">Analyzes relationships between people</p>
                   <div className="flex items-center space-x-2 mt-1">
-                    <Switch id="wkw-toggle" checked={true} />
+                    <Switch 
+                      id="wkw-toggle" 
+                      checked={enabledAnalytics.whoKnowsWho}
+                      onCheckedChange={(checked) => {
+                        setEnabledAnalytics(prev => ({
+                          ...prev,
+                          whoKnowsWho: checked
+                        }));
+                      }}
+                    />
                     <Label htmlFor="wkw-toggle" className="text-xs">Enable</Label>
                   </div>
                 </div>
@@ -1061,7 +1098,16 @@ const EKGSetup: React.FC = () => {
                   <p className="text-xs font-medium">Who Does What</p>
                   <p className="text-xs text-gray-600">Identifies expertise and activities</p>
                   <div className="flex items-center space-x-2 mt-1">
-                    <Switch id="wdw-toggle" checked={true} />
+                    <Switch 
+                      id="wdw-toggle" 
+                      checked={enabledAnalytics.whoDoesWhat}
+                      onCheckedChange={(checked) => {
+                        setEnabledAnalytics(prev => ({
+                          ...prev,
+                          whoDoesWhat: checked
+                        }));
+                      }}
+                    />
                     <Label htmlFor="wdw-toggle" className="text-xs">Enable</Label>
                   </div>
                 </div>
@@ -1073,7 +1119,16 @@ const EKGSetup: React.FC = () => {
                   <p className="text-xs font-medium">Centrality Analysis</p>
                   <p className="text-xs text-gray-600">Identifies key influencers and central nodes</p>
                   <div className="flex items-center space-x-2 mt-1">
-                    <Switch id="centrality-toggle" />
+                    <Switch 
+                      id="centrality-toggle" 
+                      checked={enabledAnalytics.centralityAnalysis}
+                      onCheckedChange={(checked) => {
+                        setEnabledAnalytics(prev => ({
+                          ...prev,
+                          centralityAnalysis: checked
+                        }));
+                      }}
+                    />
                     <Label htmlFor="centrality-toggle" className="text-xs">Enable</Label>
                   </div>
                 </div>
@@ -1085,7 +1140,16 @@ const EKGSetup: React.FC = () => {
                   <p className="text-xs font-medium">Community Detection</p>
                   <p className="text-xs text-gray-600">Discovers clusters of related entities</p>
                   <div className="flex items-center space-x-2 mt-1">
-                    <Switch id="community-toggle" />
+                    <Switch 
+                      id="community-toggle" 
+                      checked={enabledAnalytics.communityDetection}
+                      onCheckedChange={(checked) => {
+                        setEnabledAnalytics(prev => ({
+                          ...prev,
+                          communityDetection: checked
+                        }));
+                      }}
+                    />
                     <Label htmlFor="community-toggle" className="text-xs">Enable</Label>
                   </div>
                 </div>
