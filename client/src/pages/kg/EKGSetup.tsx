@@ -616,6 +616,70 @@ const EKGSetup: React.FC = () => {
     // Regular relationship edges are solid
     return "";
   };
+  
+  // Source-to-EKG mapping helper functions
+  const toggleSourceSection = (dmoId: string) => {
+    setCollapsedSourceSections(prev => 
+      prev.includes(dmoId) 
+        ? prev.filter(id => id !== dmoId) 
+        : [...prev, dmoId]
+    );
+  };
+
+  const toggleEKGSection = (dmoId: string) => {
+    setCollapsedEKGSections(prev => 
+      prev.includes(dmoId) 
+        ? prev.filter(id => id !== dmoId) 
+        : [...prev, dmoId]
+    );
+  };
+
+  const createMapping = (sourceFieldId: string, ekgFieldId: string) => {
+    setMappedFields(prev => ({
+      ...prev,
+      [sourceFieldId]: ekgFieldId
+    }));
+  };
+
+  const removeMapping = (sourceFieldId: string) => {
+    const newMappings = { ...mappedFields };
+    delete newMappings[sourceFieldId];
+    setMappedFields(newMappings);
+  };
+  
+  const filterFields = (fields: Field[], searchTerm: string) => {
+    if (!searchTerm) return fields;
+    return fields.filter(field => 
+      field.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      field.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+  
+  const getMappedFieldCount = (dmoId: string, fields: Field[]) => {
+    if (dmoId === 'document' || dmoId === 'person') {
+      // For EKG DMOs, count how many fields are targets of mappings
+      const mappedValues = Object.values(mappedFields);
+      return fields.filter(field => mappedValues.includes(field.id)).length;
+    } else {
+      // For source DMOs, count how many fields are keys in mappings
+      return fields.filter(field => field.id in mappedFields).length;
+    }
+  };
+  
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'id':
+        return <Key className="h-4 w-4 text-purple-500" />;
+      case 'string':
+        return <Text className="h-4 w-4 text-blue-500" />;
+      case 'number':
+        return <Hash className="h-4 w-4 text-red-500" />;
+      case 'date':
+        return <Calendar className="h-4 w-4 text-orange-500" />;
+      default:
+        return <Type className="h-4 w-4 text-gray-500" />;
+    }
+  };
 
   // Interactive Graph Visualization
   const renderGraph = () => {
@@ -1282,11 +1346,212 @@ const EKGSetup: React.FC = () => {
     </div>
   );
 
-  // Right panel content with tabs for DMOs, Edges, and Analytics
+  // Source-to-EKG Mapping Panel for the right side
+  const SourceToEKGMappingPanel = () => (
+    <div className="space-y-4">
+      <h2 className="text-md font-medium">Source-to-EKG Mapping</h2>
+      <p className="text-sm text-gray-600 mb-4">
+        Map source data fields to EKG entities to integrate your data into the knowledge graph.
+      </p>
+      
+      {/* Source Search */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search source fields..."
+            className="pl-9"
+            value={searchSourceTerm}
+            onChange={e => setSearchSourceTerm(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      {/* Source DMOs */}
+      <div className="space-y-4 max-h-[200px] overflow-y-auto">
+        {sourceDMOs.map(dmo => {
+          const isCollapsed = collapsedSourceSections.includes(dmo.id);
+          const filteredFields = filterFields(dmo.fields, searchSourceTerm);
+          const mappedCount = getMappedFieldCount(dmo.id, dmo.fields);
+          
+          return (
+            <div key={dmo.id} className="border rounded-md">
+              <div 
+                className="bg-gray-50 p-3 flex items-center justify-between cursor-pointer"
+                onClick={() => toggleSourceSection(dmo.id)}
+              >
+                <div className="flex items-center space-x-2">
+                  <Database className="h-5 w-5 text-blue-500" />
+                  <span className="font-medium">{dmo.name}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    Mapped ({mappedCount})
+                  </Badge>
+                  {isCollapsed ? (
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <ChevronUp className="h-4 w-4 text-gray-500" />
+                  )}
+                </div>
+              </div>
+              
+              {!isCollapsed && (
+                <div className="p-3 space-y-2">
+                  {filteredFields.length > 0 ? (
+                    filteredFields.map(field => {
+                      const isMapped = field.id in mappedFields;
+                      const targetFieldId = mappedFields[field.id];
+                      
+                      return (
+                        <div 
+                          key={field.id} 
+                          className={`p-2 rounded-sm border flex items-center justify-between ${isMapped ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'}`}
+                          onMouseEnter={() => targetFieldId ? setActiveLine([field.id, targetFieldId]) : null}
+                          onMouseLeave={() => setActiveLine(null)}
+                        >
+                          <div className="flex items-center space-x-2">
+                            {getTypeIcon(field.type)}
+                            <span className="text-sm">{field.name}</span>
+                            {field.isPrimaryKey && (
+                              <Badge variant="outline" className="text-[10px] py-0 px-1 h-4 bg-purple-50 text-purple-700 border-purple-200">PK</Badge>
+                            )}
+                            {field.isRequired && (
+                              <Badge variant="outline" className="text-[10px] py-0 px-1 h-4 bg-red-50 text-red-700 border-red-200">Required</Badge>
+                            )}
+                          </div>
+                          
+                          {isMapped ? (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => removeMapping(field.id)}
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash className="h-3 w-3" />
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] py-0 px-1 bg-gray-50 text-gray-500 border-gray-200">
+                              Not Mapped
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-gray-500 italic py-2">No fields match your search</p>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* EKG Search */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search EKG fields..."
+            className="pl-9"
+            value={searchEKGTerm}
+            onChange={e => setSearchEKGTerm(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      {/* EKG DMOs */}
+      <div className="space-y-4 max-h-[200px] overflow-y-auto">
+        {ekgDMOs.map(dmo => {
+          const isCollapsed = collapsedEKGSections.includes(dmo.id);
+          const filteredFields = filterFields(dmo.fields, searchEKGTerm);
+          const mappedCount = getMappedFieldCount(dmo.id, dmo.fields);
+          
+          return (
+            <div key={dmo.id} className="border rounded-md">
+              <div 
+                className="bg-gray-50 p-3 flex items-center justify-between cursor-pointer"
+                onClick={() => toggleEKGSection(dmo.id)}
+              >
+                <div className="flex items-center space-x-2">
+                  <Database className="h-5 w-5 text-indigo-500" />
+                  <span className="font-medium">{dmo.name}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    Is Mapped ({mappedCount})
+                  </Badge>
+                  {isCollapsed ? (
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <ChevronUp className="h-4 w-4 text-gray-500" />
+                  )}
+                </div>
+              </div>
+              
+              {!isCollapsed && (
+                <div className="p-3 space-y-2">
+                  {filteredFields.length > 0 ? (
+                    filteredFields.map(field => {
+                      // Check if this field is a target of any mapping
+                      const sourceFieldIds = Object.entries(mappedFields)
+                        .filter(([_, target]) => target === field.id)
+                        .map(([source, _]) => source);
+                      const isMapped = sourceFieldIds.length > 0;
+                      
+                      return (
+                        <div 
+                          key={field.id} 
+                          className={`p-2 rounded-sm border flex items-center justify-between ${isMapped ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'}`}
+                          onMouseEnter={() => sourceFieldIds.length ? setActiveLine([sourceFieldIds[0], field.id]) : null}
+                          onMouseLeave={() => setActiveLine(null)}
+                        >
+                          <div className="flex items-center space-x-2">
+                            {getTypeIcon(field.type)}
+                            <span className="text-sm">{field.name}</span>
+                            {field.isPrimaryKey && (
+                              <Badge variant="outline" className="text-[10px] py-0 px-1 h-4 bg-purple-50 text-purple-700 border-purple-200">PK</Badge>
+                            )}
+                            {field.isRequired && (
+                              <Badge variant="outline" className="text-[10px] py-0 px-1 h-4 bg-red-50 text-red-700 border-red-200">Required</Badge>
+                            )}
+                          </div>
+                          
+                          {isMapped ? (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => removeMapping(sourceFieldIds[0])}
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash className="h-3 w-3" />
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] py-0 px-1 bg-gray-50 text-gray-500 border-gray-200">
+                              Unmapped
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-gray-500 italic py-2">No fields match your search</p>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // Right panel content with tabs for DMOs, Edges, Analytics, and Mapping
   const rightPanelContent = (
     <div className="space-y-4">
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dmos' | 'edges' | 'analytics')} className="w-full">
-        <TabsList className="grid grid-cols-3">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dmos' | 'edges' | 'analytics' | 'mapping')} className="w-full">
+        <TabsList className="grid grid-cols-4">
           <TabsTrigger value="dmos" className="text-xs">
             EKG Entities
           </TabsTrigger>
@@ -1296,12 +1561,18 @@ const EKGSetup: React.FC = () => {
           <TabsTrigger value="analytics" className="text-xs">
             Analytics
           </TabsTrigger>
+          <TabsTrigger value="mapping" className="text-xs">
+            Mapping
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="dmos" className="pt-4">
           <DMOSelectionPanel />
         </TabsContent>
         <TabsContent value="edges" className="pt-4">
           <EdgeDefinitionsPanel />
+        </TabsContent>
+        <TabsContent value="mapping" className="pt-4">
+          <SourceToEKGMappingPanel />
         </TabsContent>
         <TabsContent value="analytics" className="pt-4">
           <div className="space-y-4">
