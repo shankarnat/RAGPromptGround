@@ -175,11 +175,13 @@ const Mapping: React.FC = () => {
   };
 
   const handleNext = () => {
-    navigate('/kg/edge');
+    // Navigate to the next step (after mapping - visualization)
+    navigate('/kg/visualization');
   };
 
   const handlePrevious = () => {
-    navigate('/kg/dmo');
+    // Navigate back to Analytics Configuration
+    navigate('/kg/analytics');
   };
 
   // Help panel content

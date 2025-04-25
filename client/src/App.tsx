@@ -16,6 +16,7 @@ import TemplateSelection from "@/pages/kg/TemplateSelection";
 import DMOSelection from "@/pages/kg/DMOSelection";
 import Mapping from "@/pages/kg/Mapping";
 import EdgeConfiguration from "@/pages/kg/EdgeConfiguration";
+import AnalyticsConfiguration from "@/pages/kg/AnalyticsConfig";
 
 function Router() {
   const [location] = useLocation();
@@ -44,8 +45,9 @@ function Router() {
       {/* Knowledge Graph routes */}
       <Route path="/kg/template" component={TemplateSelection} />
       <Route path="/kg/dmo" component={DMOSelection} />
-      <Route path="/kg/mapping" component={Mapping} />
       <Route path="/kg/edge" component={EdgeConfiguration} />
+      <Route path="/kg/analytics" component={AnalyticsConfiguration} />
+      <Route path="/kg/mapping" component={Mapping} />
       
       <Route component={NotFound} />
     </Switch>
