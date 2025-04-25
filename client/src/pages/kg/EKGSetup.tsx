@@ -559,8 +559,8 @@ const EKGSetup: React.FC = () => {
     // Generate node positions in a circular layout
     const nodePositions: Record<string, { x: number, y: number }> = {};
     const centerX = 300;
-    const centerY = 200;
-    const radius = 150;
+    const centerY = 300; // Move the center point down to utilize vertical space better
+    const radius = 220; // Increase the radius to spread out nodes in the larger space
     
     selectedDMOs.forEach((dmo, index) => {
       const angle = (index / selectedDMOs.length) * 2 * Math.PI;
@@ -572,8 +572,8 @@ const EKGSetup: React.FC = () => {
     
     return (
       <div className="flex flex-col space-y-2">
-        <div className="border rounded-lg overflow-auto" style={{ height: '350px' }}>
-          <svg ref={svgRef} width="100%" height="800" viewBox="0 0 600 350">
+        <div className="border rounded-lg overflow-auto" style={{ height: 'calc(100vh - 250px)' }}>
+          <svg ref={svgRef} width="100%" height="800" viewBox="0 0 600 600">
             {/* Edge connections */}
             {filteredEdges.map((edge) => {
               const fromPos = nodePositions[edge.fromNodeType];
@@ -588,30 +588,30 @@ const EKGSetup: React.FC = () => {
                 // Draw a curved arc for self-reference to make it more visible
                 const centerX = fromPos.x;
                 const centerY = fromPos.y;
-                const radius = 50; // Radius of the arc
+                const radius = 30; // Reduced radius for the arc
                 
                 // Create a curved path for self-reference
                 return (
                   <g key={edge.id}>
                     <path
-                      d={`M ${centerX},${centerY - 35} 
-                          C ${centerX + 70},${centerY - 70} 
-                            ${centerX + 70},${centerY + 70} 
-                            ${centerX},${centerY + 35}`}
+                      d={`M ${centerX},${centerY - 14} 
+                          C ${centerX + 40},${centerY - 40} 
+                            ${centerX + 40},${centerY + 40} 
+                            ${centerX},${centerY + 14}`}
                       fill="none"
                       stroke={getStrokeColor(edge)}
-                      strokeWidth="2"
+                      strokeWidth="1.5"
                       strokeDasharray={getStrokeDashArray(edge)}
                       markerEnd={getMarkerEnd(edge)}
                     />
                     
                     {/* Edge label */}
                     <text 
-                      x={centerX + 70} 
+                      x={centerX + 40} 
                       y={centerY} 
                       textAnchor="middle" 
                       fill="#4b5563" 
-                      fontSize="12" 
+                      fontSize="8" 
                       fontWeight="medium"
                       className="select-none"
                     >
@@ -631,7 +631,7 @@ const EKGSetup: React.FC = () => {
                     x2={toPos.x} 
                     y2={toPos.y} 
                     stroke={getStrokeColor(edge)} 
-                    strokeWidth="2" 
+                    strokeWidth="1.5" 
                     markerEnd={getMarkerEnd(edge)} 
                     strokeDasharray={getStrokeDashArray(edge)} 
                   />
@@ -639,10 +639,10 @@ const EKGSetup: React.FC = () => {
                   {/* Edge label */}
                   <text 
                     x={(fromPos.x + toPos.x) / 2} 
-                    y={(fromPos.y + toPos.y) / 2 - 10} 
+                    y={(fromPos.y + toPos.y) / 2 - 6} 
                     textAnchor="middle" 
                     fill="#4b5563" 
-                    fontSize="12" 
+                    fontSize="8" 
                     fontWeight="medium"
                     className="select-none"
                   >
@@ -657,7 +657,7 @@ const EKGSetup: React.FC = () => {
                       x2={fromPos.x} 
                       y2={fromPos.y} 
                       stroke="transparent" 
-                      strokeWidth="2" 
+                      strokeWidth="1.5" 
                       markerEnd={getMarkerEnd(edge)} 
                     />
                   )}
@@ -672,31 +672,31 @@ const EKGSetup: React.FC = () => {
               
               return (
                 <g key={dmo.id}>
-                  {/* Node circle */}
+                  {/* Node circle - reduced size by 60% */}
                   <circle 
                     cx={pos.x} 
                     cy={pos.y} 
-                    r="35" 
+                    r="14" 
                     fill={dmo.required ? "#f0fdf4" : "#f9fafb"} 
                     stroke={dmo.required ? "#10b981" : "#6b7280"} 
-                    strokeWidth="2" 
+                    strokeWidth="1.5" 
                     className="cursor-pointer"
                   />
                   
-                  {/* Node icon */}
-                  <foreignObject x={pos.x - 15} y={pos.y - 15} width="30" height="30">
+                  {/* Node icon - reduced size */}
+                  <foreignObject x={pos.x - 6} y={pos.y - 6} width="12" height="12">
                     <div className="flex items-center justify-center h-full">
-                      {React.cloneElement(dmo.icon as React.ReactElement, { className: "h-6 w-6" })}
+                      {React.cloneElement(dmo.icon as React.ReactElement, { className: "h-3 w-3" })}
                     </div>
                   </foreignObject>
                   
-                  {/* Node name */}
+                  {/* Node name - smaller font */}
                   <text 
                     x={pos.x} 
-                    y={pos.y + 25} 
+                    y={pos.y + 10} 
                     textAnchor="middle" 
                     fill="#374151" 
-                    fontSize="12" 
+                    fontSize="8" 
                     fontWeight="medium"
                     className="select-none"
                   >
