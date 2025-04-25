@@ -1,0 +1,195 @@
+# Knowledge Graph Creation Workflow Enhancement
+
+## Project Overview
+We're enhancing our document intelligence platform to support a comprehensive knowledge graph creation workflow. The system needs to guide users from template selection through configuration to visualization and sharing.
+
+## Overall UI Structure
+
+The application will have the following UI components:
+
+1. **Header Bar**
+   - Navigation back button
+   - Page title ("Search Index Builder" or similar)
+   - Configuration title ("New Configuration" or custom name)
+   - Status indicator (e.g., "Not Saved" with icon)
+   - Action buttons ("Cancel", "Next")
+   - Settings, Help, and other global controls
+
+2. **Left Navigation Rail**
+   - Step-by-step workflow navigation following this order:
+     1. New KG (initial step)
+     2. Template Selection
+     3. Playground Edge Mapping + Affinity
+     4. Source DMO Selection
+     5. Source EKG Mapping
+     6. Preview
+     7. Done (completion)
+   - Visual indicators for completed steps
+   - Clear highlighting for current step
+   - Visual connectors (arrows) between steps showing flow progression
+
+3. **Main Content Area**
+   - Dynamic content based on current step
+   - For mapping steps: side-by-side source and target fields with connecting arrows
+   - For configuration steps: appropriate controls and visualizations
+   - For visualization steps: graph rendering with controls
+
+4. **Right Help Panel**
+   - Contextual help for current step
+   - Can be collapsed/expanded as needed
+   - Links to additional documentation
+
+## Functional Requirements
+
+### 1. Template Selection (New Screen)
+- Create a modal dialog with "New Knowledge Graph" as the header
+- Organize templates into two sections:
+  - "From scratch" section with the "Standard" template option
+  - "Use Templates" section with specific integrations
+- For each template option, display:
+  - Appropriate icon on the left (plus icon for Standard, service logos for templates)
+  - Template name as the primary label
+  - Brief descriptive text underneath (e.g., "Create from scratch", "Activity graph from Slack")
+- Templates should include:
+  - Standard (blank template for building from scratch)
+  - Slack (Activity Graph from Slack)
+  - Google Drive (Activity Graph from Google Drive)
+  - SharePoint (Activity Graph from SharePoint)
+- Each card should be selectable with a clear visual indication of selection
+- Include "Cancel" and "Next" buttons at the bottom of the modal
+- "Next" button should only be active when a template is selected
+
+**Visual Design Notes:**
+- Template cards should have rounded corners with subtle borders
+- Icons should be positioned on the left side of each card
+- Use consistent sizing for all template cards
+- Maintain ample white space between sections
+- Template selection should be the first step before showing the three-panel layout
+
+### 2. DMO Selection (Enhancement to Existing Screen)
+- Allow users to select Data Model Objects (DMOs) for their knowledge graph
+- Display:
+  - Visual representation of available DMOs
+  - Brief description of each DMO's purpose
+  - Clear indication of required vs. optional DMOs for the selected template
+  - Interface for adding custom DMOs
+- Implement validation to ensure required DMOs are selected
+
+**Panel Layout for This Step:**
+- **Left Rail:** Highlight "DMO Selection" step in the Knowledge Graph workflow
+- **Middle Section:** Interactive visualization showing selected DMOs as nodes in the graph
+- **Right Rail:** DMO selection interface with checkboxes/toggles for available DMOs, description panel, and custom DMO creation option
+
+### 3. Source-to-EKG Mapping (Enhancement to Existing Screen)
+- Interface should follow the provided design with:
+  - Source DMO fields on the left side
+  - EKG DMO fields on the right side
+  - Visual connectors (arrows) between mapped fields
+- For each DMO, show:
+  - DMO name as a section header (e.g., "File", "User" on source side; "KG Content", "KG User" on EKG side)
+  - Field count summaries ("Is Mapped (6)", "Unmapped (40)")
+  - Field attributes with icons indicating data types
+  - Primary key indicators
+  - Required field indicators (marked with asterisks)
+- Include search functionality for both source and EKG fields
+- Allow mapping creation through visual connection between fields
+- Display field properties including:
+  - Field name
+  - Data type icon
+  - Primary key designation
+  - Required field status
+- Group fields by their respective DMOs
+- Support collapsible sections for unmapped fields
+- Show mapping status with counters for mapped/unmapped fields
+
+**Panel Layout for This Step:**
+- **Left Rail:** Step navigation with "Source-to-EKG Mapping" highlighted, showing completed steps with checkmarks
+- **Middle Section:** The mapping interface showing source fields (left), connecting arrows (middle), and EKG fields (right)
+- **Right Rail:** Help panel with contextual assistance for the mapping process
+
+### 4. Edge DMO Configuration (New Screen)
+- Create interface for defining relationships (edges) between nodes
+- For each edge type, allow users to:
+  - Select "From" node type via dropdown
+  - Select "To" node type via dropdown
+  - Define relationship name/type
+  - Configure attributes on the relationship
+  - Set directionality (one-way or bidirectional)
+- Special consideration for activity edges with appropriate configuration options
+- Visual representation of configured relationships
+
+**Panel Layout for This Step:**
+- **Left Rail:** Highlight "Edge DMO Configuration" step in the Knowledge Graph workflow
+- **Middle Section:** Interactive graph showing nodes with newly created edge relationships between them; edges should be clickable to edit
+- **Right Rail:** Edge creation interface with "From" and "To" node selectors, relationship type configuration, attribute settings, and directionality controls
+
+### 5. Graph Analytics Configuration (New Screen)
+- Interface for setting up analytical queries on the knowledge graph
+- Configure affinity analyses including:
+  - "Who knows who" (person-to-person connections)
+  - "Who does what" (person-to-activity connections)
+  - Entity clustering
+  - Path analysis between entities
+- Parameter definition for each analysis type
+- Options for visualization preferences
+
+**Panel Layout for This Step:**
+- **Left Rail:** Highlight "Graph Analytics Configuration" step in the Knowledge Graph workflow
+- **Middle Section:** Visualization preview showing sample analytics results (e.g., highlighted paths, clustered nodes) based on selected analytics type
+- **Right Rail:** Analytics configuration interface with analysis type selector, parameter settings, and visualization options specific to the selected analysis type
+
+### 6. Execution and Visualization (Enhancement to Existing Screen)
+- Process the configured knowledge graph based on all previous configurations
+- Execute selected analytics with progress indicators
+- Present results in the specified visualization format
+- Interactive exploration capabilities including:
+  - Zoom and pan
+  - Node/edge filtering
+  - Focus on specific subgraphs
+  - Detail views for selected elements
+
+**Panel Layout for This Step:**
+- **Left Rail:** Highlight "Execution and Visualization" step in the Knowledge Graph workflow
+- **Middle Section:** Full interactive knowledge graph visualization with all configured nodes, edges, and analytics results; should include zoom/pan controls and filtering options
+- **Right Rail:** Execution controls, visualization settings (layout algorithms, color schemes), filtering criteria, and detailed properties panel for selected graph elements
+
+### 7. Saving and Sharing (New Functionality)
+- Save complete configurations as named projects
+- Export results in standard formats (JSON, CSV, compatible graph formats)
+- Sharing options with permission controls
+- Create and manage reusable components for future graph projects
+- Integration with Agentic Search and other platform surfaces
+
+**Panel Layout for This Step:**
+- **Left Rail:** Highlight "Saving and Sharing" step in the Knowledge Graph workflow
+- **Middle Section:** Final knowledge graph visualization with options to select specific views or components for sharing
+- **Right Rail:** Project saving interface with name/description fields, export format options, sharing permissions controls, and integration settings for Agentic Search and other platform surfaces
+
+## Technical Requirements
+- Consistent UI/UX across all screens following our design system
+- Three-panel layout maintained throughout the workflow:
+  - Left rail for navigation between steps
+  - Middle section for interactive graph visualization
+  - Right rail for step-specific configuration options
+- Responsive design supporting various screen sizes with appropriate resizing behavior for the three panels
+- Performance optimization for large graphs, especially in the visualization panel
+- Smooth transitions between workflow steps while maintaining graph state
+- Appropriate error handling and validation in each configuration panel
+- Backend API integration for all configuration parameters
+- User activity logging for analytics
+
+## Implementation Timeline
+- Phase 1: Template Selection and DMO Selection enhancements
+- Phase 2: Source-to-EKG Mapping improvements and Edge DMO Configuration
+- Phase 3: Graph Analytics Configuration and Visualization enhancements
+- Phase 4: Saving, Sharing and Integration capabilities
+
+Please implement the user interface components following our established React component library and design patterns. The backend integration should follow our existing API architecture.
+
+## UI/UX Guidelines
+- Maintain visual consistency across all panels
+- Ensure the middle visualization panel provides real-time feedback as users make configuration changes
+- The left rail should clearly indicate progress through the workflow
+- The right rail should adapt dynamically to show only relevant controls for the current step
+- Use appropriate visual cues (colors, icons, animations) to represent different node types, relationships, and analytical results
+- Implement proper loading states and transitions between steps

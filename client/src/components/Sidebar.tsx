@@ -35,7 +35,7 @@ interface SidebarProps {
 
 const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   const [location, navigate] = useLocation();
-  const [expandedItems, setExpandedItems] = useState<string[]>(["search-index"]);
+  const [expandedItems, setExpandedItems] = useState<string[]>(["search-index", "kg"]);
 
   const toggleSubnav = (id: string) => {
     setExpandedItems(prev => 
@@ -75,16 +75,52 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
     },
     { 
       name: "Knowledge Graph", 
-      icon: <Network className="h-5 w-5 mr-3 text-gray-400" />, 
+      icon: <Network className="h-5 w-5 mr-3 text-gray-500" />, 
       id: "kg", 
-      href: "/kg",
-      disabled: true,
-      optional: true
+      href: "#",
+      optional: true,
+      subnav: [
+        { 
+          name: "Template Selection", 
+          id: "kg-template", 
+          href: "/kg/template" 
+        },
+        { 
+          name: "DMO Selection", 
+          id: "kg-dmo", 
+          href: "/kg/dmo" 
+        },
+        { 
+          name: "Source-to-EKG Mapping", 
+          id: "kg-mapping", 
+          href: "/kg/mapping" 
+        },
+        { 
+          name: "Edge Configuration", 
+          id: "kg-edge", 
+          href: "/kg/edge" 
+        },
+        { 
+          name: "Analytics Config", 
+          id: "kg-analytics", 
+          href: "/kg/analytics" 
+        },
+        { 
+          name: "Visualization", 
+          id: "kg-visualization", 
+          href: "/kg/visualization" 
+        },
+        { 
+          name: "Save & Share", 
+          id: "kg-share", 
+          href: "/kg/share" 
+        }
+      ]
     }
   ];
 
   const handleNavigation = (path: string, id: string) => {
-    if (id === "upload" || id === "parse-chunk") {
+    if (id === "upload" || id === "parse-chunk" || id.startsWith("kg-")) {
       navigate(path);
     }
   };
