@@ -1796,7 +1796,10 @@ const EKGSetup: React.FC = () => {
                       </p>
                     </div>
                     
-                    <Button onClick={() => setShowMappingModal(true)}>
+                    <Button onClick={() => {
+                      console.log("Opening mapping modal...");
+                      setShowMappingModal(true);
+                    }}>
                       {Object.keys(mappedFields).length > 0 ? "Edit Mappings" : "Create Mappings"}
                     </Button>
                   </div>
@@ -1883,7 +1886,10 @@ const EKGSetup: React.FC = () => {
                       <p className="text-xs text-gray-500 mt-1 mb-4">
                         Create field mappings between your source data and EKG entities
                       </p>
-                      <Button size="sm" onClick={() => setShowMappingModal(true)}>
+                      <Button size="sm" onClick={() => {
+                        console.log("Creating first mapping...");
+                        setShowMappingModal(true);
+                      }}>
                         Create First Mapping
                       </Button>
                     </div>
