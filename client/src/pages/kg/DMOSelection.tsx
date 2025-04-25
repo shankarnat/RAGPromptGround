@@ -107,28 +107,78 @@ const DMOSelection: React.FC = () => {
     navigate('/kg/template');
   };
 
-  // Help panel content
+  // Configuration panel content - moved DMO selection here
   const rightPanelContent = (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-sm font-medium mb-2">Data Model Objects</h3>
-        <p className="text-sm text-gray-600">
-          DMOs define the entities that will be represented in your knowledge graph. Select the DMOs relevant to your use case.
-        </p>
-      </div>
+      <h2 className="text-md font-medium">Select Data Model Objects</h2>
+      <p className="text-sm text-gray-600 mb-4">
+        Choose which entities to include in your knowledge graph.
+      </p>
       
-      <div>
-        <h3 className="text-sm font-medium mb-2">Required DMOs</h3>
-        <p className="text-sm text-gray-600">
-          Some DMOs are required based on your template selection. These cannot be deselected.
-        </p>
-      </div>
-      
-      <div>
-        <h3 className="text-sm font-medium mb-2">Custom DMOs</h3>
-        <p className="text-sm text-gray-600">
-          You can add custom DMOs to represent specific entities in your domain. Click "Add Custom DMO" to create a new entity type.
-        </p>
+      <div className="space-y-4">
+        {dmos.map(dmo => (
+          <div key={dmo.id} className="flex items-start space-x-3 p-3 border rounded-md hover:bg-gray-50">
+            <Checkbox 
+              id={dmo.id}
+              checked={dmo.selected}
+              onCheckedChange={() => handleDMOToggle(dmo.id)}
+              disabled={dmo.required}
+            />
+            <div className="min-w-0 flex-1">
+              <Label 
+                htmlFor={dmo.id}
+                className="font-medium flex items-center cursor-pointer"
+              >
+                <span className="mr-2">{dmo.icon}</span>
+                {dmo.name}
+                {dmo.required && (
+                  <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                    Required
+                  </span>
+                )}
+              </Label>
+              <p className="text-sm text-gray-600">{dmo.description}</p>
+            </div>
+          </div>
+        ))}
+        
+        {showNewDMO ? (
+          <div className="p-3 border rounded-md bg-gray-50">
+            <div className="flex items-center space-x-2 mb-3">
+              <Input
+                placeholder="Enter DMO name"
+                value={newDMOName}
+                onChange={e => setNewDMOName(e.target.value)}
+                className="flex-1"
+              />
+              <Button 
+                size="sm"
+                onClick={handleAddNewDMO}
+                disabled={!newDMOName.trim()}
+              >
+                Add
+              </Button>
+            </div>
+            <div className="flex justify-end">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowNewDMO(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={() => setShowNewDMO(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Custom DMO
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -202,9 +252,9 @@ const DMOSelection: React.FC = () => {
       onNext={handleNext}
       onPrevious={handlePrevious}
     >
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Graph visualization panel */}
-        <div className="lg:flex-1">
+      <div className="flex">
+        {/* Graph visualization panel - now full width */}
+        <div className="w-full">
           <Card>
             <CardContent className="pt-6">
               <h2 className="text-lg font-medium mb-4">Knowledge Graph Structure</h2>
@@ -212,84 +262,6 @@ const DMOSelection: React.FC = () => {
                 This visualization shows how your selected DMOs will be organized in the knowledge graph.
               </p>
               <GraphVisualization />
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* DMO selection panel */}
-        <div className="lg:w-96">
-          <Card>
-            <CardContent className="pt-6">
-              <h2 className="text-lg font-medium mb-4">Select Data Model Objects</h2>
-              <p className="text-gray-600 mb-6">
-                Choose which entities to include in your knowledge graph.
-              </p>
-              
-              <div className="space-y-4">
-                {dmos.map(dmo => (
-                  <div key={dmo.id} className="flex items-start space-x-3 p-3 border rounded-md hover:bg-gray-50">
-                    <Checkbox 
-                      id={dmo.id}
-                      checked={dmo.selected}
-                      onCheckedChange={() => handleDMOToggle(dmo.id)}
-                      disabled={dmo.required}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <Label 
-                        htmlFor={dmo.id}
-                        className="font-medium flex items-center cursor-pointer"
-                      >
-                        <span className="mr-2">{dmo.icon}</span>
-                        {dmo.name}
-                        {dmo.required && (
-                          <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                            Required
-                          </span>
-                        )}
-                      </Label>
-                      <p className="text-sm text-gray-600">{dmo.description}</p>
-                    </div>
-                  </div>
-                ))}
-                
-                {showNewDMO ? (
-                  <div className="p-3 border rounded-md bg-gray-50">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <Input
-                        placeholder="Enter DMO name"
-                        value={newDMOName}
-                        onChange={e => setNewDMOName(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button 
-                        size="sm"
-                        onClick={handleAddNewDMO}
-                        disabled={!newDMOName.trim()}
-                      >
-                        Add
-                      </Button>
-                    </div>
-                    <div className="flex justify-end">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setShowNewDMO(false)}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
-                    onClick={() => setShowNewDMO(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Custom DMO
-                  </Button>
-                )}
-              </div>
             </CardContent>
           </Card>
         </div>
