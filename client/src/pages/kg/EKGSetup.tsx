@@ -474,6 +474,75 @@ const EKGSetup: React.FC = () => {
     return dmo ? dmo.icon : null;
   };
   
+  // Helper function to determine if an edge is part of an analytics view
+  const isAnalyticsEdge = (edge: Edge): boolean => {
+    // Person-to-person relationships are part of Who Knows Who
+    if (edge.fromNodeType === 'person' && edge.toNodeType === 'person') {
+      return true;
+    }
+    
+    // Person-to-project or Person-to-document relationships are part of Who Does What
+    if ((edge.fromNodeType === 'person' && edge.toNodeType === 'project') || 
+        (edge.fromNodeType === 'person' && edge.toNodeType === 'document')) {
+      return true;
+    }
+    
+    return false;
+  };
+  
+  // Helper function to get the appropriate stroke color for an edge
+  const getStrokeColor = (edge: Edge): string => {
+    // Analytics edges get different colors based on type
+    if (edge.fromNodeType === 'person' && edge.toNodeType === 'person') {
+      return "#ff5722"; // Orange for Who Knows Who
+    }
+    
+    if (edge.fromNodeType === 'person' && edge.toNodeType === 'project') {
+      return "#4caf50"; // Green for Who Does What (person-project)
+    }
+    
+    if (edge.fromNodeType === 'person' && edge.toNodeType === 'document') {
+      return "#009688"; // Teal for Who Does What (person-document)
+    }
+    
+    // Regular relationship edges
+    return edge.isBidirectional ? "#8b5cf6" : "#3b82f6";
+  };
+  
+  // Helper function to get the appropriate marker end for an edge
+  const getMarkerEnd = (edge: Edge): string => {
+    if (edge.isBidirectional) {
+      return ""; // No arrowhead for bidirectional edges (we use a separate line)
+    }
+    
+    // Analytics edges get different colored arrowheads
+    if (edge.fromNodeType === 'person' && edge.toNodeType === 'person') {
+      return "url(#arrowhead-orange)"; // Orange for Who Knows Who
+    }
+    
+    if (edge.fromNodeType === 'person' && edge.toNodeType === 'project') {
+      return "url(#arrowhead-green)"; // Green for Who Does What (person-project)
+    }
+    
+    if (edge.fromNodeType === 'person' && edge.toNodeType === 'document') {
+      return "url(#arrowhead-teal)"; // Teal for Who Does What (person-document)
+    }
+    
+    // Regular relationship edges
+    return "url(#arrowhead)";
+  };
+  
+  // Helper function to get the stroke dash array for an edge
+  const getStrokeDashArray = (edge: Edge): string => {
+    // Make analytics edges dashed to distinguish them
+    if (isAnalyticsEdge(edge)) {
+      return "4 2";
+    }
+    
+    // Regular relationship edges are solid
+    return "";
+  };
+
   // Interactive Graph Visualization
   const renderGraph = () => {
     const selectedDMOs = dmos.filter(dmo => dmo.selected);
@@ -534,10 +603,10 @@ const EKGSetup: React.FC = () => {
                 y1={fromPos.y} 
                 x2={toPos.x} 
                 y2={toPos.y} 
-                stroke={edge.isBidirectional ? "#8b5cf6" : "#3b82f6"} 
+                stroke={getStrokeColor(edge)} 
                 strokeWidth="2" 
-                markerEnd={edge.isBidirectional ? "" : "url(#arrowhead)"} 
-                strokeDasharray={edge.isBidirectional ? "" : ""} 
+                markerEnd={getMarkerEnd(edge)} 
+                strokeDasharray={getStrokeDashArray(edge)} 
               />
               
               {/* Edge label */}
@@ -562,7 +631,7 @@ const EKGSetup: React.FC = () => {
                   y2={fromPos.y} 
                   stroke="transparent" 
                   strokeWidth="2" 
-                  markerEnd="url(#arrowhead)" 
+                  markerEnd={getMarkerEnd(edge)} 
                 />
               )}
             </g>
@@ -612,6 +681,7 @@ const EKGSetup: React.FC = () => {
         
         {/* Arrow marker definition */}
         <defs>
+          {/* Multiple arrowhead markers with different colors */}
           <marker 
             id="arrowhead" 
             markerWidth="10" 
@@ -621,6 +691,36 @@ const EKGSetup: React.FC = () => {
             orient="auto"
           >
             <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+          </marker>
+          <marker 
+            id="arrowhead-orange" 
+            markerWidth="10" 
+            markerHeight="7" 
+            refX="9" 
+            refY="3.5" 
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3.5, 0 7" fill="#ff5722" />
+          </marker>
+          <marker 
+            id="arrowhead-green" 
+            markerWidth="10" 
+            markerHeight="7" 
+            refX="9" 
+            refY="3.5" 
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3.5, 0 7" fill="#4caf50" />
+          </marker>
+          <marker 
+            id="arrowhead-teal" 
+            markerWidth="10" 
+            markerHeight="7" 
+            refX="9" 
+            refY="3.5" 
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3.5, 0 7" fill="#009688" />
           </marker>
         </defs>
       </svg>
