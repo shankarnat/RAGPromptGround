@@ -633,7 +633,12 @@ const EKGSetup: React.FC = () => {
   };
   
   // Helper function to get the appropriate stroke color for an edge
-  const getStrokeColor = (edge: Edge): string => {
+  const getStrokeColor = (edge: any): string => {
+    // Check if this is a mapping edge between source DMO and EKG entity
+    if (edge.isMappingEdge) {
+      return "#06b6d4"; // Teal/cyan color for mapping connections
+    }
+    
     // All analytics edges get green color
     if (isAnalyticsEdge(edge)) {
       return "#4caf50"; // Green for all analytics edges
@@ -644,9 +649,14 @@ const EKGSetup: React.FC = () => {
   };
   
   // Helper function to get the appropriate marker end for an edge
-  const getMarkerEnd = (edge: Edge): string => {
+  const getMarkerEnd = (edge: any): string => {
     if (edge.isBidirectional) {
       return ""; // No arrowhead for bidirectional edges (we use a separate line)
+    }
+    
+    // Mapping edges get teal arrowheads
+    if (edge.isMappingEdge) {
+      return "url(#arrowhead-teal)"; // Teal for mapping edges
     }
     
     // All analytics edges get green arrowheads
@@ -659,10 +669,15 @@ const EKGSetup: React.FC = () => {
   };
   
   // Helper function to get the stroke dash array for an edge
-  const getStrokeDashArray = (edge: Edge): string => {
+  const getStrokeDashArray = (edge: any): string => {
+    // Mapping edges get a different dash pattern
+    if (edge.isMappingEdge) {
+      return "4 2"; // Dashed line for mapping connections
+    }
+    
     // Make analytics edges dashed to distinguish them
     if (isAnalyticsEdge(edge)) {
-      return "4 2";
+      return "4 2"; // Dashed line for analytics
     }
     
     // Regular relationship edges are solid
