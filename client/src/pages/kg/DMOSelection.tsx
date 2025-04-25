@@ -108,7 +108,8 @@ const DMOSelection: React.FC = () => {
   };
 
   const handleNext = () => {
-    navigate('/kg/edge');
+    // Navigate to EKG Setup (updated flow)
+    navigate('/kg/ekg');
   };
 
   const handlePrevious = () => {

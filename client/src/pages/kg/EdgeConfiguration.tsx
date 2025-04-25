@@ -234,13 +234,13 @@ const EdgeConfiguration: React.FC = () => {
   };
 
   const handleNext = () => {
-    // Navigate to the Analytics Configuration page
-    navigate('/kg/analytics');
+    // Navigate to the Playground (step 3)
+    navigate('/kg/playground');
   };
 
   const handlePrevious = () => {
-    // Navigate back to DMO Selection
-    navigate('/kg/dmo');
+    // Navigate back to EKG Setup (step 2)
+    navigate('/kg/ekg');
   };
 
   // Edge definitions UI to be shown in the right panel
