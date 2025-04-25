@@ -11,6 +11,12 @@ import Vectorization from "@/pages/Vectorization";
 import TestAndResults from "@/pages/TestAndResults";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 
+// Knowledge Graph pages
+import TemplateSelection from "@/pages/kg/TemplateSelection";
+import DMOSelection from "@/pages/kg/DMOSelection";
+import Mapping from "@/pages/kg/Mapping";
+import EdgeConfiguration from "@/pages/kg/EdgeConfiguration";
+
 function Router() {
   const [location] = useLocation();
   const { state } = useDocumentProcessing();
@@ -34,6 +40,13 @@ function Router() {
       <Route path="/vectorization" component={Vectorization} />
       <Route path="/test" component={TestAndResults} />
       <Route path="/deploy" component={TestAndResults} />
+      
+      {/* Knowledge Graph routes */}
+      <Route path="/kg/template" component={TemplateSelection} />
+      <Route path="/kg/dmo" component={DMOSelection} />
+      <Route path="/kg/mapping" component={Mapping} />
+      <Route path="/kg/edge" component={EdgeConfiguration} />
+      
       <Route component={NotFound} />
     </Switch>
   );
