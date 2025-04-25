@@ -241,7 +241,7 @@ const Share = () => {
                         <span>{dmo.icon}</span>
                         <span>{dmo.name}</span>
                       </TableCell>
-                      <TableCell>{dmo.id === 'document' ? 15 : dmo.id === 'person' ? 12 : 8}</TableCell>
+                      <TableCell>{dmo.fieldCount}</TableCell>
                       <TableCell>5/04/2025 12:00:00</TableCell>
                     </TableRow>
                   ))}
