@@ -137,59 +137,80 @@ const Share = () => {
     navigate('/kg/playground');
   };
   
+  // Define consumption scenarios
+  const [selectedScenario, setSelectedScenario] = useState<string>('employee-agent');
+  
+  // List of consumption scenarios
+  const consumptionScenarios = [
+    { id: 'employee-agent', name: 'Employee Agent', description: 'Assistant for employee onboarding and HR inquiries' },
+    { id: 'customer-support', name: 'Customer Support Bot', description: 'Chatbot for handling customer queries' },
+    { id: 'knowledge-portal', name: 'Knowledge Portal', description: 'Enterprise knowledge sharing platform' },
+    { id: 'project-assistant', name: 'Project Assistant', description: 'AI assistant for project management' },
+    { id: 'document-analyzer', name: 'Document Analyzer', description: 'System for analyzing and categorizing documents' }
+  ];
+  
   // Right panel content
   const rightPanelContent = (
     <div className="space-y-6">
       <div>
-        <h2 className="text-md font-medium mb-2">Export Options</h2>
+        <h2 className="text-md font-medium mb-2">Consumption Scenario</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Export your knowledge graph configuration for use in other systems.
+          Associate this knowledge graph with the scenario where it will be used.
         </p>
         
         <div className="space-y-4">
-          <Button className="w-full flex items-center" variant="outline">
-            <FileJson className="h-4 w-4 mr-2" />
-            Export as JSON
-          </Button>
-          
-          <Button className="w-full flex items-center" variant="outline">
-            <FileText className="h-4 w-4 mr-2" />
-            Export as CSV
-          </Button>
-          
-          <Button className="w-full flex items-center" variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Download Schema
-          </Button>
-          
-          <Button className="w-full flex items-center" variant="outline">
-            <Workflow className="h-4 w-4 mr-2" />
-            API Integration
-          </Button>
+          {consumptionScenarios.map((scenario) => (
+            <div 
+              key={scenario.id}
+              className={`p-3 border rounded-md cursor-pointer transition-colors ${
+                selectedScenario === scenario.id 
+                  ? 'bg-blue-50 border-blue-300' 
+                  : 'hover:bg-gray-50'
+              }`}
+              onClick={() => setSelectedScenario(scenario.id)}
+            >
+              <div className="flex items-center">
+                <div className={`w-4 h-4 rounded-full mr-3 ${
+                  selectedScenario === scenario.id ? 'bg-blue-500' : 'bg-gray-200'
+                }`}/>
+                <div>
+                  <h3 className="text-sm font-medium">{scenario.name}</h3>
+                  <p className="text-xs text-gray-500">{scenario.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
       
       <div>
-        <h2 className="text-md font-medium mb-2">Sharing</h2>
+        <h2 className="text-md font-medium mb-2">Sharing Options</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Share this knowledge graph configuration with others.
+          Share this knowledge graph configuration with teams and systems.
         </p>
         
-        <div className="flex items-center space-x-2 p-2 border rounded-md bg-gray-50">
-          <Input 
-            value="https://knowledge-graph.example.com/share/kg123456"
-            readOnly
-            className="text-xs"
-          />
-          <Button variant="ghost" size="sm">
-            <Copy className="h-4 w-4" />
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 p-2 border rounded-md bg-gray-50">
+            <Input 
+              value="https://knowledge-graph.example.com/share/kg123456"
+              readOnly
+              className="text-xs"
+            />
+            <Button variant="ghost" size="sm">
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <Button className="w-full flex items-center">
+            <ShareIcon className="h-4 w-4 mr-2" />
+            Publish Configuration
+          </Button>
+          
+          <Button variant="outline" className="w-full flex items-center">
+            <Workflow className="h-4 w-4 mr-2" />
+            Connect to {consumptionScenarios.find(s => s.id === selectedScenario)?.name || 'Selected Scenario'}
           </Button>
         </div>
-        
-        <Button className="w-full mt-4 flex items-center">
-          <ShareIcon className="h-4 w-4 mr-2" />
-          Share Configuration
-        </Button>
       </div>
     </div>
   );
