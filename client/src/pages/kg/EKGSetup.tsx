@@ -3688,56 +3688,76 @@ const AnalyticsConfigModal: React.FC = () => {
   };
   
   // State for visualization/playground tabs
-  const [visualizationTab, setVisualizationTab] = useState<'visualization' | 'playground'>('visualization');
+  const [activeView, setActiveView] = useState<'visualization' | 'playground'>('visualization');
   
   // Function to render content with tabbed interface
   const renderContent = () => {
+    // Original render content
+    const renderVisualization = () => renderGraph();
+    
+    // Playground render content
+    const renderPlayground = () => (
+      <div className="border rounded-lg p-4 h-[calc(100vh-250px)] flex flex-col space-y-4">
+        <div className="flex flex-col space-y-2">
+          <h3 className="text-xl font-semibold">Graph Query Playground</h3>
+          <p className="text-sm text-gray-500">
+            Ask natural language questions about your Enterprise Knowledge Graph.
+          </p>
+        </div>
+        
+        <div className="relative">
+          <Input 
+            placeholder="Ask a question about your EKG (e.g., 'Who are the key collaborators of Jane Smith?')"
+            className="pr-12"
+          />
+          <Button 
+            className="absolute right-1 top-1 h-8 px-3 py-1"
+            size="sm"
+          >
+            <Search className="h-4 w-4 mr-1" />
+            Query
+          </Button>
+        </div>
+        
+        <div className="flex-1 border rounded-md p-4 bg-gray-50 overflow-auto">
+          <div className="flex items-center justify-center h-full text-center text-gray-500">
+            <div className="flex flex-col items-center">
+              <Search className="h-10 w-10 mb-2 text-gray-400" />
+              <p>Enter a query above to explore your EKG data</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+    
     return (
       <div className="flex flex-col space-y-4">
-        <Tabs value={visualizationTab} onValueChange={(value) => setVisualizationTab(value as 'visualization' | 'playground')} className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="visualization">Visualization</TabsTrigger>
-            <TabsTrigger value="playground">Query Playground</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="visualization" className="pt-4">
-            {renderGraph()}
-          </TabsContent>
-          
-          <TabsContent value="playground" className="pt-4">
-            <div className="border rounded-lg p-4 h-[calc(100vh-250px)] flex flex-col space-y-4">
-              <div className="flex flex-col space-y-2">
-                <h3 className="text-xl font-semibold">Graph Query Playground</h3>
-                <p className="text-sm text-gray-500">
-                  Ask natural language questions about your Enterprise Knowledge Graph.
-                </p>
-              </div>
-              
-              <div className="relative">
-                <Input 
-                  placeholder="Ask a question about your EKG (e.g., 'Who are the key collaborators of Jane Smith?')"
-                  className="pr-12"
-                />
-                <Button 
-                  className="absolute right-1 top-1 h-8 px-3 py-1"
-                  size="sm"
-                >
-                  <Search className="h-4 w-4 mr-1" />
-                  Query
-                </Button>
-              </div>
-              
-              <div className="flex-1 border rounded-md p-4 bg-gray-50 overflow-auto">
-                <div className="flex items-center justify-center h-full text-center text-gray-500">
-                  <div className="flex flex-col items-center">
-                    <Search className="h-10 w-10 mb-2 text-gray-400" />
-                    <p>Enter a query above to explore your EKG data</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+        <div className="w-full border-b border-gray-200">
+          <div className="flex space-x-2">
+            <Button 
+              variant={activeView === 'visualization' ? 'default' : 'ghost'}
+              onClick={() => setActiveView('visualization')}
+              className="rounded-none border-b-2 border-transparent px-4 py-2"
+              style={{ 
+                borderBottomColor: activeView === 'visualization' ? 'hsl(var(--primary))' : 'transparent'
+              }}
+            >
+              Visualization
+            </Button>
+            <Button 
+              variant={activeView === 'playground' ? 'default' : 'ghost'}
+              onClick={() => setActiveView('playground')}
+              className="rounded-none border-b-2 border-transparent px-4 py-2"
+              style={{ 
+                borderBottomColor: activeView === 'playground' ? 'hsl(var(--primary))' : 'transparent'
+              }}
+            >
+              Query Playground
+            </Button>
+          </div>
+        </div>
+        
+        {activeView === 'visualization' ? renderVisualization() : renderPlayground()}
       </div>
     );
   };
