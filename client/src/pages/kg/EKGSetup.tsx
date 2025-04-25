@@ -85,6 +85,23 @@ interface DMO {
   selected: boolean;
 }
 
+// Field interface for Source-to-EKG mapping
+interface Field {
+  id: string;
+  name: string;
+  type: 'id' | 'string' | 'number' | 'date' | 'boolean';
+  description: string;
+  isPrimaryKey?: boolean;
+  isRequired?: boolean;
+}
+
+// Data Model Object interface for Source-to-EKG mapping
+interface DataModelObject {
+  id: string;
+  name: string;
+  fields: Field[];
+}
+
 // Edge Interfaces
 interface Edge {
   id: string;
@@ -101,27 +118,16 @@ interface EdgeAttribute {
   type: 'string' | 'number' | 'date' | 'boolean';
 }
 
-// Source-to-EKG mapping interfaces
-interface Field {
-  id: string;
-  name: string;
-  type: 'id' | 'string' | 'number' | 'date' | 'boolean';
-  description: string;
-  isPrimaryKey?: boolean;
-  isRequired?: boolean;
-}
-
-interface DataModelObject {
-  id: string;
-  name: string;
-  fields: Field[];
-}
+// No duplicates needed
 
 // Combined EKG Setup Component (DMO Selection + Edge Configuration)
 const EKGSetup: React.FC = () => {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<'dmos' | 'edges' | 'analytics' | 'mapping'>('dmos');
   const svgRef = useRef<SVGSVGElement>(null);
+  
+  // Modal state for Source-to-EKG mapping
+  const [showMappingModal, setShowMappingModal] = useState(false);
   
   // Source-to-EKG mapping state
   const [searchSourceTerm, setSearchSourceTerm] = useState('');
@@ -681,9 +687,76 @@ const EKGSetup: React.FC = () => {
     }
   };
 
+  // Helper function to check if a DMO has mappings
+  const hasMappings = (dmoId: string): boolean => {
+    // Check if it's an EKG DMO (document/person)
+    if (dmoId === 'document' || dmoId === 'person') {
+      // Get all the fields for this DMO
+      const dmoObj = ekgDMOs.find(dmo => dmo.id === dmoId);
+      if (!dmoObj) return false;
+      
+      // Check if any field is used as a target in mappings
+      const mappedValues = Object.values(mappedFields);
+      return dmoObj.fields.some(field => mappedValues.includes(field.id));
+    } 
+    // Check if it's a source DMO (file/user)
+    else if (dmoId === 'file' || dmoId === 'user') {
+      // Get all the fields for this DMO
+      const dmoObj = sourceDMOs.find(dmo => dmo.id === dmoId);
+      if (!dmoObj) return false;
+      
+      // Check if any field is used as a key in mappings
+      return dmoObj.fields.some(field => field.id in mappedFields);
+    }
+    
+    return false;
+  };
+  
   // Interactive Graph Visualization
   const renderGraph = () => {
     const selectedDMOs = dmos.filter(dmo => dmo.selected);
+    
+    // Highlight mapped DMOs
+    const getMappedStatus = (dmoId: string): { isMapped: boolean, mappedToId: string | null } => {
+      const isMapped = hasMappings(dmoId);
+      
+      // For EKG DMOs (document/person), find which source DMOs map to them
+      if (dmoId === 'document' || dmoId === 'person') {
+        // Find a source DMO that maps to this EKG DMO
+        for (const sourceDmo of sourceDMOs) {
+          for (const field of sourceDmo.fields) {
+            if (field.id in mappedFields) {
+              const targetFieldId = mappedFields[field.id];
+              const targetEkgDmo = ekgDMOs.find(ekgDmo => 
+                ekgDmo.fields.some(f => f.id === targetFieldId && ekgDmo.id === dmoId)
+              );
+              if (targetEkgDmo) {
+                return { isMapped, mappedToId: sourceDmo.id };
+              }
+            }
+          }
+        }
+      }
+      // For source DMOs, find which EKG DMO they map to
+      else if (dmoId === 'file' || dmoId === 'user') {
+        // Find which EKG DMO this source DMO maps to
+        const sourceDmo = sourceDMOs.find(dmo => dmo.id === dmoId);
+        if (sourceDmo) {
+          for (const field of sourceDmo.fields) {
+            if (field.id in mappedFields) {
+              const targetFieldId = mappedFields[field.id];
+              for (const ekgDmo of ekgDMOs) {
+                if (ekgDmo.fields.some(f => f.id === targetFieldId)) {
+                  return { isMapped, mappedToId: ekgDmo.id };
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      return { isMapped, mappedToId: null };
+    };
     
     // Filter edges based on enabled analytics
     const filteredEdges = edges.filter(edge => {
@@ -824,6 +897,41 @@ const EKGSetup: React.FC = () => {
               const pos = nodePositions[dmo.id];
               if (!pos) return null;
               
+              // Check if this DMO is mapped
+              const { isMapped, mappedToId } = getMappedStatus(dmo.id);
+              
+              // Choose border color and width based on mapping status
+              const getNodeStyleProps = () => {
+                // Default styling
+                const defaultStyle = {
+                  fill: dmo.required ? "#f0fdf4" : "#f9fafb",
+                  stroke: dmo.required ? "#10b981" : "#6b7280",
+                  strokeWidth: 1.5
+                };
+                
+                // If this is a mapped EKG node (document or person)
+                if (isMapped && (dmo.id === 'document' || dmo.id === 'person')) {
+                  return {
+                    fill: "#e0f2fe", // Light blue background
+                    stroke: "#3b82f6", // Blue border
+                    strokeWidth: 2 // Thicker border
+                  };
+                }
+                
+                // If this is a mapped source node (file or user)
+                if (isMapped && (dmo.id === 'file' || dmo.id === 'user')) {
+                  return {
+                    fill: "#e0f7fa", // Light teal background
+                    stroke: "#06b6d4", // Teal border
+                    strokeWidth: 2 // Thicker border
+                  };
+                }
+                
+                return defaultStyle;
+              };
+              
+              const nodeStyle = getNodeStyleProps();
+              
               return (
                 <g key={dmo.id}>
                   {/* Node circle - reduced size by 60% */}
@@ -831,9 +939,9 @@ const EKGSetup: React.FC = () => {
                     cx={pos.x} 
                     cy={pos.y} 
                     r="14" 
-                    fill={dmo.required ? "#f0fdf4" : "#f9fafb"} 
-                    stroke={dmo.required ? "#10b981" : "#6b7280"} 
-                    strokeWidth="1.5" 
+                    fill={nodeStyle.fill} 
+                    stroke={nodeStyle.stroke} 
+                    strokeWidth={nodeStyle.strokeWidth} 
                     className="cursor-pointer"
                   />
                   
@@ -856,6 +964,43 @@ const EKGSetup: React.FC = () => {
                   >
                     {dmo.name}
                   </text>
+                  
+                  {/* Mapping indicator if this node is mapped */}
+                  {isMapped && (
+                    <circle 
+                      cx={pos.x + 12} 
+                      cy={pos.y - 8} 
+                      r="4" 
+                      fill={dmo.id === 'document' || dmo.id === 'person' ? "#3b82f6" : "#06b6d4"} 
+                      stroke="#fff" 
+                      strokeWidth="1" 
+                    />
+                  )}
+                  
+                  {/* Draw mapping indicator line between mapped nodes if applicable */}
+                  {isMapped && mappedToId && activeTab === 'mapping' && (
+                    (() => {
+                      // Find the position of the mapped node
+                      const mappedNodeId = mappedToId;
+                      const mappedPos = nodePositions[mappedNodeId];
+                      
+                      if (!mappedPos) return null;
+                      
+                      return (
+                        <path
+                          d={`M ${pos.x},${pos.y} 
+                             C ${(pos.x + mappedPos.x) / 2},${pos.y - 40} 
+                               ${(pos.x + mappedPos.x) / 2},${mappedPos.y - 40} 
+                               ${mappedPos.x},${mappedPos.y}`}
+                          fill="none"
+                          stroke="#06b6d4"
+                          strokeWidth="1"
+                          strokeDasharray="4 2"
+                          opacity="0.7"
+                        />
+                      );
+                    })()
+                  )}
                 </g>
               );
             })}
@@ -907,8 +1052,8 @@ const EKGSetup: React.FC = () => {
           </svg>
         </div>
         
-        {/* Simple Legend */}
-        <div className="flex items-center justify-center space-x-8 py-2 bg-gray-50 rounded border">
+        {/* Enhanced Legend with mapping indicators */}
+        <div className="flex items-center justify-center flex-wrap gap-x-8 gap-y-2 py-2 px-4 bg-gray-50 rounded border">
           <div className="flex items-center">
             <div className="h-5 w-5 rounded-full border border-gray-500 bg-white mr-2"></div>
             <span className="text-sm text-gray-600">Node/Entity</span>
@@ -926,6 +1071,32 @@ const EKGSetup: React.FC = () => {
             }}></div>
             <span className="text-sm text-gray-600">Analytics</span>
           </div>
+          
+          {activeTab === 'mapping' && (
+            <>
+              <div className="flex items-center">
+                <div className="h-5 w-5 rounded-full border border-blue-500 bg-blue-50 mr-2 relative">
+                  <div className="absolute top-0 right-0 w-3 h-3 rounded-full bg-blue-500 border border-white" style={{ transform: 'translate(25%, -25%)' }}></div>
+                </div>
+                <span className="text-sm text-gray-600">EKG Entity with Mapping</span>
+              </div>
+              
+              <div className="flex items-center">
+                <div className="h-5 w-5 rounded-full border border-cyan-500 bg-cyan-50 mr-2 relative">
+                  <div className="absolute top-0 right-0 w-3 h-3 rounded-full bg-cyan-500 border border-white" style={{ transform: 'translate(25%, -25%)' }}></div>
+                </div>
+                <span className="text-sm text-gray-600">Source Data with Mapping</span>
+              </div>
+              
+              <div className="flex items-center">
+                <div className="h-px w-8 mr-2" style={{ 
+                  height: '2px', 
+                  background: 'repeating-linear-gradient(to right, #06b6d4 0, #06b6d4 4px, transparent 4px, transparent 2px)' 
+                }}></div>
+                <span className="text-sm text-gray-600">Mapping Connection</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
