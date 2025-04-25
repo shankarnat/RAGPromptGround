@@ -125,6 +125,7 @@ interface EdgeAttribute {
 const EKGSetup: React.FC = () => {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<'dmos' | 'edges' | 'analytics' | 'mapping'>('dmos');
+  const [visualizationView, setVisualizationView] = useState<'visualization' | 'playground'>('visualization');
   const svgRef = useRef<SVGSVGElement>(null);
   
   // Modal state for Source-to-EKG mapping
