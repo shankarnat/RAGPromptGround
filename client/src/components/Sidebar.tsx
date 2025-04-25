@@ -86,14 +86,9 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
           href: "/kg/template" 
         },
         { 
-          name: "DMO Selection", 
+          name: "EKG Data Models", 
           id: "kg-dmo", 
           href: "/kg/dmo" 
-        },
-        { 
-          name: "Source-to-EKG Mapping", 
-          id: "kg-mapping", 
-          href: "/kg/mapping" 
         },
         { 
           name: "Edge Configuration", 
@@ -104,6 +99,11 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
           name: "Analytics Config", 
           id: "kg-analytics", 
           href: "/kg/analytics" 
+        },
+        { 
+          name: "Source-to-EKG Mapping", 
+          id: "kg-mapping", 
+          href: "/kg/mapping" 
         },
         { 
           name: "Visualization", 

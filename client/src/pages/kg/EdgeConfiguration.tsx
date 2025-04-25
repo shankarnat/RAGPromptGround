@@ -536,7 +536,7 @@ const EdgeConfiguration: React.FC = () => {
                               <Label htmlFor="attr-name" className="text-xs mb-1 block">Name</Label>
                               <Input 
                                 id="attr-name"
-                                size="sm"
+                                className="h-8 text-sm"
                                 value={newAttribute.name}
                                 onChange={e => setNewAttribute({...newAttribute, name: e.target.value})}
                                 placeholder="e.g., created_at"

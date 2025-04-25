@@ -108,7 +108,7 @@ const DMOSelection: React.FC = () => {
   };
 
   const handleNext = () => {
-    navigate('/kg/mapping');
+    navigate('/kg/edge');
   };
 
   const handlePrevious = () => {
