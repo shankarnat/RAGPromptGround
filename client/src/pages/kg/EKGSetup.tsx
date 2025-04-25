@@ -58,6 +58,7 @@ import {
   Edit, 
   Check, 
   ChevronDown,
+  Download,
   ChevronUp,
   Database,
   ShoppingCart,
@@ -3690,38 +3691,229 @@ const AnalyticsConfigModal: React.FC = () => {
   // State for visualization/playground view
   const [visualizationView, setVisualizationView] = useState<'visualization' | 'playground'>('visualization');
   
-  // Render the playground view
+  // Sample query results state for demo
+  const [queryResults, setQueryResults] = useState<null | {
+    nodes: { id: string; label: string; type: string }[];
+    edges: { source: string; target: string; label: string; type: string }[];
+    answer: string;
+  }>(null);
+  
+  // Sample queries for suggestions
+  const sampleQueries = [
+    "Show me all Person entities with affinity to Project X",
+    "Find key collaborators of Jane Smith",
+    "What Document entities are connected to Department A?",
+    "Show high-affinity relationships between Persons and Projects",
+    "List all entities with more than 3 connections"
+  ];
+  
+  // Function to simulate executing a query
+  const executeQuery = (query: string) => {
+    console.log("Executing query:", query);
+    
+    // Simulate processing time
+    setTimeout(() => {
+      // Demo result data
+      setQueryResults({
+        nodes: [
+          { id: '1', label: 'Jane Smith', type: 'Person' },
+          { id: '2', label: 'John Doe', type: 'Person' },
+          { id: '3', label: 'Project Alpha', type: 'Project' },
+          { id: '4', label: 'Marketing Dept', type: 'Department' },
+        ],
+        edges: [
+          { source: '1', target: '3', label: 'Manages', type: 'relationship' },
+          { source: '2', target: '3', label: 'WorksOn', type: 'relationship' },
+          { source: '1', target: '2', label: 'Collaborates', type: 'affinity' },
+          { source: '1', target: '4', label: 'BelongsTo', type: 'relationship' },
+        ],
+        answer: "Jane Smith is a Person who manages Project Alpha and collaborates with John Doe. She belongs to the Marketing Department. John Doe works on Project Alpha."
+      });
+    }, 500);
+  };
+  
+  // Render the playground view with enhanced query functionality
   const renderEKGQueryPlayground = () => {
+    // State needs to be lifted up to the component level
+    // since useState won't work inside this render function
+    const queryInputRef = useRef<string>('');
+    
+    // Helper function to update input value
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      queryInputRef.current = e.target.value;
+    };
+    
+    // Helper function to execute query with the current ref value
+    const runQuery = () => {
+      if (queryInputRef.current.trim()) {
+        executeQuery(queryInputRef.current);
+      }
+    };
+    
     return (
-      <div className="border rounded-lg p-4 h-[calc(100vh-250px)] flex flex-col space-y-4">
+      <div className="border rounded-lg p-4 h-[calc(100vh-250px)] flex flex-col space-y-4 overflow-hidden">
         <div className="flex flex-col space-y-2">
-          <h3 className="text-xl font-semibold">Graph Query Playground</h3>
+          <h3 className="text-xl font-semibold">EKG Query Playground</h3>
           <p className="text-sm text-gray-500">
-            Ask natural language questions about your Enterprise Knowledge Graph.
+            Explore your Enterprise Knowledge Graph with natural language queries and visualize entity relationships, affinities, and more.
           </p>
         </div>
         
+        {/* Query input section */}
         <div className="relative">
           <Input 
             placeholder="Ask a question about your EKG (e.g., 'Who are the key collaborators of Jane Smith?')"
             className="pr-12"
+            defaultValue={queryInputRef.current}
+            onChange={handleInputChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && queryInputRef.current.trim()) {
+                runQuery();
+              }
+            }}
           />
           <Button 
             className="absolute right-1 top-1 h-8 px-3 py-1"
             size="sm"
+            onClick={runQuery}
           >
             <Search className="h-4 w-4 mr-1" />
             Query
           </Button>
         </div>
         
-        <div className="flex-1 border rounded-md p-4 bg-gray-50 overflow-auto">
-          <div className="flex items-center justify-center h-full text-center text-gray-500">
-            <div className="flex flex-col items-center">
-              <Search className="h-10 w-10 mb-2 text-gray-400" />
-              <p>Enter a query above to explore your EKG data</p>
+        {/* Sample queries */}
+        <div className="flex flex-wrap gap-2">
+          {sampleQueries.map((query, index) => (
+            <Badge 
+              key={index} 
+              variant="outline" 
+              className="cursor-pointer hover:bg-gray-100"
+              onClick={() => {
+                queryInputRef.current = query;
+                executeQuery(query);
+              }}
+            >
+              {query}
+            </Badge>
+          ))}
+        </div>
+        
+        {/* Results section */}
+        <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
+          {queryResults ? (
+            <>
+              {/* Answer display */}
+              <div className="bg-gray-50 p-3 rounded-md border">
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Answer:</h4>
+                <p className="text-sm">{queryResults.answer}</p>
+              </div>
+              
+              {/* Visualization of results */}
+              <div className="flex-1 border rounded-md overflow-hidden">
+                <div className="h-full flex flex-col">
+                  <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
+                    <h4 className="text-sm font-medium">Graph Visualization</h4>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-3 w-3 mr-1" />
+                        Export
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Graph visualization */}
+                  <div className="flex-1 p-4 flex items-center justify-center bg-gray-50">
+                    <svg width="100%" height="100%" viewBox="0 0 500 300">
+                      {/* Draw nodes */}
+                      {queryResults.nodes.map((node, i) => {
+                        const x = 100 + (i % 2) * 300;
+                        const y = 80 + Math.floor(i / 2) * 140;
+                        return (
+                          <g key={node.id}>
+                            <circle 
+                              cx={x} 
+                              cy={y} 
+                              r={30} 
+                              fill={node.type === 'Person' ? '#e2f0ff' : node.type === 'Project' ? '#e2ffe2' : '#ffe2e2'} 
+                              stroke={node.type === 'Person' ? '#90b8e0' : node.type === 'Project' ? '#90e090' : '#e09090'} 
+                              strokeWidth="2"
+                            />
+                            <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="12" fontWeight="500">
+                              {node.label.length > 12 ? node.label.substring(0, 10) + '...' : node.label}
+                            </text>
+                            <text x={x} y={y+35} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#666">
+                              {node.type}
+                            </text>
+                          </g>
+                        );
+                      })}
+                      
+                      {/* Draw edges */}
+                      {queryResults.edges.map((edge, i) => {
+                        const sourceIndex = queryResults.nodes.findIndex(n => n.id === edge.source);
+                        const targetIndex = queryResults.nodes.findIndex(n => n.id === edge.target);
+                        
+                        if (sourceIndex < 0 || targetIndex < 0) return null;
+                        
+                        const sourceX = 100 + (sourceIndex % 2) * 300;
+                        const sourceY = 80 + Math.floor(sourceIndex / 2) * 140;
+                        const targetX = 100 + (targetIndex % 2) * 300;
+                        const targetY = 80 + Math.floor(targetIndex / 2) * 140;
+                        
+                        // Calculate midpoint for label
+                        const midX = (sourceX + targetX) / 2;
+                        const midY = (sourceY + targetY) / 2;
+                        
+                        // Add a slight curve for visibility
+                        const curveOffset = 20 * (i % 2 ? 1 : -1);
+                        const controlX = midX;
+                        const controlY = midY + curveOffset;
+                        
+                        return (
+                          <g key={`edge-${i}`}>
+                            <path 
+                              d={`M ${sourceX} ${sourceY} Q ${controlX} ${controlY} ${targetX} ${targetY}`}
+                              fill="none"
+                              stroke={edge.type === 'affinity' ? '#8866dd' : '#666'}
+                              strokeWidth="2"
+                              strokeDasharray={edge.type === 'affinity' ? "5,5" : "none"}
+                              markerEnd="url(#arrowhead)"
+                            />
+                            <rect x={midX-30} y={midY-10} width="60" height="20" rx="10" fill="white" opacity="0.8" />
+                            <text x={midX} y={midY} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="500">
+                              {edge.label}
+                            </text>
+                          </g>
+                        );
+                      })}
+                      
+                      {/* Define arrow marker for directed edges */}
+                      <defs>
+                        <marker 
+                          id="arrowhead" 
+                          markerWidth="6" 
+                          markerHeight="4" 
+                          refX="6" 
+                          refY="2"
+                          orient="auto"
+                        >
+                          <polygon points="0 0, 6 2, 0 4" fill="#666" />
+                        </marker>
+                      </defs>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 border rounded-md p-4 bg-gray-50 flex items-center justify-center">
+              <div className="flex flex-col items-center text-center">
+                <Search className="h-10 w-10 mb-2 text-gray-400" />
+                <p className="text-gray-500">Enter a query above or select one of the sample queries to explore your EKG data</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     );
