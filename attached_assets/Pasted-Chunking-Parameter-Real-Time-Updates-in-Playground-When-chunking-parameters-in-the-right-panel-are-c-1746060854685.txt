@@ -1,0 +1,54 @@
+Chunking Parameter Real-Time Updates in Playground
+When chunking parameters in the right panel are changed, the following updates occur in the playground in real-time:
+
+Visual Updates
+Dynamic Rechunking
+
+Document chunks are immediately recalculated and redrawn
+Animated transitions show chunks merging or splitting
+Color-coded highlighting indicates new chunk boundaries
+Chunk Statistics Update
+
+Total chunk count updates in real-time
+Average chunk size (tokens/characters) recalculates
+Token usage metrics refresh to show efficiency
+Chunk Preview Rendering
+
+Each chunk is visually represented with clear separation
+Overlap regions are highlighted with a distinct pattern/color
+Chunk IDs and sequence numbers adjust accordingly
+Parameter-Specific Effects
+When Chunk Size is Changed
+Larger values: Fewer, longer chunks appear with expanded content
+Smaller values: More numerous, shorter chunks with focused content
+Visual ruler shows approximate token/character count within each chunk
+When Chunk Overlap is Modified
+Increased overlap: Highlighted overlap regions expand between chunks
+Decreased overlap: Less duplication between adjacent chunks
+Overlap visualization shows shared tokens in a distinct color
+When Chunking Method is Switched
+Semantic → Fixed: Transitions from meaning-based to uniform-sized chunks
+Fixed → Header: Reorganizes around document headings with clear section markers
+Header → Semantic: Adapts to content meaning with natural language groupings
+User Interface Feedback
+Performance Indicators
+
+Processing time indicator shows chunking efficiency
+Memory usage estimates update based on chunk configuration
+Warning indicators appear if parameters create too many/few chunks
+Quality Assessment
+
+Semantic coherence score updates for each chunk
+Context preservation visualization shows information retention
+Retrieval effectiveness prediction based on chunk parameters
+Interactive Elements
+
+Hover over any chunk to see its metadata (token count, overlap percentage)
+Click on chunk boundaries to manually adjust split points (with override indicator)
+Drag interface to temporarily merge chunks for context viewing
+Technical Behavior
+Changes are processed with debouncing (200-300ms) to prevent excessive recalculation
+Progressive rendering for large documents (chunks appear as they're processed)
+Cached results for recent parameter combinations to reduce processing time
+Local browser processing for immediate feedback before server confirmation
+This real-time visualization helps users fine-tune their chunking strategy by immediately showing the impact of parameter changes on document segmentation, balancing between semantic coherence and retrieval efficiency.

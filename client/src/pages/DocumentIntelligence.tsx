@@ -101,6 +101,9 @@ const DocumentIntelligence: FC = () => {
                 chunks={state.chunks} 
                 selectedChunk={state.selectedChunk} 
                 onChunkSelect={selectChunk} 
+                chunkingMethod={state.chunkingMethod}
+                chunkSize={state.chunkSize}
+                chunkOverlap={state.chunkOverlap}
               />
             </div>
             {configPanel}
@@ -145,7 +148,10 @@ const DocumentIntelligence: FC = () => {
                 <ChunksPanel 
                   chunks={state.chunks} 
                   selectedChunk={state.selectedChunk} 
-                  onChunkSelect={selectChunk} 
+                  onChunkSelect={selectChunk}
+                  chunkingMethod={state.chunkingMethod}
+                  chunkSize={state.chunkSize}
+                  chunkOverlap={state.chunkOverlap}
                 />
               </div>
             </div>
