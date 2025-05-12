@@ -54,6 +54,11 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
       href: "#",
       subnav: [
         { 
+          name: "Workflow Overview",
+          id: "search-flow",
+          href: "/search-flow"
+        },
+        { 
           name: "Document Ingestion", 
           id: "upload", 
           href: "/upload" 
@@ -104,7 +109,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   ];
 
   const handleNavigation = (path: string, id: string) => {
-    if (id === "upload" || id === "parse-chunk" || id.startsWith("kg-")) {
+    if (id === "upload" || id === "parse-chunk" || id === "search-flow" || id.startsWith("kg-")) {
       navigate(path);
     }
   };
