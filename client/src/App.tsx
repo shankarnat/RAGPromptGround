@@ -9,7 +9,6 @@ import DocumentUpload from "@/pages/DocumentUpload";
 import ConfigureIndex from "@/pages/ConfigureIndex";
 import Vectorization from "@/pages/Vectorization";
 import TestAndResults from "@/pages/TestAndResults";
-import SearchFlowOverview from "@/pages/SearchFlowOverview";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 
 // Knowledge Graph pages
@@ -44,7 +43,6 @@ function Router() {
       <Route path="/vectorization" component={Vectorization} />
       <Route path="/test" component={TestAndResults} />
       <Route path="/deploy" component={TestAndResults} />
-      <Route path="/search-flow" component={SearchFlowOverview} />
       
       {/* Knowledge Graph routes */}
       <Route path="/kg/template" component={TemplateSelection} />
