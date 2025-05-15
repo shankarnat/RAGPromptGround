@@ -11,7 +11,7 @@ import ConfigureIndex from "@/pages/ConfigureIndex";
 import Vectorization from "@/pages/Vectorization";
 import TestAndResults from "@/pages/TestAndResults";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
-import WelcomeModal from "@/components/WelcomeModal";
+import WelcomeSlideout from "@/components/WelcomeSlideout";
 
 // Knowledge Graph pages
 import TemplateSelection from "@/pages/kg/TemplateSelection";
@@ -62,21 +62,26 @@ function Router() {
 }
 
 function App() {
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showWelcomePanel, setShowWelcomePanel] = useState(false);
 
-  // Show welcome modal on app launch
+  // Show welcome panel on app launch
   useEffect(() => {
-    // Check if user has dismissed the modal before
+    // Check if user has dismissed the panel before
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
     if (!hasSeenWelcome) {
-      setShowWelcomeModal(true);
+      setShowWelcomePanel(true);
     }
   }, []);
 
-  const handleCloseWelcomeModal = () => {
-    setShowWelcomeModal(false);
-    // Save to localStorage so it doesn't show on every visit
+  const handleCloseWelcomePanel = () => {
+    setShowWelcomePanel(false);
+    // Save to localStorage so the expanded panel doesn't show on every visit
+    // But the toggle button will always be available
     localStorage.setItem('hasSeenWelcome', 'true');
+  };
+
+  const handleToggleWelcomePanel = () => {
+    setShowWelcomePanel(!showWelcomePanel);
   };
 
   return (
@@ -84,9 +89,10 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
-        <WelcomeModal 
-          isOpen={showWelcomeModal} 
-          onClose={handleCloseWelcomeModal} 
+        <WelcomeSlideout 
+          isOpen={showWelcomePanel} 
+          onClose={handleCloseWelcomePanel}
+          onToggle={handleToggleWelcomePanel}
         />
       </TooltipProvider>
     </QueryClientProvider>
