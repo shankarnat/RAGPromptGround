@@ -15,7 +15,7 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
   // Feature cards for the different playground options
   const features = [
     {
-      title: "Document Intelligence",
+      title: "Search Index",
       badge: "Search Index",
       description: "Transform unstructured documents into searchable, intelligent indexes with advanced parsing and chunking capabilities.",
       path: "/upload",
@@ -69,7 +69,7 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
           {/* Header */}
           <div className="flex-none p-4 border-b border-gray-200 bg-white">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-primary">Welcome to Document Intelligence Platform</h2>
+              <h2 className="text-2xl font-bold text-primary">Welcome to Search Index Platform</h2>
               <Button variant="ghost" className="h-8 w-8 p-0" onClick={onToggle}>
                 <X className="h-5 w-5" />
               </Button>
