@@ -96,7 +96,9 @@ export function useDocumentProcessing() {
     recentDocuments: recentDocuments,
     selectedDocument: null,
     dataModels: dataModels,
-    selectedDataModel: null
+    selectedDataModel: null,
+    // Example document switching
+    currentExample: "financialReport"
   });
 
   const updateChunkingMethod = (method: ChunkingMethod) => {
@@ -440,6 +442,51 @@ export function useDocumentProcessing() {
     }));
   };
 
+  // Example document switching
+  const switchDocumentExample = (example: DocumentExample) => {
+    // Don't do anything if we're already on the selected example
+    if (state.currentExample === example) {
+      return;
+    }
+    
+    // Prepare the data for the selected example
+    let newDocument;
+    let newChunks;
+    let newMetadataFields;
+    let newChunkingMethod: ChunkingMethod = "semantic";
+    
+    switch (example) {
+      case "financialCsv":
+        newDocument = financialCsvDocument;
+        newChunks = financialCsvChunks;
+        newMetadataFields = financialCsvMetadataFields;
+        // For CSV data, we're simulating column-based chunking
+        newChunkingMethod = "fixed";
+        break;
+      case "financialReport":
+      default:
+        newDocument = sampleDocument;
+        newChunks = sampleChunks;
+        newMetadataFields = sampleMetadataFields;
+        newChunkingMethod = "semantic";
+        break;
+    }
+    
+    // Update the state with the new example data
+    setState(prev => ({
+      ...prev,
+      document: newDocument,
+      chunks: newChunks,
+      metadataFields: newMetadataFields,
+      currentExample: example,
+      // Reset some settings to be appropriate for the document type
+      chunkingMethod: newChunkingMethod,
+      selectedChunk: example === "financialCsv" ? 101 : 3, // First chunk ID for each example
+      recordLevelIndexingEnabled: example === "financialCsv", // Enable record indexing for CSV by default
+      recordStructure: example === "financialCsv" ? "flat" : "flat"
+    }));
+  };
+
   return {
     state,
     updateChunkingMethod,
@@ -457,6 +504,8 @@ export function useDocumentProcessing() {
     // Vectorization methods
     selectEmbeddingModel,
     updateEmbeddingOptions,
+    // Example switching
+    switchDocumentExample,
     // Upload view methods
     setActivePage,
     selectDocument,

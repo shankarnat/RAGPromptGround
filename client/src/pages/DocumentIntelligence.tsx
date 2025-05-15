@@ -9,6 +9,7 @@ import DocumentRecordPanel from "@/components/DocumentRecordPanel";
 import TestQueryInterface from "@/components/TestQueryInterface";
 import NavigationButtons from "@/components/NavigationButtons";
 import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
+import DocumentExampleSwitcher from "@/components/DocumentExampleSwitcher";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,7 +29,9 @@ const DocumentIntelligence: FC = () => {
     addCustomMetadataField,
     // Vectorization methods
     selectEmbeddingModel,
-    updateEmbeddingOptions
+    updateEmbeddingOptions,
+    // Example switching
+    switchDocumentExample
   } = useDocumentProcessing();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -174,6 +177,11 @@ const DocumentIntelligence: FC = () => {
         />
         
         <main className="flex-1 overflow-auto p-6 bg-gray-50">
+          <DocumentExampleSwitcher
+            currentExample={state.currentExample}
+            onExampleChange={switchDocumentExample}
+          />
+          
           <TabNavigation 
             activeTab={state.activeTab} 
             onTabChange={updateActiveTab} 
