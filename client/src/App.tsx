@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useState, useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import DocumentIntelligence from "@/pages/DocumentIntelligence";
 import DocumentUpload from "@/pages/DocumentUpload";
@@ -10,6 +11,7 @@ import ConfigureIndex from "@/pages/ConfigureIndex";
 import Vectorization from "@/pages/Vectorization";
 import TestAndResults from "@/pages/TestAndResults";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
+import WelcomeModal from "@/components/WelcomeModal";
 
 // Knowledge Graph pages
 import TemplateSelection from "@/pages/kg/TemplateSelection";
@@ -60,11 +62,32 @@ function Router() {
 }
 
 function App() {
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  // Show welcome modal on app launch
+  useEffect(() => {
+    // Check if user has dismissed the modal before
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    if (!hasSeenWelcome) {
+      setShowWelcomeModal(true);
+    }
+  }, []);
+
+  const handleCloseWelcomeModal = () => {
+    setShowWelcomeModal(false);
+    // Save to localStorage so it doesn't show on every visit
+    localStorage.setItem('hasSeenWelcome', 'true');
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Router />
+        <WelcomeModal 
+          isOpen={showWelcomeModal} 
+          onClose={handleCloseWelcomeModal} 
+        />
       </TooltipProvider>
     </QueryClientProvider>
   );
