@@ -58,15 +58,20 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
         </div>
       )}
 
-      {/* Main slideout panel */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-full sm:w-[420px] md:w-[750px] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out bg-white shadow-lg overflow-y-auto`}>
+      {/* Overlay background */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30" onClick={onToggle} />
+      )}
+      
+      {/* Main slideout panel - now an overlay that doesn't take the full height */}
+      <div className={`fixed top-1/2 left-1/2 -translate-y-1/2 z-40 max-h-[90vh] w-[95%] max-w-[950px] transform ${isOpen ? 'translate-x-[-50%] opacity-100' : 'translate-x-[-200%] opacity-0'} transition-all duration-300 ease-in-out bg-white shadow-xl rounded-xl overflow-hidden`}>
         <div className="h-full flex flex-col">
           {/* Header */}
-          <div className="flex-none p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+          <div className="flex-none p-4 border-b border-gray-200 bg-white">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-primary">Welcome to Document Intelligence Platform</h2>
               <Button variant="ghost" className="h-8 w-8 p-0" onClick={onToggle}>
-                <ChevronLeft className="h-5 w-5" />
+                <X className="h-5 w-5" />
               </Button>
             </div>
             <p className="text-base text-gray-600 mt-1">
@@ -75,7 +80,7 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
           </div>
 
           {/* Body content */}
-          <div className="flex-grow p-6 overflow-y-auto">
+          <div className="flex-grow p-6 overflow-y-auto max-h-[60vh]">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Unlock the full potential of your content with our intelligent workflows
             </h3>
@@ -109,7 +114,7 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
                   </CardContent>
                   <CardFooter>
                     <Link href={feature.path}>
-                      <Button className="w-full">
+                      <Button className="w-full" onClick={onToggle}>
                         Explore {feature.title}
                       </Button>
                     </Link>
