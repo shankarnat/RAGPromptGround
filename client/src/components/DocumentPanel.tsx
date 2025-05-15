@@ -20,29 +20,35 @@ const DocumentPanel: FC<DocumentPanelProps> = ({ documentContent }) => {
         </div>
       </div>
       <div className="h-[calc(100vh-280px)] overflow-auto p-4 bg-white">
-        <div className="font-mono text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-          {documentContent.split("\n").map((line, index) => {
-            // Apply styling for headings and important content
-            if (line.toUpperCase() === line && line.trim() !== "") {
-              return (
-                <p key={index} className="mb-4">
-                  <span className="font-semibold">{line}</span>
-                </p>
-              );
-            } else if (line.startsWith("•")) {
-              return <p key={index} className="mb-1">{line}</p>;
-            } else if (line.includes(":")) {
-              const [label, value] = line.split(":");
-              return (
-                <p key={index} className="mb-1">
-                  <span className={line.includes("Submitted") ? "text-gray-500" : ""}>{line}</span>
-                </p>
-              );
-            } else {
-              return line.trim() === "" ? <br key={index} /> : <p key={index} className="mb-4">{line}</p>;
-            }
-          })}
-        </div>
+        {documentContent.startsWith('<table') ? (
+          // Handle HTML content (CSV table)
+          <div dangerouslySetInnerHTML={{ __html: documentContent }} />
+        ) : (
+          // Handle regular text content (Financial report)
+          <div className="font-mono text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+            {documentContent.split("\n").map((line, index) => {
+              // Apply styling for headings and important content
+              if (line.toUpperCase() === line && line.trim() !== "") {
+                return (
+                  <p key={index} className="mb-4">
+                    <span className="font-semibold">{line}</span>
+                  </p>
+                );
+              } else if (line.startsWith("•")) {
+                return <p key={index} className="mb-1">{line}</p>;
+              } else if (line.includes(":")) {
+                const [label, value] = line.split(":");
+                return (
+                  <p key={index} className="mb-1">
+                    <span className={line.includes("Submitted") ? "text-gray-500" : ""}>{line}</span>
+                  </p>
+                );
+              } else {
+                return line.trim() === "" ? <br key={index} /> : <p key={index} className="mb-4">{line}</p>;
+              }
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

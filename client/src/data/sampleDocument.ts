@@ -1,30 +1,147 @@
 import { MetadataField } from "@shared/schema";
 
-// Financial CSV data example
+// Financial CSV data example - formatted as a table
 export const financialCsvDocument = {
   title: "Financial Transactions 2024 (CSV)",
   pageCount: 1,
-  content: `Transaction_ID,Date,Customer_ID,Product_ID,Category,Amount,Payment_Method,Status,Location,Notes
-TX10045678,2024-01-15,CUST8821,PROD334,Electronics,1299.99,Credit Card,Completed,New York,"High-end laptop purchase"
-TX10045679,2024-01-15,CUST4532,PROD112,Clothing,78.50,Debit Card,Completed,Chicago,"Winter sale items"
-TX10045680,2024-01-16,CUST9012,PROD445,Home Goods,249.95,PayPal,Completed,San Francisco,"Kitchen appliance"
-TX10045681,2024-01-16,CUST2345,PROD223,Electronics,899.00,Credit Card,Completed,Los Angeles,"Smartphone purchase"
-TX10045682,2024-01-17,CUST7865,PROD556,Furniture,1845.75,Financing,Processing,Dallas,"Living room set"
-TX10045683,2024-01-17,CUST3421,PROD667,Clothing,125.40,Gift Card,Completed,Miami,"Birthday present purchase"
-TX10045684,2024-01-18,CUST5678,PROD778,Electronics,599.99,Credit Card,Completed,Seattle,"Gaming console"
-TX10045685,2024-01-18,CUST8976,PROD889,Grocery,156.78,Debit Card,Completed,Boston,"Weekly groceries"
-TX10045686,2024-01-19,CUST2468,PROD990,Home Goods,89.95,PayPal,Completed,Phoenix,"Home decor items"
-TX10045687,2024-01-19,CUST1357,PROD112,Clothing,245.00,Credit Card,Refunded,Denver,"Return due to sizing issue"
-TX10045688,2024-01-20,CUST9753,PROD334,Electronics,1799.99,Financing,Completed,Atlanta,"Premium TV purchase"
-TX10045689,2024-01-20,CUST4681,PROD445,Home Goods,59.99,Debit Card,Completed,Portland,"Kitchen utensils"
-TX10045690,2024-01-21,CUST3579,PROD223,Electronics,349.95,Credit Card,Completed,Houston,"Wireless headphones"
-TX10045691,2024-01-21,CUST8024,PROD556,Furniture,499.00,Credit Card,Completed,Minneapolis,"Office chair"
-TX10045692,2024-01-22,CUST1598,PROD667,Clothing,189.50,Gift Card,Completed,Philadelphia,"Premium jeans"
-TX10045693,2024-01-22,CUST7531,PROD778,Electronics,2499.99,Financing,Processing,San Diego,"Home theater system"
-TX10045694,2024-01-23,CUST4826,PROD889,Grocery,78.45,Debit Card,Completed,Detroit,"Organic produce"
-TX10045695,2024-01-23,CUST9517,PROD990,Home Goods,129.99,PayPal,Completed,Austin,"Smart home device"
-TX10045696,2024-01-24,CUST6284,PROD112,Clothing,67.50,Credit Card,Completed,Nashville,"Casual wear"
-TX10045697,2024-01-24,CUST7103,PROD334,Electronics,129.99,Debit Card,Completed,Las Vegas,"Wireless earbuds"`
+  content: `<table class="w-full border-collapse">
+  <thead class="bg-slate-100">
+    <tr>
+      <th class="border border-slate-300 p-2 text-left">Transaction_ID</th>
+      <th class="border border-slate-300 p-2 text-left">Date</th>
+      <th class="border border-slate-300 p-2 text-left">Customer_ID</th>
+      <th class="border border-slate-300 p-2 text-left">Product_ID</th>
+      <th class="border border-slate-300 p-2 text-left">Category</th>
+      <th class="border border-slate-300 p-2 text-left">Amount</th>
+      <th class="border border-slate-300 p-2 text-left">Payment_Method</th>
+      <th class="border border-slate-300 p-2 text-left">Status</th>
+      <th class="border border-slate-300 p-2 text-left">Location</th>
+      <th class="border border-slate-300 p-2 text-left">Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045678</td>
+      <td class="border border-slate-300 p-2">2024-01-15</td>
+      <td class="border border-slate-300 p-2">CUST8821</td>
+      <td class="border border-slate-300 p-2">PROD334</td>
+      <td class="border border-slate-300 p-2">Electronics</td>
+      <td class="border border-slate-300 p-2">1299.99</td>
+      <td class="border border-slate-300 p-2">Credit Card</td>
+      <td class="border border-slate-300 p-2">Completed</td>
+      <td class="border border-slate-300 p-2">New York</td>
+      <td class="border border-slate-300 p-2">High-end laptop purchase</td>
+    </tr>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045679</td>
+      <td class="border border-slate-300 p-2">2024-01-15</td>
+      <td class="border border-slate-300 p-2">CUST4532</td>
+      <td class="border border-slate-300 p-2">PROD112</td>
+      <td class="border border-slate-300 p-2">Clothing</td>
+      <td class="border border-slate-300 p-2">78.50</td>
+      <td class="border border-slate-300 p-2">Debit Card</td>
+      <td class="border border-slate-300 p-2">Completed</td>
+      <td class="border border-slate-300 p-2">Chicago</td>
+      <td class="border border-slate-300 p-2">Winter sale items</td>
+    </tr>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045680</td>
+      <td class="border border-slate-300 p-2">2024-01-16</td>
+      <td class="border border-slate-300 p-2">CUST9012</td>
+      <td class="border border-slate-300 p-2">PROD445</td>
+      <td class="border border-slate-300 p-2">Home Goods</td>
+      <td class="border border-slate-300 p-2">249.95</td>
+      <td class="border border-slate-300 p-2">PayPal</td>
+      <td class="border border-slate-300 p-2">Completed</td>
+      <td class="border border-slate-300 p-2">San Francisco</td>
+      <td class="border border-slate-300 p-2">Kitchen appliance</td>
+    </tr>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045681</td>
+      <td class="border border-slate-300 p-2">2024-01-16</td>
+      <td class="border border-slate-300 p-2">CUST2345</td>
+      <td class="border border-slate-300 p-2">PROD223</td>
+      <td class="border border-slate-300 p-2">Electronics</td>
+      <td class="border border-slate-300 p-2">899.00</td>
+      <td class="border border-slate-300 p-2">Credit Card</td>
+      <td class="border border-slate-300 p-2">Completed</td>
+      <td class="border border-slate-300 p-2">Los Angeles</td>
+      <td class="border border-slate-300 p-2">Smartphone purchase</td>
+    </tr>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045682</td>
+      <td class="border border-slate-300 p-2">2024-01-17</td>
+      <td class="border border-slate-300 p-2">CUST7865</td>
+      <td class="border border-slate-300 p-2">PROD556</td>
+      <td class="border border-slate-300 p-2">Furniture</td>
+      <td class="border border-slate-300 p-2">1845.75</td>
+      <td class="border border-slate-300 p-2">Financing</td>
+      <td class="border border-slate-300 p-2">Processing</td>
+      <td class="border border-slate-300 p-2">Dallas</td>
+      <td class="border border-slate-300 p-2">Living room set</td>
+    </tr>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045683</td>
+      <td class="border border-slate-300 p-2">2024-01-17</td>
+      <td class="border border-slate-300 p-2">CUST3421</td>
+      <td class="border border-slate-300 p-2">PROD667</td>
+      <td class="border border-slate-300 p-2">Clothing</td>
+      <td class="border border-slate-300 p-2">125.40</td>
+      <td class="border border-slate-300 p-2">Gift Card</td>
+      <td class="border border-slate-300 p-2">Completed</td>
+      <td class="border border-slate-300 p-2">Miami</td>
+      <td class="border border-slate-300 p-2">Birthday present purchase</td>
+    </tr>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045684</td>
+      <td class="border border-slate-300 p-2">2024-01-18</td>
+      <td class="border border-slate-300 p-2">CUST5678</td>
+      <td class="border border-slate-300 p-2">PROD778</td>
+      <td class="border border-slate-300 p-2">Electronics</td>
+      <td class="border border-slate-300 p-2">599.99</td>
+      <td class="border border-slate-300 p-2">Credit Card</td>
+      <td class="border border-slate-300 p-2">Completed</td>
+      <td class="border border-slate-300 p-2">Seattle</td>
+      <td class="border border-slate-300 p-2">Gaming console</td>
+    </tr>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045685</td>
+      <td class="border border-slate-300 p-2">2024-01-18</td>
+      <td class="border border-slate-300 p-2">CUST8976</td>
+      <td class="border border-slate-300 p-2">PROD889</td>
+      <td class="border border-slate-300 p-2">Grocery</td>
+      <td class="border border-slate-300 p-2">156.78</td>
+      <td class="border border-slate-300 p-2">Debit Card</td>
+      <td class="border border-slate-300 p-2">Completed</td>
+      <td class="border border-slate-300 p-2">Boston</td>
+      <td class="border border-slate-300 p-2">Weekly groceries</td>
+    </tr>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045686</td>
+      <td class="border border-slate-300 p-2">2024-01-19</td>
+      <td class="border border-slate-300 p-2">CUST2468</td>
+      <td class="border border-slate-300 p-2">PROD990</td>
+      <td class="border border-slate-300 p-2">Home Goods</td>
+      <td class="border border-slate-300 p-2">89.95</td>
+      <td class="border border-slate-300 p-2">PayPal</td>
+      <td class="border border-slate-300 p-2">Completed</td>
+      <td class="border border-slate-300 p-2">Phoenix</td>
+      <td class="border border-slate-300 p-2">Home decor items</td>
+    </tr>
+    <tr>
+      <td class="border border-slate-300 p-2">TX10045687</td>
+      <td class="border border-slate-300 p-2">2024-01-19</td>
+      <td class="border border-slate-300 p-2">CUST1357</td>
+      <td class="border border-slate-300 p-2">PROD112</td>
+      <td class="border border-slate-300 p-2">Clothing</td>
+      <td class="border border-slate-300 p-2">245.00</td>
+      <td class="border border-slate-300 p-2">Credit Card</td>
+      <td class="border border-slate-300 p-2">Refunded</td>
+      <td class="border border-slate-300 p-2">Denver</td>
+      <td class="border border-slate-300 p-2">Return due to sizing issue</td>
+    </tr>
+  </tbody>
+</table>`
 };
 
 // Financial report example (original)
@@ -80,97 +197,241 @@ We maintain our positive outlook for fiscal year 2025, with projected revenue gr
 The strong Q4 2024 results provide momentum as we enter the new fiscal year. Our focus on innovation, operational excellence, and strategic expansion positions us well for continued growth despite macroeconomic uncertainties.`
 };
 
-// Financial CSV data chunks - each column becomes a separate chunk
+// Financial CSV data chunks - for each row, text field becomes a separate chunk
 export const financialCsvChunks = [
+  // Row 1 - Text field chunks
   {
     id: 101,
     documentId: 2,
-    title: "Transaction_ID Column",
-    content: `Transaction_ID\nTX10045678\nTX10045679\nTX10045680\nTX10045681\nTX10045682\nTX10045683\nTX10045684\nTX10045685\nTX10045686\nTX10045687\nTX10045688\nTX10045689\nTX10045690\nTX10045691\nTX10045692\nTX10045693\nTX10045694\nTX10045695\nTX10045696\nTX10045697`,
-    tokenCount: 25,
+    title: "Row 1: Category",
+    content: "Electronics",
+    tokenCount: 1,
     chunkIndex: 1,
-    tags: ["csv", "transaction", "id", "column"]
+    tags: ["row-1", "category", "electronics"]
   },
   {
     id: 102,
     documentId: 2,
-    title: "Date Column",
-    content: `Date\n2024-01-15\n2024-01-15\n2024-01-16\n2024-01-16\n2024-01-17\n2024-01-17\n2024-01-18\n2024-01-18\n2024-01-19\n2024-01-19\n2024-01-20\n2024-01-20\n2024-01-21\n2024-01-21\n2024-01-22\n2024-01-22\n2024-01-23\n2024-01-23\n2024-01-24\n2024-01-24`,
-    tokenCount: 22,
+    title: "Row 1: Payment Method",
+    content: "Credit Card",
+    tokenCount: 2,
     chunkIndex: 2,
-    tags: ["csv", "date", "column", "time"]
+    tags: ["row-1", "payment", "credit-card"]
   },
   {
     id: 103,
     documentId: 2,
-    title: "Customer_ID Column",
-    content: `Customer_ID\nCUST8821\nCUST4532\nCUST9012\nCUST2345\nCUST7865\nCUST3421\nCUST5678\nCUST8976\nCUST2468\nCUST1357\nCUST9753\nCUST4681\nCUST3579\nCUST8024\nCUST1598\nCUST7531\nCUST4826\nCUST9517\nCUST6284\nCUST7103`,
-    tokenCount: 25,
+    title: "Row 1: Status",
+    content: "Completed",
+    tokenCount: 1,
     chunkIndex: 3,
-    tags: ["csv", "customer", "id", "column"]
+    tags: ["row-1", "status", "completed"]
   },
   {
     id: 104,
     documentId: 2,
-    title: "Product_ID Column",
-    content: `Product_ID\nPROD334\nPROD112\nPROD445\nPROD223\nPROD556\nPROD667\nPROD778\nPROD889\nPROD990\nPROD112\nPROD334\nPROD445\nPROD223\nPROD556\nPROD667\nPROD778\nPROD889\nPROD990\nPROD112\nPROD334`,
-    tokenCount: 25,
+    title: "Row 1: Location",
+    content: "New York",
+    tokenCount: 2, 
     chunkIndex: 4,
-    tags: ["csv", "product", "id", "column"]
+    tags: ["row-1", "location", "new-york"]
   },
   {
     id: 105,
     documentId: 2,
-    title: "Category Column",
-    content: `Category\nElectronics\nClothing\nHome Goods\nElectronics\nFurniture\nClothing\nElectronics\nGrocery\nHome Goods\nClothing\nElectronics\nHome Goods\nElectronics\nFurniture\nClothing\nElectronics\nGrocery\nHome Goods\nClothing\nElectronics`,
-    tokenCount: 30,
+    title: "Row 1: Notes",
+    content: "High-end laptop purchase",
+    tokenCount: 4,
     chunkIndex: 5,
-    tags: ["csv", "category", "product type", "column"]
+    tags: ["row-1", "notes", "purchase", "electronics"]
   },
+  
+  // Row 2 - Text field chunks
   {
     id: 106,
     documentId: 2,
-    title: "Amount Column",
-    content: `Amount\n1299.99\n78.50\n249.95\n899.00\n1845.75\n125.40\n599.99\n156.78\n89.95\n245.00\n1799.99\n59.99\n349.95\n499.00\n189.50\n2499.99\n78.45\n129.99\n67.50\n129.99`,
-    tokenCount: 28,
+    title: "Row 2: Category",
+    content: "Clothing",
+    tokenCount: 1,
     chunkIndex: 6,
-    tags: ["csv", "amount", "price", "column", "financial"]
+    tags: ["row-2", "category", "clothing"]
   },
   {
     id: 107,
     documentId: 2,
-    title: "Payment_Method Column",
-    content: `Payment_Method\nCredit Card\nDebit Card\nPayPal\nCredit Card\nFinancing\nGift Card\nCredit Card\nDebit Card\nPayPal\nCredit Card\nFinancing\nDebit Card\nCredit Card\nCredit Card\nGift Card\nFinancing\nDebit Card\nPayPal\nCredit Card\nDebit Card`,
-    tokenCount: 32,
+    title: "Row 2: Payment Method",
+    content: "Debit Card",
+    tokenCount: 2,
     chunkIndex: 7,
-    tags: ["csv", "payment", "method", "column"]
+    tags: ["row-2", "payment", "debit-card"]
   },
   {
     id: 108,
     documentId: 2,
-    title: "Status Column",
-    content: `Status\nCompleted\nCompleted\nCompleted\nCompleted\nProcessing\nCompleted\nCompleted\nCompleted\nCompleted\nRefunded\nCompleted\nCompleted\nCompleted\nCompleted\nCompleted\nProcessing\nCompleted\nCompleted\nCompleted\nCompleted`,
-    tokenCount: 24,
+    title: "Row 2: Status",
+    content: "Completed",
+    tokenCount: 1,
     chunkIndex: 8,
-    tags: ["csv", "status", "state", "column"]
+    tags: ["row-2", "status", "completed"]
   },
   {
     id: 109,
     documentId: 2,
-    title: "Location Column",
-    content: `Location\nNew York\nChicago\nSan Francisco\nLos Angeles\nDallas\nMiami\nSeattle\nBoston\nPhoenix\nDenver\nAtlanta\nPortland\nHouston\nMinneapolis\nPhiladelphia\nSan Diego\nDetroit\nAustin\nNashville\nLas Vegas`,
-    tokenCount: 36,
+    title: "Row 2: Location",
+    content: "Chicago",
+    tokenCount: 1,
     chunkIndex: 9,
-    tags: ["csv", "location", "city", "column", "geography"]
+    tags: ["row-2", "location", "chicago"]
   },
   {
     id: 110,
     documentId: 2,
-    title: "Notes Column",
-    content: `Notes\n"High-end laptop purchase"\n"Winter sale items"\n"Kitchen appliance"\n"Smartphone purchase"\n"Living room set"\n"Birthday present purchase"\n"Gaming console"\n"Weekly groceries"\n"Home decor items"\n"Return due to sizing issue"\n"Premium TV purchase"\n"Kitchen utensils"\n"Wireless headphones"\n"Office chair"\n"Premium jeans"\n"Home theater system"\n"Organic produce"\n"Smart home device"\n"Casual wear"\n"Wireless earbuds"`,
-    tokenCount: 62,
+    title: "Row 2: Notes",
+    content: "Winter sale items",
+    tokenCount: 3,
     chunkIndex: 10,
-    tags: ["csv", "notes", "description", "column"]
+    tags: ["row-2", "notes", "sale", "winter"]
+  },
+  
+  // Row 3 - Text field chunks
+  {
+    id: 111,
+    documentId: 2,
+    title: "Row 3: Category",
+    content: "Home Goods",
+    tokenCount: 2,
+    chunkIndex: 11,
+    tags: ["row-3", "category", "home-goods"]
+  },
+  {
+    id: 112,
+    documentId: 2,
+    title: "Row 3: Payment Method",
+    content: "PayPal",
+    tokenCount: 1,
+    chunkIndex: 12,
+    tags: ["row-3", "payment", "paypal"]
+  },
+  {
+    id: 113,
+    documentId: 2,
+    title: "Row 3: Status",
+    content: "Completed",
+    tokenCount: 1,
+    chunkIndex: 13,
+    tags: ["row-3", "status", "completed"]
+  },
+  {
+    id: 114,
+    documentId: 2,
+    title: "Row 3: Location",
+    content: "San Francisco",
+    tokenCount: 2,
+    chunkIndex: 14,
+    tags: ["row-3", "location", "san-francisco"]
+  },
+  {
+    id: 115,
+    documentId: 2,
+    title: "Row 3: Notes",
+    content: "Kitchen appliance",
+    tokenCount: 2,
+    chunkIndex: 15,
+    tags: ["row-3", "notes", "kitchen", "appliance"]
+  },
+  
+  // Row 4 - Text field chunks
+  {
+    id: 116,
+    documentId: 2,
+    title: "Row 4: Category",
+    content: "Electronics",
+    tokenCount: 1,
+    chunkIndex: 16,
+    tags: ["row-4", "category", "electronics"]
+  },
+  {
+    id: 117,
+    documentId: 2,
+    title: "Row 4: Payment Method",
+    content: "Credit Card",
+    tokenCount: 2,
+    chunkIndex: 17,
+    tags: ["row-4", "payment", "credit-card"]
+  },
+  {
+    id: 118,
+    documentId: 2,
+    title: "Row 4: Status",
+    content: "Completed",
+    tokenCount: 1,
+    chunkIndex: 18,
+    tags: ["row-4", "status", "completed"]
+  },
+  {
+    id: 119,
+    documentId: 2,
+    title: "Row 4: Location",
+    content: "Los Angeles",
+    tokenCount: 2,
+    chunkIndex: 19,
+    tags: ["row-4", "location", "los-angeles"]
+  },
+  {
+    id: 120,
+    documentId: 2,
+    title: "Row 4: Notes",
+    content: "Smartphone purchase",
+    tokenCount: 2,
+    chunkIndex: 20,
+    tags: ["row-4", "notes", "smartphone", "purchase"]
+  },
+  
+  // Row 5 - Text field chunks
+  {
+    id: 121,
+    documentId: 2,
+    title: "Row 5: Category",
+    content: "Furniture",
+    tokenCount: 1,
+    chunkIndex: 21,
+    tags: ["row-5", "category", "furniture"]
+  },
+  {
+    id: 122,
+    documentId: 2,
+    title: "Row 5: Payment Method",
+    content: "Financing",
+    tokenCount: 1,
+    chunkIndex: 22,
+    tags: ["row-5", "payment", "financing"]
+  },
+  {
+    id: 123,
+    documentId: 2,
+    title: "Row 5: Status",
+    content: "Processing",
+    tokenCount: 1,
+    chunkIndex: 23,
+    tags: ["row-5", "status", "processing"]
+  },
+  {
+    id: 124,
+    documentId: 2,
+    title: "Row 5: Location",
+    content: "Dallas",
+    tokenCount: 1,
+    chunkIndex: 24,
+    tags: ["row-5", "location", "dallas"]
+  },
+  {
+    id: 125,
+    documentId: 2,
+    title: "Row 5: Notes",
+    content: "Living room set",
+    tokenCount: 3,
+    chunkIndex: 25,
+    tags: ["row-5", "notes", "furniture", "living-room"]
   }
 ];
 

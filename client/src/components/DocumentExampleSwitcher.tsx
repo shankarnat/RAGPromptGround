@@ -55,8 +55,8 @@ const DocumentExampleSwitcher: FC<DocumentExampleSwitcherProps> = ({
             </div>
             <div>
               <p className="font-medium text-gray-700">CSV Structured Data Example</p>
-              <p>A CSV file with financial transaction data where <strong>each column becomes a separate chunk</strong>. 
-              Ideal for seeing how structured data is processed column-by-column.</p>
+              <p>A CSV file with financial transaction data where <strong>each text field in each row becomes a separate chunk</strong>. 
+              This field-level chunking shows how structured data can be processed at its most granular level.</p>
             </div>
           </div>
         )}
