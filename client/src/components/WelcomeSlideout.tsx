@@ -69,12 +69,17 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
           {/* Header */}
           <div className="flex-none p-4 border-b border-gray-200 bg-white">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-primary">Welcome to Document Centre</h2>
+              <div>
+                <h2 className="text-2xl font-bold text-primary">Welcome to Document Centre</h2>
+                <div className="mt-1 text-sm font-medium text-blue-600 bg-blue-50 inline-block px-2 py-0.5 rounded">
+                  Search Index is now Document Centre
+                </div>
+              </div>
               <Button variant="ghost" className="h-8 w-8 p-0" onClick={onToggle}>
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <p className="text-base text-gray-600 mt-1">
+            <p className="text-base text-gray-600 mt-2">
               Discover powerful ways to extract value from your unstructured data with our interactive playgrounds.
             </p>
           </div>
