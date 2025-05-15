@@ -15,7 +15,7 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
   // Feature cards for the different playground options
   const features = [
     {
-      title: "Search Index",
+      title: "Document Intelligence",
       badge: "Search Index",
       description: "Transform unstructured documents into searchable, intelligent indexes with advanced parsing and chunking capabilities.",
       path: "/upload",
@@ -69,7 +69,7 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
           {/* Header */}
           <div className="flex-none p-4 border-b border-gray-200 bg-white">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-primary">Welcome to Search Index Platform</h2>
+              <h2 className="text-2xl font-bold text-primary">Welcome to Document Intelligence Centre</h2>
               <Button variant="ghost" className="h-8 w-8 p-0" onClick={onToggle}>
                 <X className="h-5 w-5" />
               </Button>
@@ -112,9 +112,12 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
                       {feature.description}
                     </CardDescription>
                   </CardContent>
-                  <CardFooter>
-                    <Link href={feature.path}>
-                      <Button className="w-full" onClick={onToggle}>
+                  <CardFooter className="px-4 pb-4">
+                    <Link href={feature.path} className="w-full">
+                      <Button 
+                        className="w-full text-sm py-1.5 overflow-hidden text-ellipsis whitespace-nowrap" 
+                        onClick={onToggle}
+                      >
                         Explore {feature.title}
                       </Button>
                     </Link>
@@ -141,7 +144,7 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
               <div className="text-sm text-gray-500">
                 Start exploring today and transform your data landscape
               </div>
-              <Button onClick={onClose} variant="outline">Continue</Button>
+              <Button onClick={onClose} variant="outline" className="text-sm py-1.5 px-4">Continue</Button>
             </div>
           </div>
         </div>
