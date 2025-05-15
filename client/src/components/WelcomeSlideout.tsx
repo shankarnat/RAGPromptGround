@@ -15,7 +15,7 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
   // Feature cards for the different playground options
   const features = [
     {
-      title: "Document Intelligence",
+      title: "Search Index",
       badge: "Search Index",
       description: "Transform unstructured documents into searchable, intelligent indexes with advanced parsing and chunking capabilities.",
       path: "/upload",
