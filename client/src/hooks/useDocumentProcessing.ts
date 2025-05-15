@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { sampleDocument, sampleChunks, sampleFields, sampleMetadataFields } from "@/data/sampleDocument";
+import { 
+  sampleDocument, 
+  financialCsvDocument,
+  sampleChunks, 
+  financialCsvChunks,
+  sampleFields, 
+  sampleMetadataFields,
+  financialCsvMetadataFields 
+} from "@/data/sampleDocument";
 import { recentDocuments, dataModels } from "@/data/sampleUploadData";
 import { embeddingModels, defaultAdvancedOptions } from "@/data/embeddingModelsData";
 import { 
@@ -11,6 +19,9 @@ import {
   MetadataField,
   RecordStructure 
 } from "@shared/schema";
+
+// Document example type
+export type DocumentExample = "financialReport" | "financialCsv";
 
 export interface DocumentProcessingState {
   document: {
@@ -56,6 +67,8 @@ export interface DocumentProcessingState {
   selectedDocument: UploadedDocument | null;
   dataModels: DataModel[];
   selectedDataModel: DataModel | null;
+  // Example switching
+  currentExample: DocumentExample;
 }
 
 export function useDocumentProcessing() {
