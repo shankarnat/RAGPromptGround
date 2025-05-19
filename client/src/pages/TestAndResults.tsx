@@ -1,7 +1,6 @@
 import { FC } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import Sidebar from "@/components/Sidebar";
 import TestQueryInterface from "@/components/TestQueryInterface";
 import ConfigurationSummaryPanel from "@/components/ConfigurationSummaryPanel";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -21,9 +20,8 @@ const TestAndResults: FC = () => {
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar activePage="deploy" />
-      
-      <div className="flex-1 flex flex-col ml-64">
+      {/* Sidebar removed - full width layout */}
+      <div className="flex-1 flex flex-col">
         <header className="h-16 border-b border-gray-200 bg-blue-700 flex items-center px-6">
           <h1 className="text-xl font-semibold text-white">Review and Test</h1>
         </header>

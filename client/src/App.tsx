@@ -13,6 +13,9 @@ import TestAndResults from "@/pages/TestAndResults";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import WelcomeSlideout from "@/components/WelcomeSlideout";
 import UnifiedDashboard from "@/components/UnifiedDashboard";
+import { DocumentAnalysisProvider } from "@/context/DocumentAnalysisContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import SimpleTest from "@/components/SimpleTest";
 
 // Knowledge Graph pages
 import TemplateSelection from "@/pages/kg/TemplateSelection";
@@ -32,7 +35,13 @@ function Router() {
       <Route path="/">
         <Redirect to="/unified" />
       </Route>
-      <Route path="/unified" component={UnifiedDashboard} />
+      <Route path="/unified">
+        <ErrorBoundary>
+          <DocumentAnalysisProvider>
+            <UnifiedDashboard />
+          </DocumentAnalysisProvider>
+        </ErrorBoundary>
+      </Route>
       <Route path="/upload" component={DocumentUpload} />
       <Route path="/parse-chunk" component={DocumentIntelligence} />
       <Route path="/configure-index">
@@ -88,15 +97,17 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-        <WelcomeSlideout 
-          isOpen={showWelcomePanel} 
-          onClose={handleCloseWelcomePanel}
-          onToggle={handleToggleWelcomePanel}
-        />
-      </TooltipProvider>
+      <DocumentAnalysisProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+          <WelcomeSlideout 
+            isOpen={showWelcomePanel} 
+            onClose={handleCloseWelcomePanel}
+            onToggle={handleToggleWelcomePanel}
+          />
+        </TooltipProvider>
+      </DocumentAnalysisProvider>
     </QueryClientProvider>
   );
 }

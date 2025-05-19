@@ -22,10 +22,21 @@ export function log(message: string, source = "express") {
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true,
+    hmr: { 
+      server,
+      clientPort: 443, // For HTTPS through ngrok
+    },
+    host: true,
+    cors: true,
+    allowedHosts: [
+      ".localhost",
+      ".ngrok.io", 
+      ".ngrok-free.app",
+      "8303-49-207-235-125.ngrok-free.app"
+    ],
   };
 
+  // When creating the Vite server, make sure server options are properly merged
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
@@ -36,7 +47,10 @@ export async function setupVite(app: Express, server: Server) {
         process.exit(1);
       },
     },
-    server: serverOptions,
+    server: {
+      ...viteConfig.server, // Ensure we include the original config
+      ...serverOptions,     // Then override with our options
+    },
     appType: "custom",
   });
 

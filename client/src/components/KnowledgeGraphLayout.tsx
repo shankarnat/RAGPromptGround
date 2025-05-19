@@ -1,7 +1,6 @@
 import React, { ReactNode, useState } from 'react';
 import { ChevronLeft, ChevronRight, HelpCircle, X, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Sidebar from '@/components/Sidebar';
 
 interface KnowledgeGraphLayoutProps {
   title: string;
@@ -26,22 +25,10 @@ const KnowledgeGraphLayout: React.FC<KnowledgeGraphLayoutProps> = ({
 }) => {
   const [isHelpPanelOpen, setIsHelpPanelOpen] = useState(true);
 
-  // Determine active page ID based on currentStep
-  const getActivePageId = () => {
-    switch(currentStep) {
-      case 1: return 'kg-template';
-      case 2: return 'kg-dmo';
-      case 3: return 'kg-playground';
-      case 4: return 'kg-share';
-      default: return 'kg-template';
-    }
-  };
-
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar activePage={getActivePageId()} />
-      
-      <div className="flex-1 flex flex-col ml-64">
+      {/* Sidebar removed - full width layout */}
+      <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div>

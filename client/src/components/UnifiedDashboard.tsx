@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import React, { FC, useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { useLocation } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -7,18 +7,38 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Upload, FileSearch, Network, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Upload, FileSearch, Network, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard, Layers, User, HelpCircle, Phone, LogOut, Brain, Sparkles } from "lucide-react";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+// import Sidebar from "@/components/Sidebar"; // Removed sidebar
 import UploadPanel from "@/components/UploadPanel";
 import DocumentPanel from "@/components/DocumentPanel";
 import ChunksPanel from "@/components/ChunksPanel";
 import DocumentHeader from "@/components/DocumentHeader";
 import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
+import UnifiedResultsEnhanced from "@/components/UnifiedResultsEnhanced";
+import ProcessingPipelineVisualization from "@/components/ProcessingPipelineVisualization";
+import TemplateSystem from "@/components/TemplateSystem";
+import ConversationalUI from "@/components/ConversationalUI";
+import ProgressiveDocumentLoader from "@/components/ProgressiveDocumentLoader";
+import ManualConfigurationPanel from "@/components/ManualConfigurationPanel";
+import IntentBasedProcessingTrigger from "@/services/IntentBasedProcessingTrigger";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import { useToast } from "@/hooks/use-toast";
+import { useDocumentAnalysisContext } from "@/context/DocumentAnalysisContext";
+import { useMultimodalConfig } from "@/hooks/useMultimodalConfig";
+import { useProcessingConfig } from "@/hooks/useProcessingConfig";
 
 type ProcessingType = "rag" | "kg" | "idp";
-type ProcessingStep = "upload" | "configure" | "process" | "results";
+type ProcessingStep = "upload" | "process" | "results";
 
 interface ProcessingConfig {
   rag: {
@@ -26,6 +46,12 @@ interface ProcessingConfig {
     chunking: boolean;
     vectorization: boolean;
     indexing: boolean;
+    multimodal?: {
+      transcription: boolean;
+      ocr: boolean;
+      imageCaption: boolean;
+      visualAnalysis: boolean;
+    };
   };
   kg: {
     enabled: boolean;
@@ -41,35 +67,103 @@ interface ProcessingConfig {
   };
 }
 
+// The ManualConfigurationPanel component is already imported above
+
 const UnifiedDashboard: FC = () => {
+  console.log('UnifiedDashboard: Component initializing');
   const [, navigate] = useLocation();
   const { state, selectDocument, uploadDocument, updateChunkingMethod, updateChunkSize, 
     updateChunkOverlap, updateActiveTab, selectChunk, toggleUnifiedProcessing,
-    updateProcessingStatus, processDocument } = useDocumentProcessing();
+    updateProcessingStatus, processDocument, toggleProcessingType, processWithIntent,
+    clearAllResults } = useDocumentProcessing();
   const { toast } = useToast();
+  const { state: analysisState, analyzeDocument } = useDocumentAnalysisContext();
+  console.log('UnifiedDashboard: analysisState =', analysisState);
   
   const [currentStep, setCurrentStep] = useState<ProcessingStep>("upload");
+  console.log('UnifiedDashboard: currentStep =', currentStep);
+  const [isUpdatingFromAI, setIsUpdatingFromAI] = useState(false);
   const [activeTab, setActiveTab] = useState<ProcessingType>("rag");
-  const [processingConfig, setProcessingConfig] = useState<ProcessingConfig>({
+  const [selectedPreset, setSelectedPreset] = useState<string>("custom");
+  const [documentReady, setDocumentReady] = useState(false);
+  const [basicAnalysis, setBasicAnalysis] = useState<any>(null);
+  const multimodalUpdateRef = useRef<boolean>(false);
+  
+  // Use multimodal config hook for better state management
+  const {
+    config: multimodalConfig,
+    updateConfig: updateMultimodalConfig,
+    toggleOption: toggleMultimodalOption,
+    canUpdate: canUpdateMultimodal
+  } = useMultimodalConfig({
+    transcription: false,
+    ocr: false,
+    imageCaption: false,
+    visualAnalysis: false
+  });
+  
+  // Use reducer for more efficient state updates
+  // Use the processing config hook for granular state management
+  const { 
+    config: processingConfig, 
+    updateOption,
+    updateMultimodal,
+    updateProcessingType,
+    batchUpdate: setProcessingConfig
+  } = useProcessingConfig({
     rag: {
-      enabled: state.unifiedProcessing.ragEnabled,
+      enabled: false,  // Start disabled, wait for AI assistant input
       chunking: true,
       vectorization: true,
       indexing: true,
+      multimodal: multimodalConfig
     },
     kg: {
-      enabled: state.unifiedProcessing.kgEnabled,
+      enabled: false,  // Start disabled, wait for AI assistant input
       entityExtraction: true,
       relationMapping: true,
       graphBuilding: true,
     },
     idp: {
-      enabled: state.unifiedProcessing.idpEnabled,
+      enabled: false,  // Start disabled, wait for AI assistant input
       textExtraction: true,
       classification: false,
       metadata: true,
     },
   });
+
+  // Monitor processingConfig changes
+  useEffect(() => {
+    console.log('processingConfig updated:', processingConfig);
+  }, [processingConfig]);
+  
+  // Track AI-driven RAG enablement
+  const [pendingRagEnable, setPendingRagEnable] = useState(false);
+  
+  // Watch for pending RAG enablement
+  useEffect(() => {
+    if (pendingRagEnable && processingConfig.rag.enabled) {
+      console.log('RAG enabled via AI, ensuring manual config sync');
+      setPendingRagEnable(false);
+      
+      // Force a re-render of the manual configuration panel
+      // by updating another piece of state if needed
+      updateActiveTab(state.activeTab); // Trigger a re-render
+    }
+  }, [pendingRagEnable, processingConfig.rag.enabled, state.activeTab, updateActiveTab]);
+  
+  // Sync multimodal config with processing config
+  useEffect(() => {
+    if (!isUpdatingFromAI && !multimodalUpdateRef.current) {
+      setProcessingConfig(prev => ({
+        ...prev,
+        rag: {
+          ...prev.rag,
+          multimodal: multimodalConfig
+        }
+      }));
+    }
+  }, [multimodalConfig, isUpdatingFromAI]);
 
   const processingTypes = [
     { id: "rag", label: "RAG Search", icon: FileSearch, description: "Vector-based search with retrieval" },
@@ -77,33 +171,687 @@ const UnifiedDashboard: FC = () => {
     { id: "idp", label: "Document Processing", icon: FileText, description: "Advanced document analysis" },
   ];
 
+  const presets = {
+    "custom": {
+      name: "Custom",
+      description: "Configure each option manually",
+      config: {}
+    },
+    "rag-only": {
+      name: "RAG Search Only",
+      description: "Optimized for document search and retrieval",
+      config: {
+        rag: { enabled: true, chunking: true, vectorization: true, indexing: true },
+        kg: { enabled: false, entityExtraction: false, relationMapping: false, graphBuilding: false },
+        idp: { enabled: false, textExtraction: false, classification: false, metadata: false }
+      }
+    },
+    "kg-focus": {
+      name: "Knowledge Graph Focus",
+      description: "Entity and relationship extraction for graph building",
+      config: {
+        rag: { enabled: false, chunking: false, vectorization: false, indexing: false },
+        kg: { enabled: true, entityExtraction: true, relationMapping: true, graphBuilding: true },
+        idp: { enabled: true, textExtraction: true, classification: false, metadata: true }
+      }
+    },
+    "comprehensive": {
+      name: "Comprehensive Analysis",
+      description: "All processing methods for complete document understanding",
+      config: {
+        rag: { enabled: true, chunking: true, vectorization: true, indexing: true },
+        kg: { enabled: true, entityExtraction: true, relationMapping: true, graphBuilding: true },
+        idp: { enabled: true, textExtraction: true, classification: true, metadata: true }
+      }
+    },
+    "quick-extract": {
+      name: "Quick Extract",
+      description: "Fast text extraction and basic metadata",
+      config: {
+        rag: { enabled: false, chunking: false, vectorization: false, indexing: false },
+        kg: { enabled: false, entityExtraction: false, relationMapping: false, graphBuilding: false },
+        idp: { enabled: true, textExtraction: true, classification: false, metadata: true }
+      }
+    }
+  };
+
   const steps: { id: ProcessingStep; label: string; icon: typeof Circle }[] = [
-    { id: "upload", label: "Upload Document", icon: Circle },
-    { id: "configure", label: "Configure Processing", icon: Circle },
-    { id: "process", label: "Process Document", icon: Circle },
+    { id: "upload", label: "Upload & Configure", icon: Circle },
+    { id: "process", label: "Processing", icon: Circle },
     { id: "results", label: "View Results", icon: Circle },
   ];
 
-  const handleProcessingToggle = (type: ProcessingType, enabled: boolean) => {
-    setProcessingConfig(prev => ({
-      ...prev,
-      [type]: { ...prev[type], enabled }
-    }));
-    toggleUnifiedProcessing(type, enabled);
+  // Use callback to prevent re-render of child components
+  const handleProcessingToggle = useCallback((type: ProcessingType, enabled: boolean, forceUpdate: boolean = false) => {
+    console.log(`handleProcessingToggle called: type=${type}, enabled=${enabled}, isUpdatingFromAI=${isUpdatingFromAI}, forceUpdate=${forceUpdate}`);
+    
+    // Skip if we're currently updating from AI, unless force update is specified
+    if (isUpdatingFromAI && !forceUpdate) {
+      console.log('Skipping handleProcessingToggle due to isUpdatingFromAI flag');
+      return;
+    }
+    
+    setProcessingConfig(prev => {
+      const updated = {
+        ...prev,
+        [type]: { ...prev[type], enabled }
+      };
+      console.log(`Updated processingConfig for ${type}:`, updated[type]);
+      return updated;
+    });
+    // Use the new toggleProcessingType method for unified processing
+    const mappedType = type === "rag" ? "standard" : type;
+    if (enabled !== state.unifiedProcessing.selectedProcessingTypes.includes(mappedType)) {
+      toggleProcessingType(mappedType);
+    }
+    
+    // Show toast notification for manual configuration changes
+    if (enabled) {
+      let message = '';
+      let description = '';
+      
+      switch(type) {
+        case 'rag':
+          message = 'RAG Enabled in Manual Configuration';
+          description = 'Document search and retrieval processing has been activated via manual configuration';
+          break;
+        case 'kg':
+          message = 'Knowledge Graph Enabled in Manual Configuration';
+          description = 'Entity extraction and relationship mapping has been activated via manual configuration';
+          break;
+        case 'idp':
+          message = 'Document Processing Enabled in Manual Configuration';
+          description = 'Advanced document analysis has been activated via manual configuration';
+          break;
+      }
+      
+      toast({
+        title: message,
+        description: description,
+      });
+    } else {
+      // Optionally show toast when disabled
+      let message = '';
+      
+      switch(type) {
+        case 'rag':
+          message = 'RAG Disabled in Manual Configuration';
+          break;
+        case 'kg':
+          message = 'Knowledge Graph Disabled in Manual Configuration';
+          break;
+        case 'idp':
+          message = 'Document Processing Disabled in Manual Configuration';
+          break;
+      }
+      
+      toast({
+        title: message,
+        variant: "default",
+      });
+    }
+  }, [isUpdatingFromAI, state.unifiedProcessing.selectedProcessingTypes, toggleProcessingType, toast]);
+
+  // Use callback to prevent re-render of child components
+  const handleOptionToggle = useCallback((type: ProcessingType, option: string, enabled: boolean, skipToast?: boolean) => {
+    // Skip if we're currently updating from AI
+    if (isUpdatingFromAI || multimodalUpdateRef.current) {
+      console.log('handleOptionToggle skipped - AI is updating');
+      return;
+    }
+    
+    if (type === 'rag' && ['transcription', 'ocr', 'imageCaption', 'visualAnalysis'].includes(option)) {
+      // Handle multimodal options using the multimodal config hook
+      toggleMultimodalOption(option as keyof typeof multimodalConfig, enabled, 'user');
+      
+      // Use granular update for multimodal options to prevent full re-render
+      updateMultimodal(option as any, enabled);
+      
+      // Only show toast if not called from AI assistant
+      if (!skipToast) {
+        let message = '';
+        let description = '';
+        
+        switch(option) {
+          case 'transcription':
+            message = enabled ? 'Audio Transcription Enabled' : 'Audio Transcription Disabled';
+            description = enabled ? 
+              'Audio files will be transcribed for search and retrieval' : 
+              'Audio transcription has been disabled';
+            break;
+          case 'ocr':
+            message = enabled ? 'OCR Enabled' : 'OCR Disabled';
+            description = enabled ? 
+              'Text will be extracted from images and scanned documents' : 
+              'OCR processing has been disabled';
+            break;
+          case 'imageCaption':
+            message = enabled ? 'Image Captioning Enabled' : 'Image Captioning Disabled';
+            description = enabled ? 
+              'Images will be analyzed and captioned for better search' : 
+              'Image captioning has been disabled';
+            break;
+          case 'visualAnalysis':
+            message = enabled ? 'Visual Analysis Enabled' : 'Visual Analysis Disabled';
+            description = enabled ? 
+              'Charts and diagrams will be analyzed for content understanding' : 
+              'Visual analysis has been disabled';
+            break;
+        }
+        
+        toast({
+          title: message + ' in Manual Configuration',
+          description: description,
+        });
+      }
+    } else {
+      // Use granular update for other configuration options
+      updateOption(type, option, enabled);
+    }
+  }, [isUpdatingFromAI, updateMultimodal, updateOption, toggleMultimodalOption, toast]);
+
+  const handlePresetSelect = (presetId: string) => {
+    setSelectedPreset(presetId);
+    if (presetId !== "custom" && presetId in presets) {
+      const preset = presets[presetId as keyof typeof presets];
+      if (preset.config && Object.keys(preset.config).length > 0) {
+        setProcessingConfig(preset.config as ProcessingConfig);
+        
+        // Update unified processing state
+        Object.entries(preset.config).forEach(([type, config]: [string, any]) => {
+          if (config && 'enabled' in config) {
+            toggleUnifiedProcessing(type as ProcessingType, config.enabled);
+          }
+        });
+      }
+    }
   };
 
-  const handleOptionToggle = (type: ProcessingType, option: string, enabled: boolean) => {
-    setProcessingConfig(prev => ({
-      ...prev,
-      [type]: { ...prev[type], [option]: enabled }
-    }));
-  };
 
   const goToStep = (step: ProcessingStep) => {
     setCurrentStep(step);
   };
+  
+  // Handle document analysis completion
+  const handleDocumentReady = (preview: any, analysis: any) => {
+    setDocumentReady(true);
+    setBasicAnalysis(analysis);
+    
+    // Auto-show results view once document analysis is ready
+    console.log('Document ready, showing analysis:', analysis);
+  };
+  
+  // Handle on-demand processing requests
+  const handleOnDemandProcessing = (type: 'idp' | 'rag' | 'kg' | 'combined', config?: any) => {
+    // Trigger processing via the service
+    const result = IntentBasedProcessingTrigger.triggerFromUI(type, {
+      ...config,
+      document: state.selectedDocument || state.document
+    });
+    
+    if (result.success) {
+      toast({
+        title: "Processing Started",
+        description: `Starting ${type.toUpperCase()} processing...`
+      });
+      
+      // Move to process step
+      setCurrentStep("process");
+      
+      // Start processing based on type
+      if (type === 'rag') {
+        handleProcessingToggle('rag', true);
+      } else if (type === 'kg') {
+        handleProcessingToggle('kg', true);
+      } else if (type === 'idp') {
+        handleProcessingToggle('idp', true);
+      } else if (type === 'combined' && config?.types) {
+        config.types.forEach((t: string) => {
+          if (t === 'rag' || t === 'kg' || t === 'idp') {
+            handleProcessingToggle(t as ProcessingType, true);
+          }
+        });
+      }
+      
+      handleProcessDocument();
+    } else {
+      toast({
+        title: "Processing Failed",
+        description: result.error || "Failed to start processing",
+        variant: "destructive"
+      });
+    }
+  };
 
-  const handleProcessDocument = async () => {
+  const handleConversationalConfig = async (config: any) => {
+    console.log('handleConversationalConfig called with:', config);
+    
+    // Apply configuration from conversational UI
+    if (config.configuration) {
+      // Set flag to indicate we're updating from AI
+      setIsUpdatingFromAI(true);
+      multimodalUpdateRef.current = true;
+      
+      // Special handling for basic RAG search configuration
+      if (config.configuration?.rag?.enabled && config.source === 'ai_basic_rag') {
+        // This is from the AI assistant recommendation
+        console.log('Enabling RAG search from AI assistant recommendation');
+        console.log('Current processingConfig.rag.enabled:', processingConfig.rag.enabled);
+        
+        // Try using updateOption for just the enabled flag
+        updateOption('rag', 'enabled', true);
+        console.log('Called updateOption to enable RAG');
+        
+        // Force a complete config update to ensure all properties are set
+        setTimeout(() => {
+          updateProcessingType('rag', {
+            enabled: true,
+            chunking: config.configuration.rag.chunking ?? true,
+            vectorization: config.configuration.rag.vectorization ?? true,
+            indexing: config.configuration.rag.indexing ?? true,
+            multimodal: config.configuration.rag.multimodal || {
+              transcription: false,
+              ocr: false,
+              imageCaption: false,
+              visualAnalysis: false
+            }
+          });
+          console.log('Called updateProcessingType with full config');
+        }, 100);
+        
+        // Also update the unified processing state to include RAG
+        const mappedType = "standard"; // RAG maps to "standard" in unified processing
+        if (!state.unifiedProcessing.selectedProcessingTypes.includes(mappedType)) {
+          toggleProcessingType(mappedType);
+        }
+        
+        // Clear all flags after update completes
+        setTimeout(() => {
+          setIsUpdatingFromAI(false);
+          multimodalUpdateRef.current = false;
+        }, 100);
+        
+        // Show success toast
+        toast({
+          title: 'RAG Search Enabled',
+          description: 'Document search and retrieval processing has been activated based on AI recommendation',
+        });
+        
+        return;
+      }
+      
+      // Handle specific IDP updates from AI assistant
+      if (config.configuration?.idp?.enabled && config.source === 'ai_basic_idp') {
+        console.log('UnifiedDashboard: Enabling IDP from AI assistant recommendation');
+        console.log('UnifiedDashboard: Current processingConfig.idp.enabled:', processingConfig.idp.enabled);
+        
+        // Update IDP configuration
+        updateOption('idp', 'enabled', true);
+        console.log('Called updateOption to enable IDP');
+        
+        // Force a complete config update to ensure all properties are set
+        setTimeout(() => {
+          updateProcessingType('idp', {
+            enabled: true,
+            textExtraction: config.configuration.idp.textExtraction ?? true,
+            classification: config.configuration.idp.classification ?? true,
+            metadata: config.configuration.idp.metadata ?? true,
+            tables: config.configuration.idp.tables ?? true,
+            formFields: config.configuration.idp.formFields ?? true
+          });
+          console.log('Called updateProcessingType with full IDP config');
+        }, 100);
+        
+        // Also update the unified processing state to include IDP
+        if (!state.unifiedProcessing.selectedProcessingTypes.includes('idp')) {
+          toggleProcessingType('idp');
+        }
+        
+        // Clear all flags after update completes
+        setTimeout(() => {
+          setIsUpdatingFromAI(false);
+          multimodalUpdateRef.current = false;
+        }, 100);
+        
+        // Show success toast
+        toast({
+          title: 'Document Processing Enabled',
+          description: 'Document intelligence and data extraction has been activated based on AI recommendation',
+        });
+        
+        return;
+      }
+      
+      // Handle specific KG updates from AI assistant  
+      if (config.source === 'ai_assistant' && config.kgUpdate) {
+        console.log('UnifiedDashboard: Handling KG update from AI assistant');
+        console.log('UnifiedDashboard: Current processingConfig.kg:', processingConfig.kg);
+        console.log('UnifiedDashboard: Incoming config.configuration.kg:', config.configuration.kg);
+        
+        // Update KG configuration
+        const kgConfig = {
+          ...config.configuration.kg,
+          enabled: true
+        };
+        
+        console.log('UnifiedDashboard: Updating KG config to:', kgConfig);
+        
+        // Use batchUpdate with partial config
+        setProcessingConfig({
+          kg: kgConfig
+        });
+        
+        console.log('UnifiedDashboard: Called setProcessingConfig with kg config');
+        
+        // Update the unified processing state if needed
+        if (!state.unifiedProcessing.selectedProcessingTypes.includes('kg')) {
+          console.log('UnifiedDashboard: Adding kg to unified processing types');
+          toggleProcessingType('kg');
+        }
+        
+        // Show success toast
+        toast({
+          title: 'Knowledge Graph Enabled',
+          description: 'AI assistant has enabled entity extraction and relationship mapping',
+        });
+        
+        // Clear flags
+        setTimeout(() => {
+          setIsUpdatingFromAI(false);
+        }, 100);
+        
+        return; // Exit early for KG updates
+      }
+      
+      // Handle specific IDP updates from AI assistant  
+      if (config.source === 'ai_assistant' && config.idpUpdate) {
+        console.log('UnifiedDashboard: Handling IDP update from AI assistant');
+        console.log('UnifiedDashboard: Current processingConfig.idp:', processingConfig.idp);
+        console.log('UnifiedDashboard: Incoming config.configuration.idp:', config.configuration.idp);
+        
+        // Update IDP configuration
+        const idpConfig = {
+          ...config.configuration.idp,
+          enabled: true
+        };
+        
+        console.log('UnifiedDashboard: Updating IDP config to:', idpConfig);
+        
+        // Use batchUpdate with partial config
+        setProcessingConfig({
+          idp: idpConfig
+        });
+        
+        console.log('UnifiedDashboard: Called setProcessingConfig with IDP config');
+        
+        // Update the unified processing state if needed
+        if (!state.unifiedProcessing.selectedProcessingTypes.includes('idp')) {
+          console.log('UnifiedDashboard: Adding idp to unified processing types');
+          toggleProcessingType('idp');
+        }
+        
+        // Show success toast based on extract type
+        let toastDescription = 'AI assistant has enabled document processing';
+        if (config.configuration.idp.tables && config.configuration.idp.formFields) {
+          toastDescription = 'AI assistant has enabled structured data extraction for tables and forms';
+        } else if (config.configuration.idp.metadata && config.configuration.idp.classification) {
+          toastDescription = 'AI assistant has enabled metadata and classification extraction';
+        }
+        
+        toast({
+          title: 'Document Processing Enabled',
+          description: toastDescription,
+        });
+        
+        // Clear flags
+        setTimeout(() => {
+          setIsUpdatingFromAI(false);
+        }, 100);
+        
+        return; // Exit early for IDP updates
+      }
+      
+      // Handle specific multimodal updates from AI assistant
+      if (config.source === 'ai_assistant' && config.configuration.multimodalUpdate) {
+        const multimodal = config.configuration.rag.multimodal;
+        
+        // Update multimodal configuration
+        console.log('AI Assistant multimodal update:');
+        console.log('  Current multimodal config:', multimodalConfig);
+        console.log('  Incoming multimodal update:', multimodal);
+        console.log('  Current processingConfig.rag.multimodal:', processingConfig.rag.multimodal);
+        
+        // Temporarily clear the updating flag to allow the toggle
+        setIsUpdatingFromAI(false);
+        multimodalUpdateRef.current = false;
+        
+        // Update processing config to enable RAG and sync multimodal
+        // This is the critical part - we need to merge the multimodal states properly
+        setProcessingConfig(prev => {
+          // Ensure we preserve the existing multimodal state and only update what's provided
+          const existingMultimodal = prev.rag.multimodal || {
+            transcription: false,
+            ocr: false,
+            imageCaption: false,
+            visualAnalysis: false
+          };
+          
+          // Merge incoming changes with existing state
+          const mergedMultimodal = {
+            ...existingMultimodal,
+            ...multimodal
+          };
+          
+          const updatedConfig = {
+            ...prev,
+            rag: {
+              ...prev.rag,
+              enabled: true,
+              multimodal: mergedMultimodal
+            }
+          };
+          
+          console.log('Multimodal state merge:');
+          console.log('  Previous state:', existingMultimodal);
+          console.log('  Incoming changes:', multimodal);
+          console.log('  Merged result:', mergedMultimodal);
+          
+          return updatedConfig;
+        });
+        
+        // Update the multimodal config hook as well
+        updateMultimodalConfig(multimodal, 'ai_assistant');
+        
+        // Use the updateMultimodal function to ensure proper state sync
+        Object.entries(multimodal).forEach(([key, value]) => {
+          if (value === true) {
+            console.log(`  Enabling ${key} via updateMultimodal`);
+            updateMultimodal(key as any, true);
+          }
+        });
+        
+        // Show specific toast for image captioning
+        if (multimodal.imageCaption) {
+          toast({
+            title: 'Image Captioning Enabled',
+            description: 'AI assistant has enabled image processing based on your selection',
+          });
+        }
+        
+        // Show specific toast for OCR if enabled
+        if (multimodal.ocr) {
+          toast({
+            title: 'OCR Enabled',
+            description: 'AI assistant has enabled text extraction from images',
+          });
+        }
+        
+        // Show specific toast for audio transcription
+        if (multimodal.transcription) {
+          toast({
+            title: 'Audio Transcription Enabled',
+            description: 'AI assistant has enabled audio processing based on your selection',
+          });
+        }
+        
+        // Clear the flag after update with much longer delay to prevent race conditions
+        setTimeout(() => {
+          setIsUpdatingFromAI(false);
+          multimodalUpdateRef.current = false;
+        }, 2000);
+        
+        return; // Exit early for specific multimodal updates
+      }
+      
+      // Show a general toast for other AI assistant updates
+      let enabledFeatures = [];
+      let multimodalFeatures = [];
+      
+      if (config.configuration.rag?.enabled) {
+        enabledFeatures.push('RAG');
+        
+        // Check for multimodal features
+        if (config.configuration.rag.multimodal) {
+          if (config.configuration.rag.multimodal.imageCaption) multimodalFeatures.push('Image Processing');
+          if (config.configuration.rag.multimodal.transcription) multimodalFeatures.push('Audio Transcription');
+          if (config.configuration.rag.multimodal.ocr) multimodalFeatures.push('OCR');
+          if (config.configuration.rag.multimodal.visualAnalysis) multimodalFeatures.push('Visual Analysis');
+        }
+      }
+      
+      if (config.configuration.kg?.enabled) enabledFeatures.push('Knowledge Graph');
+      if (config.configuration.idp?.enabled) enabledFeatures.push('Document Processing');
+      
+      if (enabledFeatures.length > 0 || multimodalFeatures.length > 0) {
+        let description = '';
+        if (enabledFeatures.length > 0) {
+          description = `${enabledFeatures.join(', ')} has been configured`;
+        }
+        if (multimodalFeatures.length > 0) {
+          description += (description ? ' with ' : '') + multimodalFeatures.join(', ');
+        }
+        description += ' based on your conversation';
+        
+        toast({
+          title: 'Configuration Updated by AI Assistant',
+          description: description,
+        });
+      }
+      
+      // Update RAG configuration
+      if (config.configuration.rag) {
+        console.log('Updating RAG configuration with multimodal:', config.configuration.rag.multimodal);
+        // Only update the processing config once
+        setProcessingConfig(prev => ({
+          ...prev,
+          rag: { ...prev.rag, enabled: config.configuration.rag.enabled }
+        }));
+        
+        // Update unified processing without triggering the manual configuration toast
+        const mappedType = "standard";
+        if (config.configuration.rag.enabled !== state.unifiedProcessing.selectedProcessingTypes.includes(mappedType)) {
+          toggleProcessingType(mappedType);
+        }
+        
+        // Update the detailed configuration
+        setProcessingConfig(prev => {
+          const updated = {
+            ...prev,
+            rag: { 
+              ...prev.rag, 
+              ...config.configuration.rag,
+              multimodal: config.configuration.rag.multimodal ? {
+                transcription: config.configuration.rag.multimodal.transcription || false,
+                ocr: config.configuration.rag.multimodal.ocr || false,
+                imageCaption: config.configuration.rag.multimodal.imageCaption || false,
+                visualAnalysis: config.configuration.rag.multimodal.visualAnalysis || false
+              } : prev.rag.multimodal
+            }
+          };
+          console.log('New processing config RAG:', updated.rag);
+          return updated;
+        });
+      }
+      
+      // Update KG configuration
+      if (config.configuration.kg) {
+        // Only update the processing config without triggering toast
+        setProcessingConfig(prev => ({
+          ...prev,
+          kg: { ...prev.kg, enabled: config.configuration.kg.enabled }
+        }));
+        
+        if (config.configuration.kg.enabled !== state.unifiedProcessing.selectedProcessingTypes.includes('kg')) {
+          toggleProcessingType('kg');
+        }
+        
+        // Update the detailed configuration
+        setProcessingConfig(prev => ({
+          ...prev,
+          kg: { 
+            ...prev.kg, 
+            ...config.configuration.kg,
+            entityExtraction: config.configuration.kg.entityExtraction ?? prev.kg.entityExtraction,
+            relationMapping: config.configuration.kg.relationMapping ?? prev.kg.relationMapping,
+            graphBuilding: config.configuration.kg.graphBuilding ?? prev.kg.graphBuilding
+          }
+        }));
+      }
+      
+      // Update IDP configuration
+      if (config.configuration.idp) {
+        // Only update the processing config without triggering toast
+        setProcessingConfig(prev => ({
+          ...prev,
+          idp: { ...prev.idp, enabled: config.configuration.idp.enabled }
+        }));
+        
+        if (config.configuration.idp.enabled !== state.unifiedProcessing.selectedProcessingTypes.includes('idp')) {
+          toggleProcessingType('idp');
+        }
+        
+        // Update the detailed configuration
+        setProcessingConfig(prev => ({
+          ...prev,
+          idp: { 
+            ...prev.idp, 
+            ...config.configuration.idp,
+            textExtraction: config.configuration.idp.textExtraction ?? prev.idp.textExtraction,
+            classification: config.configuration.idp.classification ?? prev.idp.classification,
+            metadata: config.configuration.idp.metadata ?? prev.idp.metadata,
+            tables: config.configuration.idp.tables ?? prev.idp.tables,
+            formFields: config.configuration.idp.formFields ?? prev.idp.formFields
+          }
+        }));
+      }
+    }
+    
+    // Use intent-based processing trigger for conversation
+    if (config.intent) {
+      const result = IntentBasedProcessingTrigger.triggerFromConversation(config.intent);
+      
+      if (result.success) {
+        setCurrentStep("process");
+        await processWithIntent(config.intent);
+        
+        // Auto-advance to results when processing is complete
+        setTimeout(() => {
+          setCurrentStep("results");
+        }, 100);
+      } else {
+        toast({
+          title: "Processing Failed",
+          description: result.error || "Failed to start processing",
+          variant: "destructive"
+        });
+      }
+    } else if (config.triggerType === 'conversation') {
+      // Handle on-demand processing from conversation without intent
+      handleProcessDocument();
+    }
+  };
+
+  const handleProcessDocument = useCallback(async () => {
     if (!state.selectedDocument) {
       toast({
         title: "No Document Selected",
@@ -113,9 +861,30 @@ const UnifiedDashboard: FC = () => {
       return;
     }
 
+    // Enable Document Processing (IDP) when process document is clicked
+    if (!processingConfig.idp.enabled) {
+      setProcessingConfig(prev => ({
+        ...prev,
+        idp: {
+          ...prev.idp,
+          enabled: true
+        }
+      }));
+      
+      // Also enable IDP in unified processing
+      if (!state.unifiedProcessing.selectedProcessingTypes.includes('idp')) {
+        toggleProcessingType('idp');
+      }
+    }
+
     const enabledProcessing = Object.entries(processingConfig)
       .filter(([_, config]) => config.enabled)
       .map(([type]) => type);
+
+    // Add IDP if not already in the list
+    if (!enabledProcessing.includes('idp')) {
+      enabledProcessing.push('idp');
+    }
 
     if (enabledProcessing.length === 0) {
       toast({
@@ -133,10 +902,23 @@ const UnifiedDashboard: FC = () => {
 
     setCurrentStep("process");
     await processDocument();
-  };
+    
+    // Auto-advance to results when processing is complete
+    setTimeout(() => {
+      if (Object.values(state.unifiedProcessing.processingStatus).every(status => status !== "processing")) {
+        setCurrentStep("results");
+      }
+    }, 2000);
+    
+    // Clear the updating flag after all updates are complete
+    setTimeout(() => {
+      setIsUpdatingFromAI(false);
+      multimodalUpdateRef.current = false;
+    }, 2000);
+  }, [state.selectedDocument, processingConfig, state.unifiedProcessing, toast, toggleProcessingType, processDocument]);
 
   const renderStepIndicator = () => (
-    <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-b">
+    <div className="flex items-center justify-between px-8 py-5 bg-gray-800 border-b border-gray-700 shadow-sm">
       {steps.map((step, index) => {
         const isActive = step.id === currentStep;
         const isCompleted = steps.findIndex(s => s.id === currentStep) > index;
@@ -146,15 +928,15 @@ const UnifiedDashboard: FC = () => {
           <div key={step.id} className="flex items-center flex-1">
             <button
               onClick={() => isCompleted && goToStep(step.id)}
-              className={`flex items-center space-x-2 font-medium transition-colors
-                ${isActive ? "text-blue-600" : isCompleted ? "text-green-600" : "text-gray-400"}
-                ${isCompleted ? "cursor-pointer hover:text-green-700" : "cursor-default"}`}
+              className={`flex items-center space-x-3 font-medium transition-all duration-200 transform hover:scale-105
+                ${isActive ? "text-blue-400" : isCompleted ? "text-green-400" : "text-gray-500"}
+                ${isCompleted ? "cursor-pointer hover:text-green-300" : "cursor-default"}`}
             >
-              <Icon className="w-5 h-5" />
-              <span>{step.label}</span>
+              <Icon className={`w-6 h-6 ${isActive ? "drop-shadow-lg" : ""}`} />
+              <span className="text-sm tracking-wide">{step.label}</span>
             </button>
             {index < steps.length - 1 && (
-              <ChevronRight className="w-5 h-5 mx-4 text-gray-300" />
+              <ChevronRight className="w-5 h-5 mx-6 text-gray-600" />
             )}
           </div>
         );
@@ -162,341 +944,192 @@ const UnifiedDashboard: FC = () => {
     </div>
   );
 
+  // Memoize the manual configuration panel props to prevent re-renders
+
+  const manualConfigPanelProps = useMemo(() => ({
+    processingTypes,
+    processingConfig,
+    handleProcessingToggle,
+    handleOptionToggle,
+    onProcessDocument: handleProcessDocument,
+    state,
+    updateChunkingMethod,
+    updateChunkSize,
+    updateChunkOverlap,
+    selectedDocument: state.selectedDocument,
+    multimodalConfig: multimodalConfig.config
+  }), [
+    processingTypes,
+    processingConfig,
+    handleProcessingToggle,
+    handleOptionToggle,
+    handleProcessDocument,
+    state,
+    updateChunkingMethod,
+    updateChunkSize,
+    updateChunkOverlap,
+    multimodalConfig.config
+  ]);
+
   const renderContent = () => {
+    console.log('UnifiedDashboard: renderContent called with currentStep =', currentStep);
     switch (currentStep) {
       case "upload":
         return (
-          <div className="max-w-6xl mx-auto p-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Upload Document</h2>
-              <p className="text-gray-600">Upload a document to process across multiple analysis methods</p>
-            </div>
+          <ResizablePanelGroup direction="horizontal" className="h-full">
+            {/* Left Panel - Manual Configuration */}
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100">
+              <div className="h-full overflow-hidden">
+                <ManualConfigurationPanel {...manualConfigPanelProps} />
+              </div>
+            </ResizablePanel>
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <UploadPanel
-                  isUploading={state.isUploading}
-                  uploadProgress={state.uploadProgress}
-                  recentDocuments={state.recentDocuments}
-                  selectedDocument={state.selectedDocument}
-                  onSelectDocument={selectDocument}
-                  onUploadDocument={uploadDocument}
-                />
-              </div>
-              
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Processing Types</CardTitle>
-                    <CardDescription>Select which processing methods to apply</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {processingTypes.map(type => {
-                      const Icon = type.icon;
-                      return (
-                        <div key={type.id} className="flex items-start space-x-3">
-                          <Checkbox
-                            checked={processingConfig[type.id as ProcessingType].enabled}
-                            onCheckedChange={(checked) => 
-                              handleProcessingToggle(type.id as ProcessingType, checked as boolean)
-                            }
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2">
-                              <Icon className="w-4 h-4 text-gray-500" />
-                              <span className="font-medium">{type.label}</span>
-                            </div>
-                            <p className="text-sm text-gray-500 mt-1">{type.description}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </CardContent>
-                </Card>
-
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  disabled={!state.selectedDocument}
-                  onClick={() => goToStep("configure")}
-                >
-                  Next: Configure Processing
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "configure":
-        return (
-          <div className="max-w-6xl mx-auto p-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Configure Processing</h2>
-              <p className="text-gray-600">Configure options for each selected processing type</p>
-            </div>
-
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ProcessingType)}>
-              <TabsList className="grid w-full grid-cols-3">
-                {processingTypes.map(type => (
-                  <TabsTrigger 
-                    key={type.id} 
-                    value={type.id}
-                    disabled={!processingConfig[type.id as ProcessingType].enabled}
-                  >
-                    <type.icon className="w-4 h-4 mr-2" />
-                    {type.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              <TabsContent value="rag" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>RAG Configuration</CardTitle>
-                    <CardDescription>Configure retrieval-augmented generation settings</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={processingConfig.rag.chunking}
-                          onCheckedChange={(checked) => 
-                            handleOptionToggle("rag", "chunking", checked as boolean)
-                          }
-                        />
-                        <label>Enable Document Chunking</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={processingConfig.rag.vectorization}
-                          onCheckedChange={(checked) => 
-                            handleOptionToggle("rag", "vectorization", checked as boolean)
-                          }
-                        />
-                        <label>Enable Vectorization</label>
-                      </div>
-                    </div>
-
-                    {processingConfig.rag.chunking && (
-                      <CombinedConfigurationPanel
-                        processingMode={state.processingMode}
-                        chunkingMethod={state.chunkingMethod}
-                        chunkSize={state.chunkSize}
-                        chunkOverlap={state.chunkOverlap}
-                        metadataFields={state.metadataFields}
-                        recordLevelIndexingEnabled={state.recordLevelIndexingEnabled}
-                        recordStructure={state.recordStructure}
-                        onProcessingModeChange={() => {}}
-                        onChunkingMethodChange={updateChunkingMethod}
-                        onChunkSizeChange={updateChunkSize}
-                        onChunkOverlapChange={updateChunkOverlap}
-                        onMetadataFieldChange={() => {}}
-                        onRecordLevelIndexingToggle={() => {}}
-                        onRecordStructureChange={() => {}}
-                        onAddCustomField={() => {}}
+          <ResizableHandle withHandle />
+            
+          {/* Center Panel - Document & Results */}
+          <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
+            <div className="h-full bg-gray-50 overflow-y-auto">
+              {!state.selectedDocument ? (
+                // Show upload panel when no document is selected
+                <div className="h-full p-6">
+                  <UploadPanel
+                    isUploading={state.isUploading}
+                    uploadProgress={state.uploadProgress}
+                    recentDocuments={state.recentDocuments}
+                    selectedDocument={state.selectedDocument}
+                    onSelectDocument={selectDocument}
+                    onUploadDocument={uploadDocument}
+                    onDocumentClick={(doc) => {
+                      // Trigger document analysis if needed
+                      if (!analysisState.analysis) {
+                        // Create a file object from the document
+                        const file = new File([new Blob()], doc.name, { 
+                          type: doc.name.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream' 
+                        });
+                        
+                        // Analyze the document
+                        analyzeDocument(file);
+                      }
+                      
+                      toast({
+                        title: "Document Selected",
+                        description: `${doc.name} has been loaded. Ask the AI assistant about processing options.`
+                      });
+                    }}
+                  />
+                </div>
+              ) : (
+                // Show results view when document is selected
+                <div className="h-full p-6">
+                  <div className="mb-6">
+                    <h2 className="text-xl font-semibold mb-2">Document Analysis & Results</h2>
+                    <p className="text-gray-600">
+                      {state.unifiedProcessing.processingStatus.rag === "completed" || 
+                       state.unifiedProcessing.processingStatus.kg === "completed" || 
+                       state.unifiedProcessing.processingStatus.idp === "completed" 
+                        ? "View and explore the results from processing"
+                        : "Document loaded. Configure processing options in the left panel or with AI assistant."}
+                    </p>
+                  </div>
+                  
+                  {/* Progressive Document Loader for initial analysis */}
+                  {documentReady ? (
+                    <>
+                      {console.log('UnifiedDashboard passing data:', {
+                        ragResults: state.unifiedProcessing.unifiedResults.standard,
+                        kgResults: state.unifiedProcessing.unifiedResults.kg,
+                        idpResults: state.unifiedProcessing.unifiedResults.idp
+                      })}
+                      <UnifiedResultsEnhanced
+                        ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
+                        kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
+                        idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
+                        processingConfig={processingConfig}
+                        onChunkSelect={selectChunk}
+                        onEntitySelect={(entityId) => {
+                          console.log('Entity selected:', entityId);
+                        }}
+                        selectedChunk={state.selectedChunk}
+                        onClearResults={clearAllResults}
                       />
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="kg" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Knowledge Graph Configuration</CardTitle>
-                    <CardDescription>Configure knowledge graph construction settings</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={processingConfig.kg.entityExtraction}
-                          onCheckedChange={(checked) => 
-                            handleOptionToggle("kg", "entityExtraction", checked as boolean)
-                          }
-                        />
-                        <label>Entity Extraction</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={processingConfig.kg.relationMapping}
-                          onCheckedChange={(checked) => 
-                            handleOptionToggle("kg", "relationMapping", checked as boolean)
-                          }
-                        />
-                        <label>Relation Mapping</label>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">
-                        Knowledge graph settings will be configured here. 
-                        This will include entity types, relation types, and extraction models.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="idp" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Document Processing Configuration</CardTitle>
-                    <CardDescription>Configure intelligent document processing settings</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={processingConfig.idp.textExtraction}
-                          onCheckedChange={(checked) => 
-                            handleOptionToggle("idp", "textExtraction", checked as boolean)
-                          }
-                        />
-                        <label>Text Extraction</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={processingConfig.idp.classification}
-                          onCheckedChange={(checked) => 
-                            handleOptionToggle("idp", "classification", checked as boolean)
-                          }
-                        />
-                        <label>Document Classification</label>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">
-                        Document processing settings will be configured here. 
-                        This will include OCR settings, classification models, and extraction rules.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-
-            <div className="mt-6 flex justify-between">
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={() => goToStep("upload")}
-              >
-                Back: Upload Document
-              </Button>
-              <Button 
-                size="lg"
-                onClick={handleProcessDocument}
-              >
-                Process Document
-              </Button>
+                    </>
+                  ) : (
+                    <ProgressiveDocumentLoader
+                      document={state.selectedDocument}
+                      onProcessingRequest={handleOnDemandProcessing}
+                      onDocumentReady={handleDocumentReady}
+                      autoAnalyze={true}
+                    />
+                  )}
+                </div>
+              )}
             </div>
-          </div>
+          </ResizablePanel>
+            
+          <ResizableHandle withHandle />
+            
+          {/* Right Panel - Intelligent Content Agent */}
+          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+            <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
+              <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
+                    <Brain className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                      Intelligent Content Agent
+                      <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-0.5">AI-powered document configuration</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
+                <div className="h-full">
+                  <ConversationalUI
+                    documentAnalysis={analysisState.analysis}
+                    onProcessingConfigured={handleConversationalConfig}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </ResizablePanel>
+        </ResizablePanelGroup>
         );
+
 
       case "process":
         return (
-          <div className="max-w-4xl mx-auto p-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Processing Document</h2>
-              <p className="text-gray-600">Your document is being processed with the selected methods</p>
-            </div>
-
-            <Card>
-              <CardContent className="py-8">
-                <div className="space-y-6">
-                  {state.unifiedProcessing.ragEnabled && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">RAG Processing</span>
-                        <Badge variant={
-                          state.unifiedProcessing.processingStatus.rag === "completed" ? "default" :
-                          state.unifiedProcessing.processingStatus.rag === "processing" ? "secondary" :
-                          state.unifiedProcessing.processingStatus.rag === "error" ? "destructive" :
-                          "outline"
-                        }>
-                          {state.unifiedProcessing.processingStatus.rag}
-                        </Badge>
-                      </div>
-                      <Progress 
-                        value={
-                          state.unifiedProcessing.processingStatus.rag === "completed" ? 100 :
-                          state.unifiedProcessing.processingStatus.rag === "processing" ? 50 :
-                          0
-                        } 
-                        className="h-2" 
-                      />
-                      <p className="text-sm text-gray-500">
-                        {state.unifiedProcessing.processingStatus.rag === "completed" ? "Chunking and vectorization complete" :
-                         state.unifiedProcessing.processingStatus.rag === "processing" ? "Chunking and vectorizing document..." :
-                         "Waiting to start..."}
-                      </p>
-                    </div>
-                  )}
-
-                  {state.unifiedProcessing.kgEnabled && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Knowledge Graph</span>
-                        <Badge variant={
-                          state.unifiedProcessing.processingStatus.kg === "completed" ? "default" :
-                          state.unifiedProcessing.processingStatus.kg === "processing" ? "secondary" :
-                          state.unifiedProcessing.processingStatus.kg === "error" ? "destructive" :
-                          "outline"
-                        }>
-                          {state.unifiedProcessing.processingStatus.kg}
-                        </Badge>
-                      </div>
-                      <Progress 
-                        value={
-                          state.unifiedProcessing.processingStatus.kg === "completed" ? 100 :
-                          state.unifiedProcessing.processingStatus.kg === "processing" ? 50 :
-                          0
-                        } 
-                        className="h-2" 
-                      />
-                      <p className="text-sm text-gray-500">
-                        {state.unifiedProcessing.processingStatus.kg === "completed" ? "Entity extraction complete" :
-                         state.unifiedProcessing.processingStatus.kg === "processing" ? "Extracting entities and relations..." :
-                         "Waiting to start..."}
-                      </p>
-                    </div>
-                  )}
-
-                  {state.unifiedProcessing.idpEnabled && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Document Processing</span>
-                        <Badge variant={
-                          state.unifiedProcessing.processingStatus.idp === "completed" ? "default" :
-                          state.unifiedProcessing.processingStatus.idp === "processing" ? "secondary" :
-                          state.unifiedProcessing.processingStatus.idp === "error" ? "destructive" :
-                          "outline"
-                        }>
-                          {state.unifiedProcessing.processingStatus.idp}
-                        </Badge>
-                      </div>
-                      <Progress 
-                        value={
-                          state.unifiedProcessing.processingStatus.idp === "completed" ? 100 :
-                          state.unifiedProcessing.processingStatus.idp === "processing" ? 50 :
-                          0
-                        } 
-                        className="h-2" 
-                      />
-                      <p className="text-sm text-gray-500">
-                        {state.unifiedProcessing.processingStatus.idp === "completed" ? "Document analysis complete" :
-                         state.unifiedProcessing.processingStatus.idp === "processing" ? "Analyzing document..." :
-                         "Waiting to start..."}
-                      </p>
-                    </div>
-                  )}
+          <ResizablePanelGroup direction="horizontal" className="h-full">
+            {/* Left Panel - Manual Configuration (same as upload) */}
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100">
+              <div className="h-full overflow-hidden">
+                <ManualConfigurationPanel {...manualConfigPanelProps} />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            {/* Center Panel - Processing Status */}
+            <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
+              <div className="h-full p-6 bg-gray-50 overflow-y-auto">
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold mb-2">Processing Document</h2>
+                  <p className="text-gray-600">Your document is being processed with the selected methods</p>
                 </div>
 
-                <Separator className="my-6" />
+                {/* Pipeline Visualization */}
+                <ProcessingPipelineVisualization
+                  onStepClick={(stepType) => {
+                    console.log('Step clicked:', stepType);
+                  }}
+                  showDependencies={true}
+                  pipelineSteps={state.unifiedProcessing.pipeline.steps}
+                  pipelineStatus={state.unifiedProcessing.pipeline.status}
+                />
 
-                <div className="flex justify-center">
+                <div className="mt-6 flex justify-center">
                   <Button 
                     size="lg"
                     onClick={() => goToStep("results")}
@@ -507,114 +1140,167 @@ const UnifiedDashboard: FC = () => {
                     View Results
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            {/* Right Panel - Intelligent Content Agent (same as upload) */}
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+              <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
+                <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
+                      <Brain className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                        Intelligent Content Agent
+                        <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-0.5">Monitor processing progress</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
+                  <div className="h-full">
+                    <ConversationalUI
+                      documentAnalysis={analysisState.analysis}
+                      onProcessingConfigured={handleConversationalConfig}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         );
 
       case "results":
         return (
-          <div className="max-w-6xl mx-auto p-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Processing Results</h2>
-              <p className="text-gray-600">View and explore the results from all processing methods</p>
-            </div>
-
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ProcessingType)}>
-              <TabsList className="grid w-full grid-cols-3">
-                {processingTypes.map(type => (
-                  <TabsTrigger 
-                    key={type.id} 
-                    value={type.id}
-                    disabled={!processingConfig[type.id as ProcessingType].enabled}
-                  >
-                    <type.icon className="w-4 h-4 mr-2" />
-                    {type.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              <TabsContent value="rag" className="mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <ChunksPanel
-                      chunks={state.chunks}
-                      selectedChunk={state.selectedChunk}
-                      onSelectChunk={selectChunk}
+          <ResizablePanelGroup direction="horizontal" className="h-full">
+            {/* Left Panel - Manual Configuration (same as upload/process) */}
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100">
+              <div className="h-full overflow-hidden">
+                <ManualConfigurationPanel {...manualConfigPanelProps} />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            {/* Center Panel - Results View */}
+            <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
+              <div className="h-full p-6 bg-gray-50 overflow-y-auto">
+                <UnifiedResultsEnhanced
+                  ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
+                  kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
+                  idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
+                  processingConfig={processingConfig}
+                  onChunkSelect={selectChunk}
+                  onEntitySelect={(entityId) => {
+                    console.log('Entity selected:', entityId);
+                  }}
+                  selectedChunk={state.selectedChunk}
+                  onClearResults={clearAllResults}
+                />
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            {/* Right Panel - Intelligent Content Agent */}
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+              <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
+                <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
+                      <Brain className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                        Intelligent Content Agent
+                        <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-0.5">Explore results with AI assistance</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
+                  <div className="h-full">
+                    <ConversationalUI
+                      documentAnalysis={analysisState.analysis}
+                      onProcessingConfigured={handleConversationalConfig}
                     />
                   </div>
-                  <div>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>RAG Statistics</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <p className="text-sm text-gray-500">Total Chunks</p>
-                          <p className="text-2xl font-semibold">{state.chunks.length}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Average Chunk Size</p>
-                          <p className="text-2xl font-semibold">150 tokens</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Vector Dimensions</p>
-                          <p className="text-2xl font-semibold">768</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="kg" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Knowledge Graph Results</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                      <p className="text-gray-500">Knowledge graph visualization will appear here</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="idp" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Document Processing Results</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium mb-2">Extracted Metadata</h4>
-                        <p className="text-sm text-gray-600">Document metadata will be displayed here</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium mb-2">Classification Results</h4>
-                        <p className="text-sm text-gray-600">Document classification results will be displayed here</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+                </CardContent>
+              </Card>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         );
 
       default:
-        return null;
+        console.error('UnifiedDashboard: Unknown currentStep:', currentStep);
+        return <div>Unknown step: {currentStep}</div>;
     }
   };
 
-  return (
-    <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar activePage="unified" />
+  console.log('UnifiedDashboard: Main render');
+  
+  try {
+    return (
+      <div className="flex bg-gray-50 h-screen overflow-hidden">
+      {/* Sidebar removed - full width layout */}
       
-      <div className="flex-1 flex flex-col ml-64">
-        <header className="h-16 border-b border-gray-200 bg-white flex items-center px-6">
-          <h1 className="text-xl font-semibold text-gray-800">Unified Document Processing</h1>
+      <div className="flex-1 flex flex-col">
+        <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shadow-sm">
+          <div className="flex items-center space-x-3">
+            <Layers className="h-7 w-7 text-blue-600" />
+            <h1 className="text-xl font-semibold text-gray-800">Unified Content Processing</h1>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-600 hover:text-gray-800"
+            >
+              <HelpCircle className="h-5 w-5 mr-2" />
+              Help
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  <User className="h-5 w-5 mr-2" />
+                  Account
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Phone className="mr-2 h-4 w-4" />
+                  Contact Us
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Support
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
         
         {renderStepIndicator()}
@@ -625,6 +1311,10 @@ const UnifiedDashboard: FC = () => {
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('UnifiedDashboard: Render error:', error);
+    return <div>Error rendering dashboard: {error.message}</div>;
+  }
 };
 
 export default UnifiedDashboard;

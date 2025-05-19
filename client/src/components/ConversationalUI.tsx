@@ -1,0 +1,344 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  Send, 
+  User, 
+  Bot, 
+  Sparkles,
+  MessageSquare,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  FileSearch,
+  Network,
+  FileText,
+  Wand2,
+  Brain,
+  Settings,
+  Activity,
+  Eye,
+  Image,
+  Camera,
+  Headphones,
+  TextCursor
+} from 'lucide-react';
+import { useConversation } from '@/hooks/useConversation';
+import { DocumentCharacteristics } from '@/services/DocumentAnalyzer';
+import { ConversationMessage } from '@/services/ConversationManager';
+import { cn } from '@/lib/utils';
+
+interface ConversationalUIProps {
+  documentAnalysis: DocumentCharacteristics | null;
+  onProcessingConfigured?: (config: any) => void;
+  className?: string;
+  compact?: boolean;
+}
+
+export const ConversationalUI: React.FC<ConversationalUIProps> = ({
+  documentAnalysis,
+  onProcessingConfigured,
+  className = '',
+  compact = false
+}) => {
+  const { state, sendMessage, handleAction, startConversation, getProcessingConfig } = useConversation(onProcessingConfigured);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Enhanced state type checking
+  const enhancedState = state as any; // Type assertion for enhanced state
+
+  // Start conversation when document analysis is available
+  useEffect(() => {
+    if (documentAnalysis && state.messages.length === 0) {
+      startConversation(documentAnalysis);
+    }
+  }, [documentAnalysis, startConversation, state.messages.length]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [state.messages]);
+
+  // Handle configuration completion
+  useEffect(() => {
+    if (state.isComplete && onProcessingConfigured) {
+      const config = getProcessingConfig();
+      if (config) {
+        onProcessingConfigured(config);
+      }
+    }
+  }, [state.isComplete, onProcessingConfigured, getProcessingConfig]);
+
+  // Override the handleAction to intercept start_processing
+  const handleActionWithConfig = (action: string, data?: any) => {
+    if (action === 'start_processing' && onProcessingConfigured) {
+      const config = getProcessingConfig();
+      onProcessingConfigured(config);
+    }
+    handleAction(action, data);
+  };
+
+  const handleSendMessage = () => {
+    if (!inputValue.trim()) return;
+
+    sendMessage(inputValue);
+    setInputValue('');
+    setIsTyping(true);
+    
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
+    }, 1000);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const renderMessage = (message: ConversationMessage) => {
+    const isUser = message.type === 'user';
+    
+    // Simple markdown renderer for bold text
+    const renderContent = (content: string) => {
+      // Replace **text** with bold text
+      const parts = content.split(/\*\*(.*?)\*\*/g);
+      return parts.map((part, index) => {
+        if (index % 2 === 1) {
+          return <strong key={index}>{part}</strong>;
+        }
+        return part;
+      });
+    };
+    
+    // Function to get icon based on action type or content
+    const getActionIcon = (action: string) => {
+      switch (action) {
+        case 'configure_rag':
+        case 'enable_rag':
+          return <FileSearch className="h-3 w-3" />;
+        case 'configure_kg':
+        case 'enable_kg':
+          return <Network className="h-3 w-3" />;
+        case 'configure_idp':
+        case 'enable_idp':
+          return <FileText className="h-3 w-3" />;
+        case 'image_caption':
+          return <Camera className="h-3 w-3" />;
+        case 'transcription':
+          return <Headphones className="h-3 w-3" />;
+        case 'ocr':
+          return <TextCursor className="h-3 w-3" />;
+        case 'visual_analysis':
+          return <Eye className="h-3 w-3" />;
+        default:
+          return <Settings className="h-3 w-3" />;
+      }
+    };
+    
+    return (
+      <div
+        key={message.id}
+        className={cn(
+          "flex gap-3 mb-4",
+          isUser ? "justify-end" : "justify-start"
+        )}
+      >
+        {!isUser && (
+          <Avatar className="h-9 w-9 ring-2 ring-purple-100">
+            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
+              <Brain className="h-5 w-5 text-purple-600" />
+            </AvatarFallback>
+          </Avatar>
+        )}
+        
+        <div className={cn(
+          "max-w-[80%] rounded-xl shadow-sm",
+          isUser 
+            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4" 
+            : "bg-white border border-gray-200 p-4"
+        )}>
+          <div className="text-sm leading-relaxed whitespace-pre-wrap">
+            {renderContent(message.content)}
+          </div>
+          
+          {/* Render action buttons if available */}
+          {message.actions && message.actions.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {message.actions.map(action => (
+                <Button
+                  key={action.id}
+                  variant={isUser ? "secondary" : "outline"}
+                  size="sm"
+                  className="w-full justify-start gap-2 transition-all hover:scale-[1.02]"
+                  onClick={() => handleActionWithConfig(action.action, action.data)}
+                >
+                  {getActionIcon(action.action)}
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {isUser && (
+          <Avatar className="h-9 w-9 ring-2 ring-blue-100">
+            <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
+              <User className="h-5 w-5 text-blue-600" />
+            </AvatarFallback>
+          </Avatar>
+        )}
+      </div>
+    );
+  };
+
+  if (!documentAnalysis) {
+    return (
+      <Card className={cn("bg-gradient-to-br from-gray-50 to-gray-100", className)}>
+        <CardContent className="p-8 text-center">
+          <div className="bg-white rounded-full p-4 w-16 h-16 mx-auto mb-4 shadow-md">
+            <MessageSquare className="h-8 w-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">No Document Selected</h3>
+          <p className="text-gray-600">Upload a document to start the conversation</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (compact) {
+    return (
+      <Card className={className}>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Configuration Assistant
+            </div>
+            {state.isComplete && (
+              <div className="flex items-center gap-2">
+                {enhancedState.selectedFeatures?.includes('rag') && (
+                  <Badge variant="secondary" className="text-xs">
+                    <FileSearch className="h-3 w-3 mr-1" />
+                    RAG
+                  </Badge>
+                )}
+                {enhancedState.selectedFeatures?.includes('kg') && (
+                  <Badge variant="secondary" className="text-xs">
+                    <Network className="h-3 w-3 mr-1" />
+                    KG
+                  </Badge>
+                )}
+                {enhancedState.selectedFeatures?.includes('idp') && (
+                  <Badge variant="secondary" className="text-xs">
+                    <FileText className="h-3 w-3 mr-1" />
+                    IDP
+                  </Badge>
+                )}
+              </div>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {state.messages.slice(-2).map(renderMessage)}
+            {state.isComplete && (
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Configuration complete! Processing with {enhancedState.selectedFeatures?.join(', ') || 'selected'} methods.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className={cn("flex flex-col h-full overflow-hidden", className)}>
+      {documentAnalysis && (
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 px-4 py-2 border-b">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700 font-medium">
+              Document Type: <Badge variant="secondary" className="ml-2">{documentAnalysis.documentType}</Badge>
+            </p>
+            <Badge variant="outline" className="bg-white">
+              <Activity className="h-3 w-3 mr-1" />
+              Active
+            </Badge>
+          </div>
+        </div>
+      )}
+      
+      <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
+        <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-white to-gray-50">
+          <div className="space-y-4">
+            {state.messages.map(renderMessage)}
+            
+            {isTyping && (
+              <div className="flex gap-3 justify-start">
+                <Avatar className="h-9 w-9 ring-2 ring-purple-100">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
+                    <Brain className="h-5 w-5 text-purple-600" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                    <span className="text-sm text-gray-600">Processing your request...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+      </CardContent>
+      
+      <div className="border-t bg-white px-4 py-3">
+        {!state.isComplete ? (
+          <div className="flex gap-2">
+            <Input
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Tell me what you'd like to do with this document..."
+              className="flex-1 bg-gray-50 border-gray-200"
+              disabled={isTyping}
+            />
+            <Button 
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || isTyping}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>
+              Configuration complete! Your document will be processed with the selected settings.
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    </Card>
+  );
+};
+
+export default ConversationalUI;

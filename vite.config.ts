@@ -28,4 +28,17 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
+  server: {
+    host: true,
+    cors: true,
+    hmr: {
+      clientPort: 443, // For HTTPS through ngrok
+    },
+    allowedHosts: [
+      ".localhost",
+      ".ngrok.io",
+      ".ngrok-free.app",
+      "8303-49-207-235-125.ngrok-free.app"
+    ],
+  },
 });

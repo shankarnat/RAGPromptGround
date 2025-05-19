@@ -1,18 +1,41 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { ProcessingMode } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  ChevronDown,
+  FileInput,
+  Table,
+  Network,
+  Play,
+  FileSearch
+} from "lucide-react";
+import IntentBasedProcessingTrigger from "@/services/IntentBasedProcessingTrigger";
 
 interface DocumentHeaderProps {
   documentTitle: string;
   pageCount: number;
   processingMode: ProcessingMode;
   onProcessingModeChange: (mode: ProcessingMode) => void;
+  onProcessingRequest?: (type: 'idp' | 'rag' | 'kg' | 'combined', config?: any) => void;
+  documentId?: string;
+  hasAnalysis?: boolean;
 }
 
 const DocumentHeader: FC<DocumentHeaderProps> = ({
   documentTitle,
   pageCount,
   processingMode,
-  onProcessingModeChange
+  onProcessingModeChange,
+  onProcessingRequest,
+  documentId,
+  hasAnalysis = false
 }) => {
   return (
     <header className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white">
@@ -22,6 +45,51 @@ const DocumentHeader: FC<DocumentHeaderProps> = ({
       </div>
       
       <div className="flex items-center space-x-4">
+        {/* Processing Options */}
+        {hasAnalysis && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Play className="w-4 h-4" />
+                Process Document
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem 
+                onClick={() => onProcessingRequest?.('idp')}
+                className="gap-2"
+              >
+                <FileInput className="w-4 h-4" />
+                Extract Form Fields
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onProcessingRequest?.('rag')}
+                className="gap-2"
+              >
+                <Table className="w-4 h-4" />
+                Enable Table Q&A
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onProcessingRequest?.('kg')}
+                className="gap-2"
+              >
+                <Network className="w-4 h-4" />
+                Map Relationships
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => onProcessingRequest?.('combined', { types: ['idp', 'rag'] })}
+                className="gap-2"
+              >
+                <FileSearch className="w-4 h-4" />
+                Full Document Analysis
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        
+        {/* Legacy Mode Selection */}
         <div className="inline-flex rounded-md shadow-sm" role="group">
           <button 
             type="button" 

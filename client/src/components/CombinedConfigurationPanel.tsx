@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState, useCallback, memo } from "react";
 import { 
   ChunkingMethod, 
   MetadataField, 
@@ -20,12 +20,15 @@ import {
   Search, 
   Filter,
   FileText,
-  Layers
+  Layers,
+  Image,
+  Headphones,
+  FileImage,
+  Video
 } from "lucide-react";
 import VectorizationOptionsPanel from "./VectorizationOptionsPanel";
 import FinalizeIndexButton from "./FinalizeIndexButton";
 import { defaultAdvancedOptions } from "@/data/embeddingModelsData";
-import { useState } from "react";
 
 interface CombinedConfigurationPanelProps {
   // Chunking configuration props
@@ -39,8 +42,13 @@ interface CombinedConfigurationPanelProps {
   // Document metadata props
   metadataFields: MetadataField[];
   onMetadataFieldChange: (fieldId: number, property: "included" | "value", value: boolean | string) => void;
-  recordLevelIndexingEnabled: boolean;
-  onRecordLevelIndexingToggle: (enabled: boolean) => void;
+  multimodalProcessing?: {
+    transcription: boolean;
+    ocr: boolean;
+    imageCaption: boolean;
+    visualAnalysis: boolean;
+  };
+  onMultimodalProcessingToggle?: (type: 'transcription' | 'ocr' | 'imageCaption' | 'visualAnalysis', enabled: boolean) => void;
   recordStructure: RecordStructure;
   onRecordStructureChange: (structure: RecordStructure) => void;
   onAddCustomField: (name: string, value: string) => void;
@@ -62,6 +70,208 @@ interface CombinedConfigurationPanelProps {
   onUpdateOptions?: (options: typeof defaultAdvancedOptions) => void;
 }
 
+// Memoized Chunk Configuration Component
+const ChunkingSection = memo<{
+  chunkingMethod: ChunkingMethod;
+  onChunkingMethodChange: (method: ChunkingMethod) => void;
+  chunkSize: number;
+  onChunkSizeChange: (size: number) => void;
+  chunkOverlap: number;
+  onChunkOverlapChange: (overlap: number) => void;
+}>(({ chunkingMethod, onChunkingMethodChange, chunkSize, onChunkSizeChange, chunkOverlap, onChunkOverlapChange }) => {
+  // Calculate chunk metrics for display
+  const estimatedTokens = chunkSize * Math.ceil(2000 / chunkSize); // Assuming 2000 tokens in document
+  const estimatedChunks = Math.ceil(2000 / (chunkSize - chunkOverlap));
+  
+  // Slider change handlers
+  const handleSliderChunkSizeChange = useCallback((value: number[]) => {
+    onChunkSizeChange(value[0]);
+  }, [onChunkSizeChange]);
+
+  const handleSliderChunkOverlapChange = useCallback((value: number[]) => {
+    onChunkOverlapChange(value[0]);
+  }, [onChunkOverlapChange]);
+
+  return (
+    <div className="space-y-4 pt-2">
+      {/* Chunking Method */}
+      <div className="mb-4">
+        <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Chunking Method</label>
+        <div className="grid grid-cols-1 gap-1 md:gap-2">
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+              name="chunking-method"
+              checked={chunkingMethod === "semantic"}
+              onChange={() => onChunkingMethodChange("semantic")}
+            />
+            <span className="ml-2 text-xs md:text-sm text-gray-700">Semantic</span>
+          </label>
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+              name="chunking-method"
+              checked={chunkingMethod === "fixed"}
+              onChange={() => onChunkingMethodChange("fixed")}
+            />
+            <span className="ml-2 text-xs md:text-sm text-gray-700">Fixed Size</span>
+          </label>
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+              name="chunking-method"
+              checked={chunkingMethod === "header"}
+              onChange={() => onChunkingMethodChange("header")}
+            />
+            <span className="ml-2 text-xs md:text-sm text-gray-700">Header-based</span>
+          </label>
+        </div>
+      </div>
+      
+      {/* Chunk Size */}
+      <div className="mb-4">
+        <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+          Chunk Size (tokens)
+        </label>
+        <div className="flex items-center space-x-3">
+          <div className="w-full">
+            <Slider
+              defaultValue={[chunkSize]}
+              max={1000}
+              min={50}
+              step={1}
+              onValueChange={handleSliderChunkSizeChange}
+              className="w-full"
+            />
+          </div>
+          <span className="text-xs md:text-sm text-gray-700 w-9 md:w-12 text-right">{chunkSize}</span>
+        </div>
+      </div>
+      
+      {/* Chunk Overlap */}
+      <div className="mb-4">
+        <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+          Chunk Overlap (tokens)
+        </label>
+        <div className="flex items-center space-x-3">
+          <div className="w-full">
+            <Slider
+              defaultValue={[chunkOverlap]}
+              max={100}
+              min={0}
+              step={1}
+              onValueChange={handleSliderChunkOverlapChange}
+              className="w-full"
+            />
+          </div>
+          <span className="text-xs md:text-sm text-gray-700 w-9 md:w-12 text-right">{chunkOverlap}</span>
+        </div>
+      </div>
+      
+      {/* Chunk Metrics */}
+      <div className="pt-3 border-t border-gray-200">
+        <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Chunk Metrics</label>
+        
+        <div className="bg-gray-50 rounded-md p-3 space-y-2">
+          <div className="flex justify-between">
+            <span className="text-xs text-gray-600">Estimated Chunks:</span>
+            <span className="text-xs font-medium">
+              {estimatedChunks}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-xs text-gray-600">Average Tokens per Chunk:</span>
+            <span className="text-xs font-medium">{chunkSize}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-xs text-gray-600">Total Tokens (with overlap):</span>
+            <span className="text-xs font-medium">{estimatedTokens}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+ChunkingSection.displayName = 'ChunkingSection';
+
+// Memoized Multimodal Processing Section
+const MultimodalSection = memo<{
+  multimodalProcessing: {
+    transcription: boolean;
+    ocr: boolean;
+    imageCaption: boolean;
+    visualAnalysis: boolean;
+  };
+  onMultimodalProcessingToggle: (type: 'transcription' | 'ocr' | 'imageCaption' | 'visualAnalysis', enabled: boolean) => void;
+}>(({ multimodalProcessing, onMultimodalProcessingToggle }) => {
+  console.log('MultimodalSection render - multimodalProcessing:', multimodalProcessing);
+  return (
+    <div className="space-y-4 pt-2">
+      {/* Audio Processing */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Headphones className="w-4 h-4 text-gray-500" />
+          <label className="text-sm text-gray-700">Audio Transcription</label>
+        </div>
+        <Switch 
+          id="audio-transcription"
+          checked={multimodalProcessing.transcription}
+          onCheckedChange={(checked) => onMultimodalProcessingToggle('transcription', checked)}
+        />
+      </div>
+      <p className="text-xs text-gray-500 ml-6">Convert audio files to searchable text</p>
+
+      {/* OCR Processing */}
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center space-x-2">
+          <FileImage className="w-4 h-4 text-gray-500" />
+          <label className="text-sm text-gray-700">OCR (Text Extraction)</label>
+        </div>
+        <Switch 
+          id="ocr-processing"
+          checked={multimodalProcessing.ocr}
+          onCheckedChange={(checked) => onMultimodalProcessingToggle('ocr', checked)}
+        />
+      </div>
+      <p className="text-xs text-gray-500 ml-6">Extract text from images and scanned documents</p>
+
+      {/* Image Captioning */}
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center space-x-2">
+          <Image className="w-4 h-4 text-gray-500" />
+          <label className="text-sm text-gray-700">Image Captioning</label>
+        </div>
+        <Switch 
+          id="image-captioning"
+          checked={multimodalProcessing.imageCaption}
+          onCheckedChange={(checked) => onMultimodalProcessingToggle('imageCaption', checked)}
+        />
+      </div>
+      <p className="text-xs text-gray-500 ml-6">Generate descriptions for images using GPT-4o</p>
+
+      {/* Visual Analysis */}
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center space-x-2">
+          <Video className="w-4 h-4 text-gray-500" />
+          <label className="text-sm text-gray-700">Visual Analysis</label>
+        </div>
+        <Switch 
+          id="visual-analysis"
+          checked={multimodalProcessing.visualAnalysis}
+          onCheckedChange={(checked) => onMultimodalProcessingToggle('visualAnalysis', checked)}
+        />
+      </div>
+      <p className="text-xs text-gray-500 ml-6">Deep analysis of images and video content</p>
+    </div>
+  );
+});
+
+MultimodalSection.displayName = 'MultimodalSection';
+
 const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
   // Chunking configuration props
   chunkingMethod,
@@ -74,8 +284,13 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
   // Document metadata props
   metadataFields,
   onMetadataFieldChange,
-  recordLevelIndexingEnabled,
-  onRecordLevelIndexingToggle,
+  multimodalProcessing = {
+    transcription: false,
+    ocr: false,
+    imageCaption: false,
+    visualAnalysis: false
+  },
+  onMultimodalProcessingToggle = () => {},
   recordStructure,
   onRecordStructureChange,
   onAddCustomField,
@@ -95,60 +310,47 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
   const [editingFieldId, setEditingFieldId] = useState<number | null>(null);
   const [editFieldValue, setEditFieldValue] = useState("");
 
-  // Calculate chunk metrics for display
-  const estimatedTokens = chunkSize * Math.ceil(2000 / chunkSize); // Assuming 2000 tokens in document
-  const estimatedChunks = Math.ceil(2000 / (chunkSize - chunkOverlap));
-  
   // Count how many fields are included for document record
   const includedFieldsCount = metadataFields.filter(field => field.included).length;
 
-  // Slider change handlers
-  const handleSliderChunkSizeChange = (value: number[]) => {
-    onChunkSizeChange(value[0]);
-  };
-
-  const handleSliderChunkOverlapChange = (value: number[]) => {
-    onChunkOverlapChange(value[0]);
-  };
-
   // Metadata field handlers
-  const handleStartEditing = (field: MetadataField) => {
+  const handleStartEditing = useCallback((field: MetadataField) => {
     setEditingFieldId(field.id);
     setEditFieldValue(field.value);
-  };
+  }, []);
 
-  const handleSaveEdit = (fieldId: number) => {
+  const handleSaveEdit = useCallback((fieldId: number) => {
     onMetadataFieldChange(fieldId, "value", editFieldValue);
     setEditingFieldId(null);
-  };
+  }, [editFieldValue, onMetadataFieldChange]);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setEditingFieldId(null);
-  };
+  }, []);
 
-  const handleAddCustomField = () => {
+  const handleAddCustomField = useCallback(() => {
     if (newFieldName.trim() && newFieldValue.trim()) {
       onAddCustomField(newFieldName.trim(), newFieldValue.trim());
       setNewFieldName("");
       setNewFieldValue("");
     }
-  };
+  }, [newFieldName, newFieldValue, onAddCustomField]);
 
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     metadataFields.forEach(field => {
       if (!field.included) {
         onMetadataFieldChange(field.id, "included", true);
       }
     });
-  };
+  }, [metadataFields, onMetadataFieldChange]);
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     metadataFields.forEach(field => {
       if (field.included) {
         onMetadataFieldChange(field.id, "included", false);
       }
     });
-  };
+  }, [metadataFields, onMetadataFieldChange]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm h-full flex flex-col">
@@ -164,181 +366,48 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
               Chunking Configuration
             </AccordionTrigger>
             <AccordionContent>
-              <div className="space-y-4 pt-2">
-                {/* Chunking Method */}
-                <div className="mb-4">
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Chunking Method</label>
-                  <div className="grid grid-cols-1 gap-1 md:gap-2">
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                        name="chunking-method"
-                        checked={chunkingMethod === "semantic"}
-                        onChange={() => onChunkingMethodChange("semantic")}
-                      />
-                      <span className="ml-2 text-xs md:text-sm text-gray-700">Semantic</span>
-                    </label>
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                        name="chunking-method"
-                        checked={chunkingMethod === "fixed"}
-                        onChange={() => onChunkingMethodChange("fixed")}
-                      />
-                      <span className="ml-2 text-xs md:text-sm text-gray-700">Fixed Size</span>
-                    </label>
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                        name="chunking-method"
-                        checked={chunkingMethod === "header"}
-                        onChange={() => onChunkingMethodChange("header")}
-                      />
-                      <span className="ml-2 text-xs md:text-sm text-gray-700">Header-based</span>
-                    </label>
-                  </div>
-                </div>
-                
-                {/* Chunk Size */}
-                <div className="mb-4">
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                    Chunk Size (tokens)
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-full">
-                      <Slider
-                        defaultValue={[chunkSize]}
-                        max={1000}
-                        min={50}
-                        step={1}
-                        onValueChange={handleSliderChunkSizeChange}
-                        className="w-full"
-                      />
-                    </div>
-                    <span className="text-xs md:text-sm text-gray-700 w-9 md:w-12 text-right">{chunkSize}</span>
-                  </div>
-                </div>
-                
-                {/* Chunk Overlap */}
-                <div className="mb-4">
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                    Chunk Overlap (tokens)
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-full">
-                      <Slider
-                        defaultValue={[chunkOverlap]}
-                        max={100}
-                        min={0}
-                        step={1}
-                        onValueChange={handleSliderChunkOverlapChange}
-                        className="w-full"
-                      />
-                    </div>
-                    <span className="text-xs md:text-sm text-gray-700 w-9 md:w-12 text-right">{chunkOverlap}</span>
-                  </div>
-                </div>
-                
-                {/* Chunk Metrics */}
-                <div className="pt-3 border-t border-gray-200">
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">Chunk Metrics</label>
-                  
-                  <div className="bg-gray-50 rounded-md p-3 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-600">Estimated Chunks:</span>
-                      <span className="text-xs font-medium">
-                        {estimatedChunks + (recordLevelIndexingEnabled ? 1 : 0)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-600">Average Tokens per Chunk:</span>
-                      <span className="text-xs font-medium">{chunkSize}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-600">Total Tokens (with overlap):</span>
-                      <span className="text-xs font-medium">{estimatedTokens}</span>
-                    </div>
-                    {recordLevelIndexingEnabled && (
-                      <div className="flex justify-between text-primary-700">
-                        <span className="text-xs">Document Record Chunk:</span>
-                        <span className="text-xs font-medium">+1</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <ChunkingSection
+                chunkingMethod={chunkingMethod}
+                onChunkingMethodChange={onChunkingMethodChange}
+                chunkSize={chunkSize}
+                onChunkSizeChange={onChunkSizeChange}
+                chunkOverlap={chunkOverlap}
+                onChunkOverlapChange={onChunkOverlapChange}
+              />
             </AccordionContent>
           </AccordionItem>
           
-          {/* Record Level Indexing Section */}
-          <AccordionItem value="record-indexing">
+          {/* Multimodal Processing Section */}
+          <AccordionItem value="multimodal-processing">
             <AccordionTrigger className="text-sm font-medium">
-              Record-Level Indexing
+              Multimodal Processing
               <Badge 
-                variant={recordLevelIndexingEnabled ? "default" : "outline"} 
+                variant={Object.values(multimodalProcessing).some(v => v) ? "default" : "outline"} 
                 className="ml-2 text-[10px] h-5"
               >
-                {recordLevelIndexingEnabled ? "Enabled" : "Disabled"}
+                {Object.values(multimodalProcessing).filter(v => v).length} Active
               </Badge>
             </AccordionTrigger>
             <AccordionContent>
+              <MultimodalSection
+                multimodalProcessing={multimodalProcessing}
+                onMultimodalProcessingToggle={onMultimodalProcessingToggle}
+              />
+            </AccordionContent>
+          </AccordionItem>
+          
+          {/* Document Metadata Section */}
+          <AccordionItem value="document-metadata">
+            <AccordionTrigger className="text-sm font-medium">
+              <div className="flex items-center">
+                <Database className="h-4 w-4 mr-1.5 text-gray-600" />
+                Document Metadata
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
               <div className="space-y-4 pt-2">
-                {/* Toggle for Record Indexing */}
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-sm text-gray-700">Enable Record-Level Indexing</label>
-                  <Switch 
-                    id="record-indexing-toggle"
-                    checked={recordLevelIndexingEnabled}
-                    onCheckedChange={onRecordLevelIndexingToggle}
-                  />
-                </div>
-                
-                <div className={!recordLevelIndexingEnabled ? 'opacity-50 pointer-events-none' : ''}>
-                  {/* Record Structure */}
-                  <div className="mb-4">
-                    <label className="block text-xs font-medium text-gray-700 mb-2">Record Structure</label>
-                    <div className="grid grid-cols-1 gap-1">
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          className="h-3.5 w-3.5 text-primary-600 border-gray-300 focus:ring-primary-500"
-                          name="record-structure"
-                          checked={recordStructure === "flat"}
-                          onChange={() => onRecordStructureChange("flat")}
-                        />
-                        <span className="ml-2 text-xs text-gray-700">Flat Structure</span>
-                        <span className="ml-1 text-xs text-gray-500">(All fields at root level)</span>
-                      </label>
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          className="h-3.5 w-3.5 text-primary-600 border-gray-300 focus:ring-primary-500"
-                          name="record-structure"
-                          checked={recordStructure === "nested"}
-                          onChange={() => onRecordStructureChange("nested")}
-                        />
-                        <span className="ml-2 text-xs text-gray-700">Nested Structure</span>
-                        <span className="ml-1 text-xs text-gray-500">(Group by field types)</span>
-                      </label>
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          className="h-3.5 w-3.5 text-primary-600 border-gray-300 focus:ring-primary-500"
-                          name="record-structure"
-                          checked={recordStructure === "custom"}
-                          onChange={() => onRecordStructureChange("custom")}
-                        />
-                        <span className="ml-2 text-xs text-gray-700">Custom Structure</span>
-                        <span className="ml-1 text-xs text-gray-500">(Content & metadata separation)</span>
-                      </label>
-                    </div>
-                  </div>
-                  
-                  {/* Metadata Fields */}
-                  <div className="mb-4">
+                {/* Metadata Fields */}
+                <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-xs font-medium text-gray-700">Metadata Fields</label>
                       <div className="flex space-x-1">
@@ -454,7 +523,6 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
                       </Button>
                     </div>
                   </div>
-                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -584,4 +652,30 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
   );
 };
 
-export default CombinedConfigurationPanel;
+// Custom comparison function for memo
+const arePropsEqual = (
+  prevProps: CombinedConfigurationPanelProps,
+  nextProps: CombinedConfigurationPanelProps
+) => {
+  // Check multimodal changes specifically
+  const multimodalChanged = JSON.stringify(prevProps.multimodalProcessing) !== JSON.stringify(nextProps.multimodalProcessing);
+  if (multimodalChanged) {
+    console.log('CombinedConfigurationPanel memo: Multimodal changed');
+    console.log('Previous:', prevProps.multimodalProcessing);
+    console.log('Next:', nextProps.multimodalProcessing);
+    return false; // Force re-render on multimodal change
+  }
+  
+  // Deep compare only essential props that affect rendering
+  return (
+    prevProps.chunkingMethod === nextProps.chunkingMethod &&
+    prevProps.chunkSize === nextProps.chunkSize &&
+    prevProps.chunkOverlap === nextProps.chunkOverlap &&
+    JSON.stringify(prevProps.metadataFields) === JSON.stringify(nextProps.metadataFields) &&
+    JSON.stringify(prevProps.fields) === JSON.stringify(nextProps.fields) &&
+    prevProps.selectedModelId === nextProps.selectedModelId &&
+    JSON.stringify(prevProps.advancedOptions) === JSON.stringify(nextProps.advancedOptions)
+  );
+};
+
+export default memo(CombinedConfigurationPanel, arePropsEqual);

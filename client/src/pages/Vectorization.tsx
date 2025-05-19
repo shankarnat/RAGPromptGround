@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { ArrowLeft, ArrowRight, Save, Layers, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Sidebar from "@/components/Sidebar";
 import EmbeddingModelSelector from "@/components/EmbeddingModelSelector";
 import EmbeddingDimensionVisualizer from "@/components/EmbeddingDimensionVisualizer";
 import EmbeddingAdvancedOptions, { AdvancedEmbeddingOptions } from "@/components/EmbeddingAdvancedOptions";
@@ -36,9 +35,8 @@ const Vectorization: FC = () => {
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar activePage="vectorization" />
-      
-      <div className="flex-1 flex flex-col ml-64">
+      {/* Sidebar removed - full width layout */}
+      <div className="flex-1 flex flex-col">
         <header className="h-16 border-b border-gray-200 bg-blue-700 flex items-center px-6">
           <h1 className="text-xl font-semibold text-white flex items-center">
             <Layers className="h-6 w-6 mr-2" />

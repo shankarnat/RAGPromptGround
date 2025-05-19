@@ -2,7 +2,6 @@ import { FC, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Sidebar from "@/components/Sidebar";
 import IndexStatisticsPanel from "@/components/IndexStatisticsPanel";
 import EnhancedIndexPlayground from "@/components/EnhancedIndexPlayground";
 import EnhancedIndexingPanel from "@/components/EnhancedIndexingPanel";
@@ -51,9 +50,8 @@ const ConfigureIndex: FC = () => {
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar activePage="configure-index" />
-      
-      <div className="flex-1 flex flex-col ml-64">
+      {/* Sidebar removed - full width layout */}
+      <div className="flex-1 flex flex-col">
         <header className="h-16 border-b border-gray-200 bg-blue-700 flex items-center px-6">
           <h1 className="text-xl font-semibold text-white">Configure Index</h1>
         </header>

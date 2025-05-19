@@ -1,6 +1,6 @@
-import { FC } from "react";
+import { FC, useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import Sidebar from "@/components/Sidebar";
+// import Sidebar from "@/components/Sidebar"; // Removed sidebar
 import DocumentHeader from "@/components/DocumentHeader";
 import TabNavigation from "@/components/TabNavigation";
 import DocumentPanel from "@/components/DocumentPanel";
@@ -10,6 +10,8 @@ import TestQueryInterface from "@/components/TestQueryInterface";
 import NavigationButtons from "@/components/NavigationButtons";
 import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
 import DocumentExampleSwitcher from "@/components/DocumentExampleSwitcher";
+import ProgressiveDocumentLoader from "@/components/ProgressiveDocumentLoader";
+import IntentBasedProcessingTrigger from "@/services/IntentBasedProcessingTrigger";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,10 +33,17 @@ const DocumentIntelligence: FC = () => {
     selectEmbeddingModel,
     updateEmbeddingOptions,
     // Example switching
-    switchDocumentExample
+    switchDocumentExample,
+    // Processing methods
+    processWithIntent
   } = useDocumentProcessing();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  
+  // State for document analysis and progressive loading
+  const [documentReady, setDocumentReady] = useState(false);
+  const [basicAnalysis, setBasicAnalysis] = useState<any>(null);
+  const [showProgressiveLoader, setShowProgressiveLoader] = useState(true);
 
   const handlePrevious = () => {
     toast({
@@ -50,6 +59,44 @@ const DocumentIntelligence: FC = () => {
       description: "Going to next step: Configure Index"
     });
     navigate("/configure-index");
+  };
+  
+  // Handle on-demand processing requests
+  const handleProcessingRequest = (type: 'idp' | 'rag' | 'kg' | 'combined', config?: any) => {
+    // Close the progressive loader
+    setShowProgressiveLoader(false);
+    
+    // Trigger processing via the service
+    const result = IntentBasedProcessingTrigger.triggerFromUI(type, {
+      ...config,
+      document: state.selectedDocument || state.document
+    });
+    
+    if (result.success) {
+      toast({
+        title: "Processing Started",
+        description: `Starting ${type.toUpperCase()} processing...`
+      });
+      
+      // Use the processing system based on type
+      if (type === 'combined' && config?.types) {
+        IntentBasedProcessingTrigger.triggerCombinedProcessing(config.types, {
+          document: state.selectedDocument || state.document
+        });
+      }
+    } else {
+      toast({
+        title: "Processing Failed",
+        description: result.error || "Failed to start processing",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Handle document analysis completion
+  const handleDocumentReady = (preview: any, analysis: any) => {
+    setDocumentReady(true);
+    setBasicAnalysis(analysis);
   };
 
   // Show different content based on the active tab
@@ -68,8 +115,6 @@ const DocumentIntelligence: FC = () => {
           // Metadata props
           metadataFields={state.metadataFields}
           onMetadataFieldChange={updateMetadataField}
-          recordLevelIndexingEnabled={state.recordLevelIndexingEnabled}
-          onRecordLevelIndexingToggle={toggleRecordLevelIndexing}
           recordStructure={state.recordStructure}
           onRecordStructureChange={updateRecordStructure}
           onAddCustomField={addCustomMetadataField}
@@ -166,14 +211,16 @@ const DocumentIntelligence: FC = () => {
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar activePage="parse-chunk" />
+      {/* Sidebar removed - full width layout */}
       
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col">
         <DocumentHeader 
           documentTitle={state.document.title}
           pageCount={state.document.pageCount}
           processingMode={state.processingMode}
           onProcessingModeChange={updateProcessingMode}
+          onProcessingRequest={handleProcessingRequest}
+          hasAnalysis={documentReady}
         />
         
         <main className="flex-1 overflow-auto p-6 bg-gray-50">
@@ -182,17 +229,34 @@ const DocumentIntelligence: FC = () => {
             onExampleChange={switchDocumentExample}
           />
           
-          <TabNavigation 
-            activeTab={state.activeTab} 
-            onTabChange={updateActiveTab} 
-          />
+          {/* Show progressive loader if document is newly selected */}
+          {showProgressiveLoader && state.selectedDocument && (
+            <div className="max-w-4xl mx-auto mb-6">
+              <ProgressiveDocumentLoader
+                document={state.selectedDocument}
+                onProcessingRequest={handleProcessingRequest}
+                onDocumentReady={handleDocumentReady}
+                autoAnalyze={true}
+              />
+            </div>
+          )}
           
-          {renderMainContent()}
-          
-          <NavigationButtons 
-            onPrevious={handlePrevious} 
-            onNext={handleNext} 
-          />
+          {/* Regular content once document is ready */}
+          {(!showProgressiveLoader || documentReady) && (
+            <>
+              <TabNavigation 
+                activeTab={state.activeTab} 
+                onTabChange={updateActiveTab} 
+              />
+              
+              {renderMainContent()}
+              
+              <NavigationButtons 
+                onPrevious={handlePrevious} 
+                onNext={handleNext} 
+              />
+            </>
+          )}
         </main>
       </div>
     </div>

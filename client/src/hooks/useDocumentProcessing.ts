@@ -10,6 +10,7 @@ import {
 } from "@/data/sampleDocument";
 import { recentDocuments, dataModels } from "@/data/sampleUploadData";
 import { embeddingModels, defaultAdvancedOptions } from "@/data/embeddingModelsData";
+import { mockIDPResults } from "@/data/mockIDPData";
 import { 
   ChunkingMethod, 
   ProcessingMode, 
@@ -19,6 +20,8 @@ import {
   MetadataField,
   RecordStructure 
 } from "@shared/schema";
+import ProcessingPipeline, { ProcessingStep, PipelineStatus } from "@/services/ProcessingPipeline";
+import { ProcessingIntent } from "@/services/ConversationManager";
 
 // Document example type
 export type DocumentExample = "financialReport" | "financialCsv";
@@ -82,6 +85,31 @@ export interface DocumentProcessingState {
       kg: "idle" | "processing" | "completed" | "error";
       idp: "idle" | "processing" | "completed" | "error";
     };
+    // New unified processing properties
+    selectedProcessingTypes: ("standard" | "kg" | "idp")[];
+    unifiedResults: {
+      standard?: {
+        chunks: any[];
+        vectors: any[];
+        indexStatus: string;
+      };
+      kg?: {
+        entities: any[];
+        relations: any[];
+        graph: any;
+      };
+      idp?: {
+        metadata: Record<string, any>;
+        classification: string[];
+        extractedData: any;
+      };
+    };
+    // Pipeline state
+    pipeline: {
+      status: PipelineStatus;
+      steps: ProcessingStep[];
+      currentIntent?: ProcessingIntent;
+    };
   };
 }
 
@@ -125,6 +153,81 @@ export function useDocumentProcessing() {
         rag: "idle",
         kg: "idle",
         idp: "idle"
+      },
+      // New unified processing properties
+      selectedProcessingTypes: ["standard"],
+      unifiedResults: {
+        standard: {
+          chunks: sampleChunks,
+          vectors: sampleChunks.map(chunk => ({
+            id: chunk.id,
+            vector: Array(768).fill(0).map(() => Math.random()),
+            metadata: { chunkIndex: chunk.chunkIndex }
+          })),
+          indexStatus: "indexed"
+        },
+        kg: {
+          entities: [
+            { 
+              id: 1, 
+              type: "Person", 
+              name: "John Smith", 
+              properties: {
+                role: "Chief Financial Officer",
+                department: "Finance",
+                tenure: "5 years"
+              },
+              relationships: [
+                { type: "REPORTS_TO", target: "Jane Doe", direction: "outbound" },
+                { type: "MANAGES", target: "Finance Team", direction: "outbound" }
+              ]
+            },
+            { 
+              id: 2, 
+              type: "Organization", 
+              name: "Acme Corporation", 
+              properties: {
+                industry: "Technology",
+                size: "Enterprise",
+                location: "San Francisco, CA"
+              },
+              relationships: [
+                { type: "EMPLOYS", target: "John Smith", direction: "outbound" },
+                { type: "PARTNER_WITH", target: "TechCorp", direction: "outbound" }
+              ]
+            },
+            { 
+              id: 3, 
+              type: "Date", 
+              name: "Q4 2023",
+              properties: {
+                year: "2023",
+                quarter: "Q4"
+              },
+              relationships: []
+            }
+          ],
+          relations: [
+            { source: 1, target: 2, type: "WORKS_AT", confidence: 0.95 }
+          ],
+          graph: {
+            nodes: 3,
+            edges: 2,
+            density: 0.33
+          }
+        },
+        idp: mockIDPResults
+      },
+      // Pipeline state
+      pipeline: {
+        status: {
+          status: 'idle',
+          currentStep: null,
+          totalSteps: 0,
+          completedSteps: 0,
+          progress: 0
+        },
+        steps: []
       }
     }
   });
@@ -526,6 +629,36 @@ export function useDocumentProcessing() {
     }));
   };
 
+  // New method to toggle processing type selection
+  const toggleProcessingType = (type: "standard" | "kg" | "idp") => {
+    setState(prev => {
+      const currentTypes = prev.unifiedProcessing.selectedProcessingTypes;
+      let newTypes: typeof currentTypes;
+      
+      if (currentTypes.includes(type)) {
+        newTypes = currentTypes.filter(t => t !== type);
+      } else {
+        newTypes = [...currentTypes, type];
+      }
+      
+      // Update the legacy enabled flags for backward compatibility
+      const ragEnabled = newTypes.includes("standard");
+      const kgEnabled = newTypes.includes("kg");
+      const idpEnabled = newTypes.includes("idp");
+      
+      return {
+        ...prev,
+        unifiedProcessing: {
+          ...prev.unifiedProcessing,
+          selectedProcessingTypes: newTypes,
+          ragEnabled,
+          kgEnabled,
+          idpEnabled
+        }
+      };
+    });
+  };
+
   const updateProcessingStatus = (type: "rag" | "kg" | "idp", status: "idle" | "processing" | "completed" | "error") => {
     setState(prev => ({
       ...prev,
@@ -549,38 +682,363 @@ export function useDocumentProcessing() {
     }));
   };
 
-  const processDocument = async () => {
-    const { unifiedProcessing } = state;
+  // New method to update unified results
+  const updateUnifiedResults = (type: "standard" | "kg" | "idp", results: any) => {
+    setState(prev => ({
+      ...prev,
+      unifiedProcessing: {
+        ...prev.unifiedProcessing,
+        unifiedResults: {
+          ...prev.unifiedProcessing.unifiedResults,
+          [type]: results
+        }
+      }
+    }));
+  };
+
+  // Enhanced method to run unified processing
+  const runUnifiedProcessing = async () => {
+    const { selectedProcessingTypes } = state.unifiedProcessing;
+    const document = state.selectedDocument || state.document;
     
-    // Process RAG if enabled
-    if (unifiedProcessing.ragEnabled) {
+    // Clear previous results
+    setState(prev => ({
+      ...prev,
+      unifiedProcessing: {
+        ...prev.unifiedProcessing,
+        unifiedResults: {}
+      }
+    }));
+    
+    // Process standard RAG if selected
+    if (selectedProcessingTypes.includes("standard")) {
       updateProcessingStatus("rag", "processing");
+      
       // Simulate processing
       setTimeout(() => {
+        const standardResults = {
+          chunks: state.chunks,
+          vectors: state.chunks.map(chunk => ({
+            id: chunk.id,
+            vector: Array(768).fill(0).map(() => Math.random()),
+            metadata: { chunkIndex: chunk.chunkIndex }
+          })),
+          indexStatus: "indexed"
+        };
+        
         updateProcessingStatus("rag", "completed");
         updateProcessingResults("rag", { chunks: state.chunks });
+        updateUnifiedResults("standard", standardResults);
       }, 2000);
     }
     
-    // Process KG if enabled
-    if (unifiedProcessing.kgEnabled) {
+    // Process Knowledge Graph if selected
+    if (selectedProcessingTypes.includes("kg")) {
       updateProcessingStatus("kg", "processing");
+      
       // Simulate processing
       setTimeout(() => {
+        const kgResults = {
+          entities: [
+            { 
+              id: 1, 
+              type: "Person", 
+              name: "John Doe", 
+              properties: {
+                role: "CEO",
+                experience: "15 years",
+                location: "San Francisco"
+              },
+              relationships: [
+                { type: "WORKS_AT", target: "Acme Corp", direction: "outbound" }
+              ]
+            },
+            { 
+              id: 2, 
+              type: "Organization", 
+              name: "Acme Corp", 
+              properties: {
+                industry: "Technology",
+                founded: "2010",
+                size: "500+ employees"
+              },
+              relationships: [
+                { type: "EMPLOYS", target: "John Doe", direction: "outbound" }
+              ]
+            },
+            { 
+              id: 3, 
+              type: "Date", 
+              name: "2024",
+              properties: {},
+              relationships: []
+            }
+          ],
+          relations: [
+            { source: 1, target: 2, type: "WORKS_AT", confidence: 0.92 }
+          ],
+          graph: {
+            nodes: 3,
+            edges: 1,
+            density: 0.33
+          }
+        };
+        
         updateProcessingStatus("kg", "completed");
-        updateProcessingResults("kg", { entities: [], relations: [] });
+        updateProcessingResults("kg", kgResults);
+        updateUnifiedResults("kg", kgResults);
       }, 3000);
     }
     
-    // Process IDP if enabled
-    if (unifiedProcessing.idpEnabled) {
+    // Process IDP if selected
+    if (selectedProcessingTypes.includes("idp")) {
       updateProcessingStatus("idp", "processing");
+      
       // Simulate processing
       setTimeout(() => {
+        // Use proper mock IDP data with tables
+        const idpResults = mockIDPResults;
+        
         updateProcessingStatus("idp", "completed");
-        updateProcessingResults("idp", { metadata: {}, classification: [] });
+        updateProcessingResults("idp", idpResults);
+        updateUnifiedResults("idp", idpResults);
       }, 2500);
     }
+  };
+
+  // Process document with intent from conversation
+  const processWithIntent = async (intent: ProcessingIntent) => {
+    // Configure pipeline based on intent
+    const steps = ProcessingPipeline.configureFromIntent(intent, state.selectedDocument || state.document);
+    
+    setState(prev => ({
+      ...prev,
+      unifiedProcessing: {
+        ...prev.unifiedProcessing,
+        pipeline: {
+          status: ProcessingPipeline.getPipelineStatus(),
+          steps,
+          currentIntent: intent
+        }
+      }
+    }));
+    
+    // Subscribe to pipeline updates
+    const unsubscribeProgress = ProcessingPipeline.onProgress((status) => {
+      setState(prev => ({
+        ...prev,
+        unifiedProcessing: {
+          ...prev.unifiedProcessing,
+          pipeline: {
+            ...prev.unifiedProcessing.pipeline,
+            status
+          }
+        }
+      }));
+    });
+    
+    const unsubscribeStep = ProcessingPipeline.onStepUpdate((step) => {
+      setState(prev => ({
+        ...prev,
+        unifiedProcessing: {
+          ...prev.unifiedProcessing,
+          pipeline: {
+            ...prev.unifiedProcessing.pipeline,
+            steps: prev.unifiedProcessing.pipeline.steps.map(s => 
+              s.id === step.id ? step : s
+            )
+          }
+        }
+      }));
+    });
+    
+    try {
+      // Execute the pipeline
+      await ProcessingPipeline.execute();
+      
+      // Get combined results
+      const results = ProcessingPipeline.getCombinedResults();
+      
+      // Update results based on intent type
+      if (intent.intent === 'find_answers_tables') {
+        if (results.idp && results.rag) {
+          setState(prev => ({
+            ...prev,
+            unifiedProcessing: {
+              ...prev.unifiedProcessing,
+              unifiedResults: {
+                ...prev.unifiedProcessing.unifiedResults,
+                idp: {
+                  metadata: {},
+                  classification: ['table-data'],
+                  extractedData: results.idp['idp-table-extraction']
+                },
+                standard: {
+                  chunks: results.rag['rag-table-chunking']?.chunks || [],
+                  vectors: [],
+                  indexStatus: results.rag['rag-indexing']?.searchReady ? 'indexed' : 'pending'
+                }
+              }
+            }
+          }));
+        }
+      } else if (intent.intent === 'extract_form_fields') {
+        if (results.idp) {
+          setState(prev => ({
+            ...prev,
+            unifiedProcessing: {
+              ...prev.unifiedProcessing,
+              unifiedResults: {
+                ...prev.unifiedProcessing.unifiedResults,
+                idp: mockIDPResults
+              }
+            }
+          }));
+        }
+      } else if (intent.intent === 'understand_relationships') {
+        if (results.kg) {
+          setState(prev => ({
+            ...prev,
+            unifiedProcessing: {
+              ...prev.unifiedProcessing,
+              unifiedResults: {
+                ...prev.unifiedProcessing.unifiedResults,
+                kg: {
+                  entities: results.kg['kg-entity-extraction']?.entities || [],
+                  relations: results.kg['kg-relation-mapping']?.relations || [],
+                  graph: results.kg['kg-graph-building']?.graph || {}
+                }
+              }
+            }
+          }));
+        }
+      }
+      
+    } finally {
+      unsubscribeProgress();
+      unsubscribeStep();
+    }
+  };
+
+  // Set up pipeline subscriptions on mount
+  useEffect(() => {
+    const unsubscribeProgress = ProcessingPipeline.onProgress((status) => {
+      setState(prev => ({
+        ...prev,
+        unifiedProcessing: {
+          ...prev.unifiedProcessing,
+          pipeline: {
+            ...prev.unifiedProcessing.pipeline,
+            status
+          }
+        }
+      }));
+    });
+    
+    const unsubscribeStep = ProcessingPipeline.onStepUpdate((step) => {
+      setState(prev => ({
+        ...prev,
+        unifiedProcessing: {
+          ...prev.unifiedProcessing,
+          pipeline: {
+            ...prev.unifiedProcessing.pipeline,
+            steps: prev.unifiedProcessing.pipeline.steps.map(s => 
+              s.id === step.id ? step : s
+            )
+          }
+        }
+      }));
+    });
+    
+    return () => {
+      unsubscribeProgress();
+      unsubscribeStep();
+    };
+  }, []);
+
+  // Clear all results and reset to initial state
+  const clearAllResults = () => {
+    setState(prev => ({
+      ...prev,
+      unifiedProcessing: {
+        ...prev.unifiedProcessing,
+        ragResults: null,
+        kgResults: null,
+        idpResults: null,
+        processingStatus: {
+          rag: "idle",
+          kg: "idle",
+          idp: "idle"
+        },
+        unifiedResults: {
+          standard: {
+            chunks: sampleChunks,
+            vectors: sampleChunks.map(chunk => ({
+              id: chunk.id,
+              vector: Array(768).fill(0).map(() => Math.random()),
+              metadata: { chunkIndex: chunk.chunkIndex }
+            })),
+            indexStatus: "indexed"
+          },
+          kg: {
+            entities: [
+              { 
+                id: 1, 
+                type: "Person", 
+                name: "John Smith", 
+                properties: {
+                  role: "Chief Financial Officer",
+                  department: "Finance",
+                  tenure: "5 years"
+                },
+                relationships: [
+                  { type: "REPORTS_TO", target: "Jane Doe", direction: "outbound" },
+                  { type: "MANAGES", target: "Finance Team", direction: "outbound" }
+                ]
+              },
+              { 
+                id: 2, 
+                type: "Organization", 
+                name: "Acme Corporation", 
+                properties: {
+                  industry: "Technology",
+                  size: "Enterprise",
+                  location: "San Francisco, CA"
+                },
+                relationships: [
+                  { type: "EMPLOYS", target: "John Smith", direction: "outbound" },
+                  { type: "PARTNER_WITH", target: "TechCorp", direction: "outbound" }
+                ]
+              },
+              { 
+                id: 3, 
+                type: "Date", 
+                name: "Q4 2023",
+                properties: {
+                  year: "2023",
+                  quarter: "Q4"
+                },
+                relationships: []
+              }
+            ],
+            relations: [
+              { source: 1, target: 2, type: "WORKS_AT", confidence: 0.95 }
+            ],
+            graph: {
+              nodes: 3,
+              edges: 2,
+              density: 0.33
+            }
+          },
+          idp: mockIDPResults
+        }
+      }
+    }));
+  };
+  
+  // Legacy method for backward compatibility
+  const processDocument = async () => {
+    return runUnifiedProcessing();
   };
 
   return {
@@ -612,6 +1070,14 @@ export function useDocumentProcessing() {
     toggleUnifiedProcessing,
     updateProcessingStatus,
     updateProcessingResults,
-    processDocument
+    processDocument,
+    // New unified processing methods
+    toggleProcessingType,
+    updateUnifiedResults,
+    runUnifiedProcessing,
+    // Intent-based processing
+    processWithIntent,
+    // Clear results
+    clearAllResults
   };
 }

@@ -1,8 +1,10 @@
 import { FC, useCallback, useState } from "react";
-import { UploadCloud, File, X } from "lucide-react";
+import { UploadCloud, File, FileText, FileSpreadsheet, FileCode, Clock, Calendar, CloudUpload } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { UploadedDocument } from "@shared/schema";
 import { formatFileSize, formatDate } from "@/data/sampleUploadData";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface UploadPanelProps {
   isUploading: boolean;
@@ -11,6 +13,7 @@ interface UploadPanelProps {
   selectedDocument: UploadedDocument | null;
   onSelectDocument: (doc: UploadedDocument) => void;
   onUploadDocument: (file: File) => void;
+  onDocumentClick?: (doc: UploadedDocument) => void;
 }
 
 const UploadPanel: FC<UploadPanelProps> = ({
@@ -19,7 +22,8 @@ const UploadPanel: FC<UploadPanelProps> = ({
   recentDocuments,
   selectedDocument,
   onSelectDocument,
-  onUploadDocument
+  onUploadDocument,
+  onDocumentClick
 }) => {
   const [dragActive, setDragActive] = useState(false);
 
@@ -50,94 +54,164 @@ const UploadPanel: FC<UploadPanelProps> = ({
     }
   }, [onUploadDocument]);
 
-  return (
-    <div className="flex-1 min-w-0 bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-xl font-medium text-gray-800 mb-6">Document Ingestion</h2>
-      
-      {/* Upload area */}
-      <div
-        className={`relative border-2 border-dashed rounded-lg p-8 mb-8 transition-colors text-center ${
-          dragActive ? "border-primary-400 bg-primary-50" : "border-gray-300 hover:border-primary-300"
-        }`}
-        onDragEnter={handleDrag}
-        onDragOver={handleDrag}
-        onDragLeave={handleDrag}
-        onDrop={handleDrop}
-      >
-        <input 
-          type="file"
-          id="file-upload"
-          className="hidden"
-          accept=".pdf,.docx,.doc,.txt,.md,.csv"
-          onChange={handleFileChange}
-        />
-        
-        <div className="flex flex-col items-center justify-center">
-          <UploadCloud className="w-12 h-12 text-gray-400 mb-4" />
-          <p className="text-lg font-medium text-gray-700 mb-2">
-            Drag & drop your document here
-          </p>
-          <p className="text-sm text-gray-500 mb-4">
-            Supported files: PDF, DOCX, TXT, MD, CSV
-          </p>
-          <label
-            htmlFor="file-upload"
-            className="bg-primary-500 hover:bg-primary-600 text-white py-2 px-4 rounded-md cursor-pointer transition-colors"
-          >
-            Browse files
-          </label>
-        </div>
-      </div>
+  // Helper function to get the appropriate file icon
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return FileText;
+      case 'csv':
+      case 'xlsx':
+      case 'xls':
+        return FileSpreadsheet;
+      case 'txt':
+      case 'md':
+        return FileCode;
+      default:
+        return File;
+    }
+  };
 
-      {/* Upload progress */}
-      {isUploading && (
-        <div className="border rounded-lg p-6 mb-8 bg-gray-50">
-          <div className="flex items-center mb-4">
-            <div className="animate-pulse bg-primary-100 p-2 rounded-md mr-4">
-              <File className="w-6 h-6 text-primary-500" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-800">Uploading document...</p>
-              <p className="text-sm text-gray-500">{uploadProgress}% complete</p>
-            </div>
+  return (
+    <Card className="border-0 shadow-md">
+      <CardHeader className="pb-4">
+        <div className="flex items-center space-x-3">
+          <CloudUpload className="h-6 w-6 text-blue-600" />
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Document Ingestion Center</h2>
+            <p className="text-sm text-gray-600 mt-1">Upload and manage your documents for processing</p>
           </div>
-          <Progress value={uploadProgress} className="h-2" />
         </div>
-      )}
+      </CardHeader>
+      <CardContent>
       
-      {/* Recently uploaded files */}
-      <div className="mb-2">
-        <h3 className="font-medium text-gray-700 mb-4">Recent Documents</h3>
-        <div className="space-y-3">
-          {recentDocuments.map((doc) => (
-            <div 
-              key={doc.id}
-              className={`flex items-center justify-between p-3 border rounded-md cursor-pointer transition-colors ${
-                selectedDocument?.id === doc.id 
-                ? "bg-primary-50 border-primary-200" 
-                : "hover:bg-gray-50"
-              }`}
-              onClick={() => onSelectDocument(doc)}
+        {/* Upload area */}
+        <div
+          className={`relative bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed rounded-xl p-10 mb-8 transition-all duration-300 text-center ${
+            dragActive ? "border-blue-500 bg-blue-100 shadow-lg scale-[1.02]" : "border-gray-300 hover:border-blue-400"
+          }`}
+          onDragEnter={handleDrag}
+          onDragOver={handleDrag}
+          onDragLeave={handleDrag}
+          onDrop={handleDrop}
+        >
+          <input 
+            type="file"
+            id="file-upload"
+            className="hidden"
+            accept=".pdf,.docx,.doc,.txt,.md,.csv"
+            onChange={handleFileChange}
+          />
+          
+          <div className="flex flex-col items-center justify-center">
+            <div className="bg-white rounded-full p-4 shadow-md mb-4">
+              <UploadCloud className={`w-12 h-12 ${dragActive ? 'text-blue-600 animate-pulse' : 'text-blue-500'}`} />
+            </div>
+            <p className="text-xl font-semibold text-gray-800 mb-2">
+              {dragActive ? "Release to upload" : "Drag & Drop Your Document"}
+            </p>
+            <p className="text-sm text-gray-600 mb-6">
+              or click to browse • Supported: PDF, DOCX, TXT, MD, CSV
+            </p>
+            <Button
+              asChild
+              size="lg"
+              className="shadow-sm"
             >
-              <div className="flex items-center">
-                <File className="w-5 h-5 mr-3 text-gray-400" />
+              <label htmlFor="file-upload">
+                <FileText className="w-5 h-5 mr-2" />
+                Select Files
+              </label>
+            </Button>
+          </div>
+        </div>
+
+        {/* Upload progress */}
+        {isUploading && (
+          <Card className="mb-8 border-blue-200 bg-blue-50/50">
+            <CardContent className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="animate-pulse bg-blue-100 p-3 rounded-lg mr-4">
+                  <CloudUpload className="w-6 h-6 text-blue-600" />
+                </div>
                 <div>
-                  <p className="font-medium text-gray-800">{doc.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {formatFileSize(doc.size)} • {formatDate(doc.uploadDate)}
-                  </p>
+                  <p className="font-semibold text-gray-800">Uploading Document</p>
+                  <p className="text-sm text-gray-600">{uploadProgress}% complete</p>
                 </div>
               </div>
-              {selectedDocument?.id === doc.id && (
-                <div className="h-5 w-5 rounded-full bg-primary-500 flex items-center justify-center">
-                  <span className="text-white text-xs">✓</span>
-                </div>
-              )}
+              <Progress value={uploadProgress} className="h-2" />
+            </CardContent>
+          </Card>
+        )}
+      
+        {/* Recently uploaded files */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-5 w-5 text-gray-600" />
+              <h3 className="font-semibold text-gray-800">Recent Documents</h3>
             </div>
-          ))}
+            <span className="text-sm text-gray-500">{recentDocuments.length} documents</span>
+          </div>
+          
+          <div className="space-y-3">
+            {recentDocuments.map((doc) => {
+              const FileIcon = getFileIcon(doc.name);
+              const isSelected = selectedDocument?.id === doc.id;
+              
+              return (
+                <Card 
+                  key={doc.id}
+                  className={`cursor-pointer transition-all duration-200 ${
+                    isSelected 
+                    ? "ring-2 ring-blue-500 shadow-lg bg-blue-50/50" 
+                    : "hover:shadow-md hover:bg-gray-50/50"
+                  }`}
+                  onClick={() => {
+                    onSelectDocument(doc);
+                    if (onDocumentClick) {
+                      onDocumentClick(doc);
+                    }
+                  }}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                          <FileIcon className={`w-5 h-5 ${isSelected ? 'text-blue-600' : 'text-gray-600'}`} />
+                        </div>
+                        <div>
+                          <p className={`font-medium ${isSelected ? 'text-blue-900' : 'text-gray-800'}`}>
+                            {doc.name}
+                          </p>
+                          <div className="flex items-center space-x-3 text-xs text-gray-500 mt-1">
+                            <span className="flex items-center">
+                              <FileText className="w-3 h-3 mr-1" />
+                              {formatFileSize(doc.size)}
+                            </span>
+                            <span className="flex items-center">
+                              <Calendar className="w-3 h-3 mr-1" />
+                              {formatDate(doc.uploadDate)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center shadow-sm">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
