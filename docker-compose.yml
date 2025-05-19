@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/ragplayground
+      - PORT=3000
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    networks:
+      - ragplayground-network
+    volumes:
+      - ./attached_assets:/app/attached_assets
+
+  db-init:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/ragplayground
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ragplayground-network
+    command: /app/scripts/init-db.sh
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ragplayground
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ragplayground-network
+
+networks:
+  ragplayground-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
