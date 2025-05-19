@@ -48,8 +48,14 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   // Sidebar navigation items
   const navItems: NavItem[] = [
     { 
+      name: "Unified Dashboard", 
+      icon: <LayoutDashboard className="h-5 w-5 mr-3 text-blue-500" />, 
+      id: "unified",
+      href: "/unified"
+    },
+    { 
       name: "Search Index", 
-      icon: <LayoutDashboard className="h-5 w-5 mr-3 text-gray-500" />, 
+      icon: <FileText className="h-5 w-5 mr-3 text-gray-500" />, 
       id: "search-index",
       href: "#",
       subnav: [
@@ -104,7 +110,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage }) => {
   ];
 
   const handleNavigation = (path: string, id: string) => {
-    if (id === "upload" || id === "parse-chunk" || id.startsWith("kg-")) {
+    if (id === "unified" || id === "upload" || id === "parse-chunk" || id.startsWith("kg-")) {
       navigate(path);
     }
   };

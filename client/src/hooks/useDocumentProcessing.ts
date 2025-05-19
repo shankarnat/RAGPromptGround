@@ -69,6 +69,20 @@ export interface DocumentProcessingState {
   selectedDataModel: DataModel | null;
   // Example switching
   currentExample: DocumentExample;
+  // Unified processing state
+  unifiedProcessing: {
+    ragEnabled: boolean;
+    kgEnabled: boolean;
+    idpEnabled: boolean;
+    ragResults?: any;
+    kgResults?: any;
+    idpResults?: any;
+    processingStatus: {
+      rag: "idle" | "processing" | "completed" | "error";
+      kg: "idle" | "processing" | "completed" | "error";
+      idp: "idle" | "processing" | "completed" | "error";
+    };
+  };
 }
 
 export function useDocumentProcessing() {
@@ -98,7 +112,21 @@ export function useDocumentProcessing() {
     dataModels: dataModels,
     selectedDataModel: null,
     // Example document switching
-    currentExample: "financialReport"
+    currentExample: "financialReport",
+    // Unified processing state
+    unifiedProcessing: {
+      ragEnabled: true,
+      kgEnabled: false,
+      idpEnabled: false,
+      ragResults: null,
+      kgResults: null,
+      idpResults: null,
+      processingStatus: {
+        rag: "idle",
+        kg: "idle",
+        idp: "idle"
+      }
+    }
   });
 
   const updateChunkingMethod = (method: ChunkingMethod) => {
@@ -487,6 +515,74 @@ export function useDocumentProcessing() {
     }));
   };
 
+  // Unified processing methods
+  const toggleUnifiedProcessing = (type: "rag" | "kg" | "idp", enabled: boolean) => {
+    setState(prev => ({
+      ...prev,
+      unifiedProcessing: {
+        ...prev.unifiedProcessing,
+        [`${type}Enabled`]: enabled
+      }
+    }));
+  };
+
+  const updateProcessingStatus = (type: "rag" | "kg" | "idp", status: "idle" | "processing" | "completed" | "error") => {
+    setState(prev => ({
+      ...prev,
+      unifiedProcessing: {
+        ...prev.unifiedProcessing,
+        processingStatus: {
+          ...prev.unifiedProcessing.processingStatus,
+          [type]: status
+        }
+      }
+    }));
+  };
+
+  const updateProcessingResults = (type: "rag" | "kg" | "idp", results: any) => {
+    setState(prev => ({
+      ...prev,
+      unifiedProcessing: {
+        ...prev.unifiedProcessing,
+        [`${type}Results`]: results
+      }
+    }));
+  };
+
+  const processDocument = async () => {
+    const { unifiedProcessing } = state;
+    
+    // Process RAG if enabled
+    if (unifiedProcessing.ragEnabled) {
+      updateProcessingStatus("rag", "processing");
+      // Simulate processing
+      setTimeout(() => {
+        updateProcessingStatus("rag", "completed");
+        updateProcessingResults("rag", { chunks: state.chunks });
+      }, 2000);
+    }
+    
+    // Process KG if enabled
+    if (unifiedProcessing.kgEnabled) {
+      updateProcessingStatus("kg", "processing");
+      // Simulate processing
+      setTimeout(() => {
+        updateProcessingStatus("kg", "completed");
+        updateProcessingResults("kg", { entities: [], relations: [] });
+      }, 3000);
+    }
+    
+    // Process IDP if enabled
+    if (unifiedProcessing.idpEnabled) {
+      updateProcessingStatus("idp", "processing");
+      // Simulate processing
+      setTimeout(() => {
+        updateProcessingStatus("idp", "completed");
+        updateProcessingResults("idp", { metadata: {}, classification: [] });
+      }, 2500);
+    }
+  };
+
   return {
     state,
     updateChunkingMethod,
@@ -511,6 +607,11 @@ export function useDocumentProcessing() {
     selectDocument,
     selectDataModel,
     uploadDocument,
-    navigateToParseChunk
+    navigateToParseChunk,
+    // Unified processing methods
+    toggleUnifiedProcessing,
+    updateProcessingStatus,
+    updateProcessingResults,
+    processDocument
   };
 }

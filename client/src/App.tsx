@@ -12,6 +12,7 @@ import Vectorization from "@/pages/Vectorization";
 import TestAndResults from "@/pages/TestAndResults";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import WelcomeSlideout from "@/components/WelcomeSlideout";
+import UnifiedDashboard from "@/components/UnifiedDashboard";
 
 // Knowledge Graph pages
 import TemplateSelection from "@/pages/kg/TemplateSelection";
@@ -29,8 +30,9 @@ function Router() {
   return (
     <Switch>
       <Route path="/">
-        <Redirect to="/upload" />
+        <Redirect to="/unified" />
       </Route>
+      <Route path="/unified" component={UnifiedDashboard} />
       <Route path="/upload" component={DocumentUpload} />
       <Route path="/parse-chunk" component={DocumentIntelligence} />
       <Route path="/configure-index">
