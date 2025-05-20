@@ -297,10 +297,10 @@ export class ConversationManager {
     idp_check: () => ({
       message: 'What type of document data extraction do you need?',
       actions: [
-        { label: 'Structured data', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'confirmation' } },
-        { label: 'Metadata', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'confirmation' } },
-        { label: 'Full processing', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'confirmation' } },
-        { label: 'No processing', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'confirmation' } }
+        { label: 'Structured data', action: 'process_directly', data: { idpEnabled: true, extractType: 'structured' } },
+        { label: 'Metadata', action: 'process_directly', data: { idpEnabled: true, extractType: 'metadata' } },
+        { label: 'Full processing', action: 'process_directly', data: { idpEnabled: true, extractType: 'full' } },
+        { label: 'No processing', action: 'process_directly', data: { idpEnabled: false } }
       ]
     }),
     
@@ -804,6 +804,39 @@ export class ConversationManager {
         newState.idpPreferences = { enabled: data.idpEnabled, extractType: data.extractType };
         newState.conversationStep = data.nextStep;
         break;
+        
+      case 'process_directly':
+        // First, save the IDP preferences
+        newState.idpPreferences = { enabled: data.idpEnabled, extractType: data.extractType };
+        
+        // Generate the final configuration
+        const config = this.buildFinalConfiguration(newState);
+        
+        // Skip to completion message
+        const completeMessage: ConversationMessage = {
+          id: this.generateId(),
+          type: 'assistant',
+          content: 'Configuration complete! Your document is being processed with the selected settings.',
+          timestamp: new Date(),
+          actions: [
+            {
+              id: this.generateId(),
+              label: 'Process Document', 
+              action: 'confirm_processing', 
+              data: config
+            }
+          ]
+        };
+        
+        // Mark the conversation as complete
+        newState.isComplete = true;
+        newState.configuration = config;
+        
+        // Add the completion message
+        return {
+          ...newState,
+          messages: [...newState.messages, completeMessage]
+        };
     }
     
     // Get the next message based on the new state

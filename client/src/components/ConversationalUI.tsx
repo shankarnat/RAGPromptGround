@@ -75,12 +75,31 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         onProcessingConfigured(config);
       }
     }
-  }, [state.isComplete, onProcessingConfigured, getProcessingConfig]);
+  }, [state.isComplete, onProcessingConfigured, getProcessingConfig, handleAction]);
 
-  // Override the handleAction to intercept start_processing and select_processing
+  // Override the handleAction to intercept start_processing, select_processing, and process_directly
   const handleActionWithConfig = (action: string, data?: any) => {
+    // Handle process_directly action for direct processing from IDP selection
+    if (action === 'process_directly' && onProcessingConfigured) {
+      console.log('Intercepting process_directly to trigger immediate processing', data);
+      
+      // Let the ConversationManager handle the message first
+      handleAction(action, data);
+      
+      // Then trigger the processing with a slight delay to allow the UI to update
+      setTimeout(() => {
+        const config = getProcessingConfig();
+        if (config) {
+          console.log('Starting processing with config:', config);
+          config.processImmediately = true;
+          onProcessingConfigured(config);
+        }
+      }, 300);
+      
+      return; // Skip the standard handleAction at the end
+    }
     // Handle select_processing similar to an immediate process_document action
-    if (action === 'select_processing' && onProcessingConfigured) {
+    else if (action === 'select_processing' && onProcessingConfigured) {
       console.log('Intercepting select_processing to trigger immediate processing', data);
       
       const config = {
@@ -99,7 +118,10 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       onProcessingConfigured(config);
     }
     
-    handleAction(action, data);
+    // For all other actions, call the standard handler
+    if (action !== 'process_directly') {
+      handleAction(action, data);
+    }
   };
 
   const handleSendMessage = () => {
