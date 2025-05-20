@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FileSearch, Network, FileText, PlayCircle, Wand2, Check } from "lucide-react";
+import { FileSearch, Network, FileText, PlayCircle, Wand2, Check, Settings } from "lucide-react";
 import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
 
 interface ManualConfigurationPanelProps {
@@ -65,10 +65,13 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   }, [processingConfig.rag?.enabled, processingConfig.kg?.enabled, processingConfig.idp?.enabled]);
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 relative">
-      {/* Processing Methods - always visible */}
+      {/* Content Configuration - always visible */}
       <Card>
         <CardHeader>
-          <CardTitle>Processing Methods</CardTitle>
+          <div className="flex items-center space-x-2">
+            <Settings className="w-5 h-5 text-gray-700" />
+            <CardTitle>Content Configuration</CardTitle>
+          </div>
           <CardDescription>
             {disabled ? "Configuration used for processing" : "Select or edit which methods to apply"}
           </CardDescription>
