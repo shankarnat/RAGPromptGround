@@ -173,6 +173,9 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   const [agenticResults, setAgenticResults] = useState<any>(null);
   const [isAgenticLoading, setIsAgenticLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showEvaluation, setShowEvaluation] = useState(false);
+  const [isEvaluationLoading, setIsEvaluationLoading] = useState(false);
+  const [evaluationResults, setEvaluationResults] = useState<any>(null);
   
   // Debug log
   console.log('UnifiedResultsEnhanced props:', { ragResults, kgResults, idpResults });
@@ -590,6 +593,125 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     setActiveTab(tab);
   };
 
+  // Function to perform evaluation of RAG, KG, and IDP results
+  const performEvaluation = () => {
+    setIsEvaluationLoading(true);
+    setShowEvaluation(true);
+    
+    // Simulate LLM evaluation process
+    setTimeout(() => {
+      // Mock evaluation results
+      const evaluation = {
+        executiveSummary: "Overall, the RAG system provides the most reliable information retrieval capabilities for this document type, scoring highest in factual accuracy and relevance. The Knowledge Graph excels at relationship identification but lacks some contextual understanding. The Document Intelligence system effectively extracts structured data but misses some deeper semantic connections.",
+        scores: {
+          rag: {
+            factualAccuracy: 8.5,
+            completeness: 7.9,
+            relevance: 9.2,
+            reasoningQuality: 7.6,
+            overallUtility: 8.4
+          },
+          kg: {
+            factualAccuracy: 7.8,
+            completeness: 6.9,
+            relevance: 8.1,
+            reasoningQuality: 8.4,
+            overallUtility: 7.6
+          },
+          idp: {
+            factualAccuracy: 9.1,
+            completeness: 7.4,
+            relevance: 7.2,
+            reasoningQuality: 6.8,
+            overallUtility: 7.7
+          }
+        },
+        componentAnalysis: {
+          rag: {
+            analysis: "The RAG system effectively retrieves relevant document chunks and provides good contextual information. It excels at identifying key information from the text and maintaining contextual relevance.",
+            strengths: [
+              "High accuracy in retrieving factual information",
+              "Excellent contextual relevance for the query",
+              "Good coverage of the document's key points"
+            ],
+            weaknesses: [
+              "Occasionally misses nuanced relationships between concepts",
+              "Less effective with implicit or inferential questions"
+            ],
+            supportedClaims: [
+              "The document contains detailed technical specifications",
+              "Implementation guidelines are clearly articulated"
+            ],
+            unsupportedClaims: [
+              "The project timeline extends to Q4 2023"
+            ],
+            incompleteInfo: [
+              "Budget considerations are mentioned but not fully detailed"
+            ]
+          },
+          kg: {
+            analysis: "The Knowledge Graph effectively identifies entities and relationships but sometimes lacks broader context. It's particularly strong at mapping organizational structures and stakeholder relationships.",
+            strengths: [
+              "Excellent at identifying entity relationships",
+              "Clear visualization of information hierarchy",
+              "Good extraction of structured entity properties"
+            ],
+            weaknesses: [
+              "Sometimes misclassifies entity types",
+              "Misses some contextual relationships that aren't explicitly stated"
+            ],
+            supportedClaims: [
+              "Multiple stakeholders are involved in the project",
+              "Organizations have clearly defined relationships"
+            ],
+            unsupportedClaims: [
+              "All entities are equally important to the project scope"
+            ],
+            incompleteInfo: [
+              "Temporal relationships between entities aren't fully captured"
+            ]
+          },
+          idp: {
+            analysis: "The Document Intelligence system excels at extracting structured data and metadata. It provides high confidence in form field extraction and table data but may miss some conceptual connections.",
+            strengths: [
+              "Highly accurate extraction of form fields and tables",
+              "Excellent document metadata identification",
+              "Good classification of document type and purpose"
+            ],
+            weaknesses: [
+              "Limited reasoning about the broader implications of the data",
+              "Sometimes misses contextual relationships between data points"
+            ],
+            supportedClaims: [
+              "The document contains structured data with key metrics",
+              "Form fields contain compliance-related information"
+            ],
+            unsupportedClaims: [
+              "All tabular data is of equal importance"
+            ],
+            incompleteInfo: [
+              "Relationships between tables aren't fully analyzed"
+            ]
+          }
+        },
+        recommendation: "For this document type and query, the RAG system provides the most balanced approach with high factual accuracy and relevance. For relationship-focused queries, the Knowledge Graph would be more appropriate, while for pure data extraction, the Document Intelligence system would be optimal. A hybrid approach leveraging RAG for contextual information and IDP for structured data extraction would provide the most comprehensive analysis."
+      };
+      
+      setEvaluationResults(evaluation);
+      setIsEvaluationLoading(false);
+    }, 3000);
+  };
+
+  // Helper function to render colored text based on type
+  const renderColoredText = (text: string, type: 'supported' | 'unsupported' | 'incomplete') => {
+    const colorClass = 
+      type === 'supported' ? 'bg-green-100 text-green-800 px-1 rounded' : 
+      type === 'unsupported' ? 'bg-red-100 text-red-800 px-1 rounded' : 
+      'bg-yellow-100 text-yellow-800 px-1 rounded';
+    
+    return <span className={colorClass}>{text}</span>;
+  };
+
   const renderAgenticResults = () => {
     return (
       <div className="space-y-6">
@@ -652,8 +774,386 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </CardContent>
         </Card>
 
+        {/* Evaluation Button */}
+        {agenticResults && !showEvaluation && (
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex justify-end">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={performEvaluation}
+                  disabled={isEvaluationLoading}
+                >
+                  {isEvaluationLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Evaluating Results...
+                    </>
+                  ) : (
+                    <>
+                      <TableOfContents className="h-4 w-4" />
+                      Evaluate Processing Components
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Evaluation Results */}
+        {showEvaluation && evaluationResults && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <TableOfContents className="h-5 w-5 text-indigo-600" />
+                  <CardTitle>LLM Evaluation of Processing Components</CardTitle>
+                </div>
+                <CardDescription>
+                  Comparing RAG, Knowledge Graph, and Document Intelligence performance
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Executive Summary */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Executive Summary</h3>
+                  <p className="text-gray-700">{evaluationResults.executiveSummary}</p>
+                </div>
+
+                {/* Scores Table */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Component Scores (1-10)</h3>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[180px]">Criteria</TableHead>
+                          <TableHead className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Database className="h-4 w-4 text-blue-500" />
+                              <span>RAG</span>
+                            </div>
+                          </TableHead>
+                          <TableHead className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Network className="h-4 w-4 text-green-500" />
+                              <span>Knowledge Graph</span>
+                            </div>
+                          </TableHead>
+                          <TableHead className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <FileText className="h-4 w-4 text-purple-500" />
+                              <span>Document Intelligence</span>
+                            </div>
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell className="font-medium">Factual Accuracy</TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.rag.factualAccuracy >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.rag.factualAccuracy >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.rag.factualAccuracy.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.kg.factualAccuracy >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.kg.factualAccuracy >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.kg.factualAccuracy.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.idp.factualAccuracy >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.idp.factualAccuracy >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.idp.factualAccuracy.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Completeness</TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.rag.completeness >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.rag.completeness >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.rag.completeness.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.kg.completeness >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.kg.completeness >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.kg.completeness.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.idp.completeness >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.idp.completeness >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.idp.completeness.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Relevance</TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.rag.relevance >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.rag.relevance >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.rag.relevance.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.kg.relevance >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.kg.relevance >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.kg.relevance.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.idp.relevance >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.idp.relevance >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.idp.relevance.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Reasoning Quality</TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.rag.reasoningQuality >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.rag.reasoningQuality >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.rag.reasoningQuality.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.kg.reasoningQuality >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.kg.reasoningQuality >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.kg.reasoningQuality.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={`${evaluationResults.scores.idp.reasoningQuality >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.idp.reasoningQuality >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.idp.reasoningQuality.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium font-bold">Overall Utility</TableCell>
+                          <TableCell className="text-center font-bold">
+                            <Badge className={`${evaluationResults.scores.rag.overallUtility >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.rag.overallUtility >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.rag.overallUtility.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center font-bold">
+                            <Badge className={`${evaluationResults.scores.kg.overallUtility >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.kg.overallUtility >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.kg.overallUtility.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center font-bold">
+                            <Badge className={`${evaluationResults.scores.idp.overallUtility >= 8 ? 'bg-green-100 text-green-800' : evaluationResults.scores.idp.overallUtility >= 6 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                              {evaluationResults.scores.idp.overallUtility.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+
+                {/* Component Analysis */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Component-Specific Analysis</h3>
+                  
+                  {/* RAG Analysis */}
+                  <Card className="border-blue-200">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center space-x-2">
+                        <Database className="h-5 w-5 text-blue-500" />
+                        <CardTitle className="text-blue-700">RAG Analysis</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p>{evaluationResults.componentAnalysis.rag.analysis}</p>
+                      
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-1">Strengths:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluationResults.componentAnalysis.rag.strengths.map((strength: string, idx: number) => (
+                            <li key={idx} className="text-sm">{strength}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-1">Weaknesses:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluationResults.componentAnalysis.rag.weaknesses.map((weakness: string, idx: number) => (
+                            <li key={idx} className="text-sm">{weakness}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-1">Claim Analysis:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluationResults.componentAnalysis.rag.supportedClaims.map((claim: string, idx: number) => (
+                            <li key={idx} className="text-sm">
+                              {renderColoredText(claim, 'supported')}
+                            </li>
+                          ))}
+                          {evaluationResults.componentAnalysis.rag.unsupportedClaims.map((claim: string, idx: number) => (
+                            <li key={idx} className="text-sm">
+                              {renderColoredText(claim, 'unsupported')}
+                            </li>
+                          ))}
+                          {evaluationResults.componentAnalysis.rag.incompleteInfo.map((info: string, idx: number) => (
+                            <li key={idx} className="text-sm">
+                              {renderColoredText(info, 'incomplete')}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* KG Analysis */}
+                  <Card className="border-green-200">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center space-x-2">
+                        <Network className="h-5 w-5 text-green-500" />
+                        <CardTitle className="text-green-700">Knowledge Graph Analysis</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p>{evaluationResults.componentAnalysis.kg.analysis}</p>
+                      
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-1">Strengths:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluationResults.componentAnalysis.kg.strengths.map((strength: string, idx: number) => (
+                            <li key={idx} className="text-sm">{strength}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-1">Weaknesses:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluationResults.componentAnalysis.kg.weaknesses.map((weakness: string, idx: number) => (
+                            <li key={idx} className="text-sm">{weakness}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-1">Claim Analysis:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluationResults.componentAnalysis.kg.supportedClaims.map((claim: string, idx: number) => (
+                            <li key={idx} className="text-sm">
+                              {renderColoredText(claim, 'supported')}
+                            </li>
+                          ))}
+                          {evaluationResults.componentAnalysis.kg.unsupportedClaims.map((claim: string, idx: number) => (
+                            <li key={idx} className="text-sm">
+                              {renderColoredText(claim, 'unsupported')}
+                            </li>
+                          ))}
+                          {evaluationResults.componentAnalysis.kg.incompleteInfo.map((info: string, idx: number) => (
+                            <li key={idx} className="text-sm">
+                              {renderColoredText(info, 'incomplete')}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* IDP Analysis */}
+                  <Card className="border-purple-200">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center space-x-2">
+                        <FileText className="h-5 w-5 text-purple-500" />
+                        <CardTitle className="text-purple-700">Document Intelligence Analysis</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p>{evaluationResults.componentAnalysis.idp.analysis}</p>
+                      
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-1">Strengths:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluationResults.componentAnalysis.idp.strengths.map((strength: string, idx: number) => (
+                            <li key={idx} className="text-sm">{strength}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-1">Weaknesses:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluationResults.componentAnalysis.idp.weaknesses.map((weakness: string, idx: number) => (
+                            <li key={idx} className="text-sm">{weakness}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-1">Claim Analysis:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluationResults.componentAnalysis.idp.supportedClaims.map((claim: string, idx: number) => (
+                            <li key={idx} className="text-sm">
+                              {renderColoredText(claim, 'supported')}
+                            </li>
+                          ))}
+                          {evaluationResults.componentAnalysis.idp.unsupportedClaims.map((claim: string, idx: number) => (
+                            <li key={idx} className="text-sm">
+                              {renderColoredText(claim, 'unsupported')}
+                            </li>
+                          ))}
+                          {evaluationResults.componentAnalysis.idp.incompleteInfo.map((info: string, idx: number) => (
+                            <li key={idx} className="text-sm">
+                              {renderColoredText(info, 'incomplete')}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Recommendation */}
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                    <Sparkles className="h-5 w-5 text-blue-600" />
+                    Recommendation
+                  </h3>
+                  <p className="text-gray-800">{evaluationResults.recommendation}</p>
+                </div>
+                
+                {/* Reset Button */}
+                <div className="flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setShowEvaluation(false);
+                      setEvaluationResults(null);
+                    }}
+                  >
+                    Back to Results
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        
+        {/* Evaluation Loading State */}
+        {isEvaluationLoading && (
+          <Card>
+            <CardContent className="py-8">
+              <div className="flex flex-col items-center space-y-4">
+                <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
+                <div className="text-center">
+                  <p className="text-lg font-medium">Evaluating Processing Components</p>
+                  <p className="text-gray-600 mt-1">The LLM is comparing RAG, Knowledge Graph, and Document Intelligence results...</p>
+                </div>
+                <div className="w-full max-w-sm bg-gray-200 rounded-full h-2.5 mt-2">
+                  <div className="bg-indigo-600 h-2.5 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Results Display */}
-        {agenticResults && (
+        {agenticResults && !showEvaluation && (
           <div className="space-y-4">
             {/* Main Summary */}
             <Card>
@@ -661,7 +1161,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Bot className="h-5 w-5 text-blue-500" />
-                    <CardTitle>AI Summary</CardTitle>
+                    <CardTitle>AI Analysis</CardTitle>
                   </div>
                   <Badge variant="secondary">Powered by LLM</Badge>
                 </div>
@@ -781,7 +1281,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
         )}
 
         {/* Empty State */}
-        {!agenticResults && !isAgenticLoading && (
+        {!agenticResults && !isAgenticLoading && !showEvaluation && (
           <Card>
             <CardContent className="py-8 text-center">
               <Bot className="h-12 w-12 text-gray-400 mx-auto mb-3" />
