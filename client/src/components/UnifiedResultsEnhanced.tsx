@@ -365,10 +365,10 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   };
 
   const renderIDPResults = () => {
-    if (!idpResults) {
+    if (!idpResults || !processingConfig?.idp?.enabled) {
       return (
         <div className="text-center py-12">
-          <p className="text-gray-500">No Document Intelligence results available.</p>
+          <p className="text-gray-500">Document Intelligence is disabled. Enable it in the left panel to view results.</p>
         </div>
       );
     }
@@ -768,7 +768,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   const renderAllResults = () => {
     const hasRagResults = ragResults && filteredChunks.length > 0;
     const hasKgResults = kgResults && filteredEntities.length > 0;
-    const hasIdpResults = idpResults;
+    const hasIdpResults = idpResults && processingConfig?.idp?.enabled;
     const hasAnyResults = hasRagResults || hasKgResults || hasIdpResults;
     const multimodalProcessing = getMultimodalProcessingInfo();
 
@@ -867,8 +867,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </Card>
         )}
 
-        {/* IDP Results Card - Now first after RAG */}
-        {hasIdpResults && (
+        {/* IDP Results Card - Now first after RAG - only shown when IDP checkbox is checked */}
+        {hasIdpResults && processingConfig?.idp?.enabled && (
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
