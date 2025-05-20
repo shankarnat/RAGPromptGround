@@ -60,13 +60,13 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
     setOpenSections(newOpenSections);
   }, [processingConfig.rag?.enabled, processingConfig.kg?.enabled, processingConfig.idp?.enabled]);
   return (
-    <div className="h-full overflow-y-auto p-4 space-y-6">
+    <div className="h-full overflow-y-auto p-4 space-y-6 relative">
       {/* Processing Methods - always visible */}
       <Card>
         <CardHeader>
           <CardTitle>Processing Methods</CardTitle>
           <CardDescription>
-            {disabled ? "Configuration used for processing" : "Select which methods to apply"}
+            {disabled ? "Configuration used for processing" : "Select or edit which methods to apply"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -246,9 +246,21 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
         )}
       </Accordion>
       
+      {/* Spacer to ensure content isn't hidden behind sticky button */}
+      {onProcessDocument && !disabled && (
+        <div className="h-20"></div>
+      )}
+      
       {/* Process Document Button */}
       {onProcessDocument && !disabled && (
-        <div className="mt-6 px-4">
+        <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 shadow-lg z-10 -mx-4">
+          {Object.values(processingConfig).some((config: any) => config.enabled) && (
+            <div className="mb-3 text-center">
+              <p className="text-sm text-blue-600 dark:text-blue-400 font-medium animate-pulse">
+                Ready to process! Click the button below to start.
+              </p>
+            </div>
+          )}
           <Button
             className="w-full"
             size="lg"

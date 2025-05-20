@@ -24,7 +24,7 @@ export interface ConversationState {
   isComplete: boolean;
   useCase?: string;
   configuration?: Record<string, any>;
-  conversationStep?: 'intro' | 'user_profile' | 'goals' | 'processing_selection' | 'multimodal_check' | 'audio_check' | 'ocr_check' | 'visual_analysis_check' | 'confirmation';
+  conversationStep?: 'intro' | 'user_profile' | 'goals' | 'processing_selection' | 'multimodal_check' | 'audio_check' | 'visual_analysis_check' | 'kg_check' | 'confirmation';
   userProfile?: {
     role?: string;
     department?: string;
@@ -262,70 +262,52 @@ export class ConversationManager {
     audio_check: () => ({
       message: 'Are there any audio files or recordings that need transcription?',
       actions: [
-        { label: 'Yes, audio transcription needed', action: 'set_has_audio', data: { hasAudio: true, nextStep: 'ocr_check' } },
-        { label: 'No audio content', action: 'set_has_audio', data: { hasAudio: false, nextStep: 'ocr_check' } }
-      ]
-    }),
-    
-    ocr_check: () => ({
-      message: 'Do you have scanned documents or images with text that need OCR?',
-      actions: [
-        { label: 'Yes, OCR needed', action: 'set_needs_ocr', data: { needsOCR: true, nextStep: 'visual_analysis_check' } },
-        { label: 'No OCR needed', action: 'set_needs_ocr', data: { needsOCR: false, nextStep: 'visual_analysis_check' } }
+        { label: 'Yes, audio transcription needed', action: 'set_has_audio', data: { hasAudio: true, nextStep: 'visual_analysis_check' } },
+        { label: 'No audio content', action: 'set_has_audio', data: { hasAudio: false, nextStep: 'visual_analysis_check' } }
       ]
     }),
     
     visual_analysis_check: () => ({
       message: 'Would you like AI to analyze and describe visual content (charts, diagrams, etc.)?',
       actions: [
-        { label: 'Yes, analyze visuals', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'image_processing_check' } },
-        { label: 'No visual analysis needed', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'image_processing_check' } }
-      ]
-    }),
-    
-    image_processing_check: () => ({
-      message: 'What type of image processing do you need?',
-      actions: [
-        { label: 'Generate captions for all images', action: 'set_image_processing', data: { imageProcessing: 'caption', nextStep: 'kg_check' } },
-        { label: 'Extract text from images (OCR)', action: 'set_image_processing', data: { imageProcessing: 'ocr', nextStep: 'kg_check' } },
-        { label: 'Both caption generation and OCR', action: 'set_image_processing', data: { imageProcessing: 'both', nextStep: 'kg_check' } },
-        { label: 'No specific image processing', action: 'set_image_processing', data: { imageProcessing: 'none', nextStep: 'kg_check' } }
+        { label: 'Yes, analyze visuals', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'kg_check' } },
+        { label: 'No visual analysis needed', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'kg_check' } }
       ]
     }),
     
     kg_check: () => ({
       message: 'Would you like to extract entities and relationships to build a knowledge graph?',
       actions: [
-        { label: 'Yes, extract all entities and relationships', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'all', nextStep: 'idp_check' } },
-        { label: 'Yes, but only specific entities (people, organizations, etc.)', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'specific', nextStep: 'kg_entity_selection' } },
-        { label: 'No knowledge graph needed', action: 'set_kg_preferences', data: { kgEnabled: false, nextStep: 'idp_check' } }
+        { label: 'Yes, all entities', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'all', nextStep: 'idp_check' } },
+        { label: 'Yes, specific entities', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'specific', nextStep: 'kg_entity_selection' } },
+        { label: 'No graph needed', action: 'set_kg_preferences', data: { kgEnabled: false, nextStep: 'idp_check' } }
       ]
     }),
     
     kg_entity_selection: () => ({
       message: 'Which types of entities should we extract?',
       actions: [
-        { label: 'People and Organizations', action: 'set_kg_entities', data: { entities: ['person', 'organization'], nextStep: 'idp_check' } },
-        { label: 'Products and Services', action: 'set_kg_entities', data: { entities: ['product', 'service'], nextStep: 'idp_check' } },
-        { label: 'Locations and Events', action: 'set_kg_entities', data: { entities: ['location', 'event'], nextStep: 'idp_check' } },
-        { label: 'All entity types', action: 'set_kg_entities', data: { entities: ['all'], nextStep: 'idp_check' } }
+        { label: 'People & Orgs', action: 'set_kg_entities', data: { entities: ['person', 'organization'], nextStep: 'idp_check' } },
+        { label: 'Products & Services', action: 'set_kg_entities', data: { entities: ['product', 'service'], nextStep: 'idp_check' } },
+        { label: 'Locations & Events', action: 'set_kg_entities', data: { entities: ['location', 'event'], nextStep: 'idp_check' } },
+        { label: 'All entities', action: 'set_kg_entities', data: { entities: ['all'], nextStep: 'idp_check' } }
       ]
     }),
     
     idp_check: () => ({
       message: 'What type of document data extraction do you need?',
       actions: [
-        { label: 'Extract structured data (tables, forms)', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'confirmation' } },
-        { label: 'Extract metadata and classifications', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'confirmation' } },
-        { label: 'Full document processing (all data)', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'confirmation' } },
-        { label: 'No document processing needed', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'confirmation' } }
+        { label: 'Structured data', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'confirmation' } },
+        { label: 'Metadata', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'confirmation' } },
+        { label: 'Full processing', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'confirmation' } },
+        { label: 'No processing', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'confirmation' } }
       ]
     }),
     
     confirmation: (state: ConversationState) => {
       const config = this.buildFinalConfiguration(state);
       return {
-        message: 'Here\'s your processing configuration summary. Ready to process?',
+        message: 'Your document is ready to be processed with the selected settings.',
         actions: [
           { 
             label: 'Process Document', 
@@ -595,16 +577,7 @@ export class ConversationManager {
   }
 
   private generateConfirmationMessage(intent: ProcessingIntent): string {
-    const intentMessages: Record<string, string> = {
-      'sales_proposals': 'I\'ll configure the system to extract product details, pricing, and competitor mentions from the proposal. I\'ll enable image captioning for diagrams and OCR for scanned content, plus entity extraction to link to your CRM accounts.',
-      'sales_contracts': 'I\'ll set up extraction for contract terms, parties, and obligations. Entity extraction will help link this to deals and accounts in your CRM, and I\'ll enable text search for quick contract review.',
-      'service_tickets': 'I\'ll configure the system to extract issue details and customer information. I\'ll enable audio transcription for call recordings and form extraction for structured ticket data.',
-      'customer_feedback': 'I\'ll set up sentiment analysis and entity extraction to link feedback to customer accounts. I\'ll enable transcription for audio feedback and relationship mapping to identify common issues.',
-      'campaign_analytics': 'I\'ll configure extraction for campaign metrics, KPIs, and conversion data. I\'ll enable visual analysis for charts and image captioning for marketing assets to enrich your campaign insights.',
-      'content_library': 'I\'ll set up comprehensive multimodal processing including OCR for infographics, image captioning for visual assets, and entity extraction to improve content discovery and recommendations.'
-    };
-
-    return intentMessages[intent.intent] || 'I\'ll configure the processing based on your CRM requirements.';
+    return 'Document processing has been configured and is ready to start.';
   }
 
   private generateFollowUpQuestion(userMessage: string, state: ConversationState): ConversationMessage {
@@ -808,20 +781,14 @@ export class ConversationManager {
         newState.conversationStep = data.nextStep;
         break;
         
-      case 'set_needs_ocr':
-        newState.multimodalPreferences = { ...newState.multimodalPreferences, needsOCR: data.needsOCR };
-        newState.conversationStep = data.nextStep;
-        break;
+      // The set_needs_ocr case has been removed as we no longer need this step
         
       case 'set_visual_analysis':
         newState.multimodalPreferences = { ...newState.multimodalPreferences, visualAnalysis: data.visualAnalysis };
         newState.conversationStep = data.nextStep;
         break;
         
-      case 'set_image_processing':
-        newState.multimodalPreferences = { ...newState.multimodalPreferences, imageProcessing: data.imageProcessing };
-        newState.conversationStep = data.nextStep;
-        break;
+      // The set_image_processing case has been removed as we no longer need this step
         
       case 'set_kg_preferences':
         newState.kgPreferences = { enabled: data.kgEnabled, entityTypes: data.entityTypes };
@@ -897,7 +864,7 @@ export class ConversationManager {
     // RAG recommendation
     if (goal === 'retrieval' || goal === 'comprehensive') {
       recommendations.push({
-        label: 'Enable RAG Search for quick information retrieval',
+        label: 'RAG Search',
         data: {
           processingTypes: ['rag'],
           configuration: {
@@ -915,7 +882,7 @@ export class ConversationManager {
     // IDP recommendation
     if (goal === 'extraction' || goal === 'comprehensive') {
       recommendations.push({
-        label: 'Enable Document Processing for data extraction',
+        label: 'Document Processing',
         data: {
           processingTypes: ['idp'],
           configuration: {
@@ -934,7 +901,7 @@ export class ConversationManager {
     // KG recommendation
     if (goal === 'relationships' || goal === 'comprehensive') {
       recommendations.push({
-        label: 'Enable Knowledge Graph for relationship mapping',
+        label: 'Knowledge Graph',
         data: {
           processingTypes: ['kg'],
           configuration: {
@@ -952,7 +919,7 @@ export class ConversationManager {
     // Combined recommendation
     if (goal === 'comprehensive' && urgency !== 'high') {
       recommendations.push({
-        label: 'Enable all processing methods for comprehensive analysis',
+        label: 'All Processing Methods',
         data: {
           processingTypes: ['rag', 'idp', 'kg'],
           configuration: {
@@ -967,7 +934,7 @@ export class ConversationManager {
     // Always provide at least one recommendation
     if (recommendations.length === 0) {
       recommendations.push({
-        label: 'Enable RAG Search for basic document processing',
+        label: 'RAG Search',
         data: {
           processingTypes: ['rag'],
           configuration: {
@@ -1016,8 +983,9 @@ export class ConversationManager {
       enabled: state.selectedProcessingTypes.includes('rag') || baseConfig.rag?.enabled || false,
       multimodal: {
         transcription: multimodal.hasAudio || false,
-        ocr: multimodal.needsOCR || multimodal.imageProcessing === 'ocr' || multimodal.imageProcessing === 'both' || false,
-        imageCaption: multimodal.hasImages || multimodal.imageProcessing === 'caption' || multimodal.imageProcessing === 'both' || false,
+        // Auto-enable OCR if images are present, as we removed the specific OCR question
+        ocr: multimodal.hasImages || false,
+        imageCaption: multimodal.hasImages || false,
         visualAnalysis: multimodal.visualAnalysis || false
       }
     };
@@ -1066,48 +1034,8 @@ export class ConversationManager {
   confirmProcessing(state: ConversationState, data: any): ConversationState {
     const config = this.buildFinalConfiguration(state);
     
-    // Build a summary of selected options
-    let summary = 'Great! I\'ve configured the following processing options:\n\n';
-    
-    // RAG configuration
-    if (config.configuration.rag.enabled) {
-      summary += '📚 **Document Search (RAG)**\n';
-      const multimodal = config.configuration.rag.multimodal;
-      const multimodalFeatures = [];
-      if (multimodal.transcription) multimodalFeatures.push('Audio Transcription');
-      if (multimodal.ocr) multimodalFeatures.push('OCR');
-      if (multimodal.imageCaption) multimodalFeatures.push('Image Captioning');
-      if (multimodal.visualAnalysis) multimodalFeatures.push('Visual Analysis');
-      
-      if (multimodalFeatures.length > 0) {
-        summary += `- Multimodal Processing: ${multimodalFeatures.join(', ')}\n`;
-      }
-      summary += '\n';
-    }
-    
-    // KG configuration
-    if (config.configuration.kg.enabled) {
-      summary += '🔗 **Knowledge Graph**\n';
-      summary += `- Entity Types: ${config.configuration.kg.entityTypes === 'all' ? 'All entities' : Array.isArray(config.configuration.kg.entityTypes) ? config.configuration.kg.entityTypes.join(', ') : config.configuration.kg.entityTypes}\n`;
-      summary += `- Relationship Mapping: ${config.configuration.kg.relationMapping ? 'Enabled' : 'Disabled'}\n\n`;
-    }
-    
-    // IDP configuration
-    if (config.configuration.idp.enabled) {
-      summary += '📄 **Document Processing (IDP)**\n';
-      const features = [];
-      if (config.configuration.idp.tables) features.push('Tables');
-      if (config.configuration.idp.formFields) features.push('Form Fields');
-      if (config.configuration.idp.metadata) features.push('Metadata');
-      if (config.configuration.idp.classification) features.push('Classification');
-      
-      if (features.length > 0) {
-        summary += `- Extracting: ${features.join(', ')}\n`;
-      }
-      summary += '\n';
-    }
-    
-    summary += 'Your document is ready to be processed with these settings.';
+    // Simplify the summary to a direct message
+    let summary = 'Document processing configured and ready.';
     
     // Add confirmation message with Process Document button
     const confirmationMessage: ConversationMessage = {

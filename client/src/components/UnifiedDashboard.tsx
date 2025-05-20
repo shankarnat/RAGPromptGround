@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Upload, FileSearch, Network, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard, Layers, User, HelpCircle, Phone, LogOut, Brain, Sparkles } from "lucide-react";
+import { Upload, FileSearch, Network, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard, Layers, User, HelpCircle, Phone, LogOut, Brain, Sparkles, PlayCircle } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import {
   DropdownMenu,
@@ -88,6 +88,7 @@ const UnifiedDashboard: FC = () => {
   const [documentReady, setDocumentReady] = useState(false);
   const [basicAnalysis, setBasicAnalysis] = useState<any>(null);
   const multimodalUpdateRef = useRef<boolean>(false);
+  const [lastProcessedConfig, setLastProcessedConfig] = useState<any>(null);
   
   // Use multimodal config hook for better state management
   const {
@@ -167,8 +168,8 @@ const UnifiedDashboard: FC = () => {
 
   const processingTypes = [
     { id: "rag", label: "RAG Search", icon: FileSearch, description: "Vector-based search with retrieval" },
-    { id: "kg", label: "Knowledge Graph", icon: Network, description: "Entity and relation extraction" },
     { id: "idp", label: "Document Processing", icon: FileText, description: "Advanced document analysis" },
+    { id: "kg", label: "Knowledge Graph", icon: Network, description: "Entity and relation extraction" },
   ];
 
   const presets = {
@@ -216,9 +217,9 @@ const UnifiedDashboard: FC = () => {
   };
 
   const steps: { id: ProcessingStep; label: string; icon: typeof Circle }[] = [
-    { id: "upload", label: "Upload & Configure", icon: Circle },
-    { id: "process", label: "Processing", icon: Circle },
-    { id: "results", label: "View Results", icon: Circle },
+    { id: "upload", label: "Upload & Configure", icon: Upload },
+    { id: "process", label: "Processing", icon: Brain },
+    { id: "results", label: "View Results", icon: FileSearch },
   ];
 
   // Use callback to prevent re-render of child components
@@ -826,6 +827,30 @@ const UnifiedDashboard: FC = () => {
       }
     }
     
+    // Check for immediate processing flag
+    if (config.processImmediately) {
+      console.log('Immediate processing requested from conversation UI');
+      
+      // Show toast notification
+      toast({
+        title: "Processing Started",
+        description: "Starting document processing based on selected configuration...",
+      });
+      
+      // Process the document immediately
+      setCurrentStep("process");
+      await processDocument();
+      
+      // Auto-advance to results when processing is complete
+      setTimeout(() => {
+        if (Object.values(state.unifiedProcessing.processingStatus).every(status => status !== "processing")) {
+          setCurrentStep("results");
+        }
+      }, 2000);
+      
+      return;
+    }
+    
     // Use intent-based processing trigger for conversation
     if (config.intent) {
       const result = IntentBasedProcessingTrigger.triggerFromConversation(config.intent);
@@ -861,6 +886,9 @@ const UnifiedDashboard: FC = () => {
       return;
     }
 
+    // Save the current configuration for comparison after processing
+    setLastProcessedConfig(JSON.parse(JSON.stringify(processingConfig)));
+
     // Enable Document Processing (IDP) when process document is clicked
     if (!processingConfig.idp.enabled) {
       setProcessingConfig(prev => ({
@@ -894,10 +922,15 @@ const UnifiedDashboard: FC = () => {
       });
       return;
     }
-
+    
+    // Check if this is a re-processing action
+    const isReprocessing = currentStep === "results" && lastProcessedConfig;
+    
     toast({
-      title: "Processing Started",
-      description: `Processing document with: ${enabledProcessing.join(", ").toUpperCase()}`,
+      title: isReprocessing ? "Re-processing Started" : "Processing Started",
+      description: isReprocessing 
+        ? `Re-processing document with updated configuration` 
+        : `Processing document with: ${enabledProcessing.join(", ").toUpperCase()}`,
     });
 
     setCurrentStep("process");
@@ -915,37 +948,37 @@ const UnifiedDashboard: FC = () => {
       setIsUpdatingFromAI(false);
       multimodalUpdateRef.current = false;
     }, 2000);
-  }, [state.selectedDocument, processingConfig, state.unifiedProcessing, toast, toggleProcessingType, processDocument]);
+  }, [state.selectedDocument, processingConfig, state.unifiedProcessing, toast, toggleProcessingType, processDocument, setLastProcessedConfig, currentStep]);
 
   const renderStepIndicator = () => (
-    <div className="flex items-center justify-between px-8 py-5 bg-gray-800 border-b border-gray-700 shadow-sm">
+    <div className="flex items-center justify-evenly px-8 py-5 bg-gray-700 border-b border-gray-600 shadow-sm">
       {steps.map((step, index) => {
         const isActive = step.id === currentStep;
         const isCompleted = steps.findIndex(s => s.id === currentStep) > index;
-        const Icon = isCompleted ? CheckCircle2 : Circle;
+        const Icon = isCompleted ? CheckCircle2 : step.icon;
         
         return (
-          <div key={step.id} className="flex items-center flex-1">
+          <React.Fragment key={step.id}>
             <button
               onClick={() => isCompleted && goToStep(step.id)}
               className={`flex items-center space-x-3 font-medium transition-all duration-200 transform hover:scale-105
-                ${isActive ? "text-blue-400" : isCompleted ? "text-green-400" : "text-gray-500"}
-                ${isCompleted ? "cursor-pointer hover:text-green-300" : "cursor-default"}`}
+                ${isActive ? "text-blue-300" : isCompleted ? "text-green-300" : "text-gray-400"}
+                ${isCompleted ? "cursor-pointer hover:text-green-200" : "cursor-default"}`}
             >
               <Icon className={`w-6 h-6 ${isActive ? "drop-shadow-lg" : ""}`} />
               <span className="text-sm tracking-wide">{step.label}</span>
             </button>
             {index < steps.length - 1 && (
-              <ChevronRight className="w-5 h-5 mx-6 text-gray-600" />
+              <ChevronRight className="w-5 h-5 text-gray-500" />
             )}
-          </div>
+          </React.Fragment>
         );
       })}
     </div>
   );
 
   // Memoize the manual configuration panel props to prevent re-renders
-
+  
   const manualConfigPanelProps = useMemo(() => ({
     processingTypes,
     processingConfig,
@@ -957,7 +990,9 @@ const UnifiedDashboard: FC = () => {
     updateChunkSize,
     updateChunkOverlap,
     selectedDocument: state.selectedDocument,
-    multimodalConfig: multimodalConfig.config
+    multimodalConfig: multimodalConfig.config,
+    // Always allow editing of options, even in results view
+    disabled: false
   }), [
     processingTypes,
     processingConfig,
@@ -1189,19 +1224,45 @@ const UnifiedDashboard: FC = () => {
             
             {/* Center Panel - Results View */}
             <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
-              <div className="h-full p-6 bg-gray-50 overflow-y-auto">
-                <UnifiedResultsEnhanced
-                  ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
-                  kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
-                  idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
-                  processingConfig={processingConfig}
-                  onChunkSelect={selectChunk}
-                  onEntitySelect={(entityId) => {
-                    console.log('Entity selected:', entityId);
-                  }}
-                  selectedChunk={state.selectedChunk}
-                  onClearResults={clearAllResults}
-                />
+              <div className="h-full flex flex-col bg-gray-50">
+                {/* Add a Re-process button for updated configuration */}
+                <div className="flex items-center justify-between bg-gray-100 border-b border-gray-200 px-6 py-3">
+                  <div>
+                    {lastProcessedConfig && 
+                     JSON.stringify(processingConfig) !== JSON.stringify(lastProcessedConfig) && (
+                      <div className="text-sm text-blue-600 font-medium animate-pulse flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-blue-600 mr-2"></div>
+                        Configuration changed - click Re-process to update results
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="default"
+                    onClick={handleProcessDocument}
+                    className="flex items-center gap-2"
+                    disabled={
+                      !lastProcessedConfig || 
+                      JSON.stringify(processingConfig) === JSON.stringify(lastProcessedConfig)
+                    }
+                  >
+                    <PlayCircle className="h-4 w-4" />
+                    Re-process with Current Configuration
+                  </Button>
+                </div>
+                <div className="flex-1 p-6 overflow-y-auto">
+                  <UnifiedResultsEnhanced
+                    ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
+                    kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
+                    idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
+                    processingConfig={processingConfig}
+                    onChunkSelect={selectChunk}
+                    onEntitySelect={(entityId) => {
+                      console.log('Entity selected:', entityId);
+                    }}
+                    selectedChunk={state.selectedChunk}
+                    onClearResults={clearAllResults}
+                  />
+                </div>
               </div>
             </ResizablePanel>
             
