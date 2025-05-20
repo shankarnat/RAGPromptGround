@@ -89,6 +89,7 @@ const UnifiedDashboard: FC = () => {
   const [basicAnalysis, setBasicAnalysis] = useState<any>(null);
   const multimodalUpdateRef = useRef<boolean>(false);
   const [lastProcessedConfig, setLastProcessedConfig] = useState<any>(null);
+  const [highlightProcessButton, setHighlightProcessButton] = useState(false);
   
   // Use multimodal config hook for better state management
   const {
@@ -827,6 +828,21 @@ const UnifiedDashboard: FC = () => {
       }
     }
     
+    // Check for the highlightProcessButton flag from the conversation
+    if (config.highlightProcessButton) {
+      console.log('Process button highlight requested from conversation UI');
+      
+      // Set the highlight flag to make the Process Document button more visible
+      setHighlightProcessButton(true);
+      
+      // Auto-disable the highlight after 10 seconds to avoid confusion
+      setTimeout(() => {
+        setHighlightProcessButton(false);
+      }, 10000);
+      
+      return;
+    }
+    
     // Check for immediate processing flag
     if (config.processImmediately) {
       console.log('Immediate processing requested from conversation UI');
@@ -992,7 +1008,9 @@ const UnifiedDashboard: FC = () => {
     selectedDocument: state.selectedDocument,
     multimodalConfig: multimodalConfig.config,
     // Always allow editing of options, even in results view
-    disabled: false
+    disabled: false,
+    // Pass the highlighting flag to draw attention to the Process button when needed
+    highlightProcessButton: highlightProcessButton
   }), [
     processingTypes,
     processingConfig,
@@ -1003,7 +1021,8 @@ const UnifiedDashboard: FC = () => {
     updateChunkingMethod,
     updateChunkSize,
     updateChunkOverlap,
-    multimodalConfig.config
+    multimodalConfig.config,
+    highlightProcessButton
   ]);
 
   const renderContent = () => {

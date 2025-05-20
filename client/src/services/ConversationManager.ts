@@ -50,6 +50,7 @@ export interface ConversationState {
     enabled?: boolean;
     extractType?: 'structured' | 'metadata' | 'full';
   };
+  highlightProcessButton?: boolean; // Flag to highlight the Process Document button
 }
 
 export interface ProcessingIntent {
@@ -812,25 +813,19 @@ export class ConversationManager {
         // Generate the final configuration
         const config = this.buildFinalConfiguration(newState);
         
-        // Skip to completion message
+        // Skip to completion message with a tooltip guidance to the Process Document button
         const completeMessage: ConversationMessage = {
           id: this.generateId(),
           type: 'assistant',
-          content: 'Configuration complete! Your document is being processed with the selected settings.',
+          content: 'Configuration complete! Click the "Process Document" button on the left side to start processing.',
           timestamp: new Date(),
-          actions: [
-            {
-              id: this.generateId(),
-              label: 'Process Document', 
-              action: 'confirm_processing', 
-              data: config
-            }
-          ]
+          actions: []  // No actions needed as we want to guide user to the left panel button
         };
         
-        // Mark the conversation as complete
+        // Mark the conversation as complete and pass configuration to be available
         newState.isComplete = true;
         newState.configuration = config;
+        newState.highlightProcessButton = true; // Signal to highlight the Process Document button
         
         // Add the completion message
         return {

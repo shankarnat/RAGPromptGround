@@ -77,26 +77,26 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
     }
   }, [state.isComplete, onProcessingConfigured, getProcessingConfig, handleAction]);
 
-  // Override the handleAction to intercept start_processing, select_processing, and process_directly
+  // Override the handleAction to intercept start_processing and select_processing
   const handleActionWithConfig = (action: string, data?: any) => {
-    // Handle process_directly action for direct processing from IDP selection
-    if (action === 'process_directly' && onProcessingConfigured) {
-      console.log('Intercepting process_directly to trigger immediate processing', data);
+    // Handle process_directly action to guide to Process Document button
+    if (action === 'process_directly') {
+      console.log('Processing process_directly action to guide to Process Document button', data);
       
-      // Let the ConversationManager handle the message first
+      // Let the ConversationManager handle the message
       handleAction(action, data);
       
-      // Then trigger the processing with a slight delay to allow the UI to update
-      setTimeout(() => {
-        const config = getProcessingConfig();
-        if (config) {
-          console.log('Starting processing with config:', config);
-          config.processImmediately = true;
+      // Request the highlight of the Process Document button
+      if (onProcessingConfigured) {
+        setTimeout(() => {
+          const config = {
+            highlightProcessButton: true
+          };
           onProcessingConfigured(config);
-        }
-      }, 300);
+        }, 500); // Slight delay to allow the UI to update
+      }
       
-      return; // Skip the standard handleAction at the end
+      return; // Skip further processing
     }
     // Handle select_processing similar to an immediate process_document action
     else if (action === 'select_processing' && onProcessingConfigured) {

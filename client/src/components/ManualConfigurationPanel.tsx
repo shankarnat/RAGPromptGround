@@ -22,6 +22,7 @@ interface ManualConfigurationPanelProps {
   updateChunkSize: (size: number) => void;
   updateChunkOverlap: (overlap: number) => void;
   disabled?: boolean;
+  highlightProcessButton?: boolean; // Flag to highlight the Process Document button
 }
 
 const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo(({
@@ -34,7 +35,8 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   updateChunkingMethod,
   updateChunkSize,
   updateChunkOverlap,
-  disabled = false
+  disabled = false,
+  highlightProcessButton = false
 }) => {
   console.log('ManualConfigurationPanel render - processingConfig:', processingConfig);
   console.log('ManualConfigurationPanel render - processingConfig.rag:', processingConfig.rag);
@@ -253,21 +255,25 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
       
       {/* Process Document Button */}
       {onProcessDocument && !disabled && (
-        <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 shadow-lg z-10 -mx-4">
-          {Object.values(processingConfig).some((config: any) => config.enabled) && (
+        <div className={`sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 shadow-lg z-10 -mx-4 ${highlightProcessButton ? 'ring-2 ring-blue-500 rounded-md animate-pulse' : ''}`}>
+          {(Object.values(processingConfig).some((config: any) => config.enabled) || highlightProcessButton) && (
             <div className="mb-3 text-center">
-              <p className="text-sm text-blue-600 dark:text-blue-400 font-medium animate-pulse">
-                Ready to process! Click the button below to start.
+              <p className={`text-sm font-medium animate-pulse ${highlightProcessButton ? 'text-blue-600 text-base' : 'text-blue-500'}`}>
+                {highlightProcessButton 
+                  ? "Configuration complete! Click here to process your document."
+                  : "Ready to process! Click the button below to start."
+                }
               </p>
             </div>
           )}
           <Button
-            className="w-full"
+            className={`w-full ${highlightProcessButton ? 'ring-2 ring-blue-500 shadow-lg transform scale-105 transition-all' : ''}`}
             size="lg"
             onClick={onProcessDocument}
             disabled={!Object.values(processingConfig).some((config: any) => config.enabled)}
+            title={highlightProcessButton ? "Click to process the document with the configuration from the AI assistant" : "Process the document with the current configuration"}
           >
-            <PlayCircle className="w-5 h-5 mr-2" />
+            <PlayCircle className={`w-5 h-5 mr-2 ${highlightProcessButton ? 'text-blue-500' : ''}`} />
             Process Document
           </Button>
         </div>
@@ -304,8 +310,10 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   const disabledEqual = prevProps.disabled === nextProps.disabled;
   const stateEqual = JSON.stringify(prevProps.state) === JSON.stringify(nextProps.state);
   
-  const shouldSkipRender = configEqual && disabledEqual && stateEqual;
-  console.log('  Deep comparison:', { configEqual, disabledEqual, stateEqual, shouldSkipRender });
+  const highlightEqual = prevProps.highlightProcessButton === nextProps.highlightProcessButton;
+  
+  const shouldSkipRender = configEqual && disabledEqual && stateEqual && highlightEqual;
+  console.log('  Deep comparison:', { configEqual, disabledEqual, stateEqual, highlightEqual, shouldSkipRender });
   
   return shouldSkipRender;
 });
