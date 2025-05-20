@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useState, useEffect, useRef } from "react";
 import { UploadCloud, File, FileText, FileSpreadsheet, FileCode, Clock, Calendar, CloudUpload } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { UploadedDocument } from "@shared/schema";
@@ -26,6 +26,27 @@ const UploadPanel: FC<UploadPanelProps> = ({
   onDocumentClick
 }) => {
   const [dragActive, setDragActive] = useState(false);
+  const [attentionEffect, setAttentionEffect] = useState(true);
+  const recentDocumentsRef = useRef<HTMLDivElement>(null);
+  
+  // Set up attention-grabbing effect when component mounts
+  useEffect(() => {
+    // Scroll to the recent documents section
+    if (recentDocumentsRef.current) {
+      setTimeout(() => {
+        recentDocumentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 700);
+    }
+    
+    // Pulse effect for 5 seconds, then fade out
+    const pulseTimer = setTimeout(() => {
+      setAttentionEffect(false);
+    }, 5000);
+    
+    return () => {
+      clearTimeout(pulseTimer);
+    };
+  }, []);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -103,7 +124,7 @@ const UploadPanel: FC<UploadPanelProps> = ({
             onChange={handleFileChange}
           />
           
-          <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center z-10">
             <div className="bg-white rounded-full p-4 shadow-md mb-4">
               <UploadCloud className={`w-12 h-12 ${dragActive ? 'text-blue-600 animate-pulse' : 'text-blue-500'}`} />
             </div>
@@ -145,16 +166,27 @@ const UploadPanel: FC<UploadPanelProps> = ({
         )}
       
         {/* Recently uploaded files */}
-        <div>
+        <div id="recent-documents-section" ref={recentDocumentsRef}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-gray-600" />
-              <h3 className="font-semibold text-gray-800">Recent Documents</h3>
+              <Clock className={`h-5 w-5 ${attentionEffect ? 'text-blue-600 animate-pulse' : 'text-gray-600'}`} />
+              <h3 className={`font-semibold ${attentionEffect ? 'text-blue-700 relative' : 'text-gray-800'}`}>
+                Recent Documents
+                {attentionEffect && (
+                  <span className="absolute -top-1 -right-2 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                  </span>
+                )}
+              </h3>
             </div>
             <span className="text-sm text-gray-500">{recentDocuments.length} documents</span>
           </div>
           
-          <div className="space-y-3">
+          <div className={`space-y-3 ${attentionEffect ? 'relative' : ''}`}>
+            {attentionEffect && (
+              <div className="absolute -inset-4 bg-blue-100/50 rounded-lg border-2 border-blue-200 -z-10 animate-pulse"></div>
+            )}
             {recentDocuments.map((doc) => {
               const FileIcon = getFileIcon(doc.name);
               const isSelected = selectedDocument?.id === doc.id;
@@ -162,7 +194,7 @@ const UploadPanel: FC<UploadPanelProps> = ({
               return (
                 <Card 
                   key={doc.id}
-                  className={`cursor-pointer transition-all duration-200 ${
+                  className={`cursor-pointer transition-all duration-200 z-10 ${
                     isSelected 
                     ? "ring-2 ring-blue-500 shadow-lg bg-blue-50/50" 
                     : "hover:shadow-md hover:bg-gray-50/50"
