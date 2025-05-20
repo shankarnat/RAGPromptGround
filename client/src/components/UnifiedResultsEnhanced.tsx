@@ -151,18 +151,23 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   selectedChunk,
   onClearResults
 }) => {
-  const [activeTab, setActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic'>('all');
+  const [activeTab, setActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic'>('agentic');
   
   // Handle tab switching if the current tab is disabled
   useEffect(() => {
-    // If Knowledge Graph tab is active but KG is disabled, switch to 'all' tab
+    // If Knowledge Graph tab is active but KG is disabled, switch to 'agentic' tab
     if (activeTab === 'kg' && !processingConfig?.kg?.enabled) {
-      setActiveTab('all');
+      setActiveTab('agentic');
     }
     
-    // If Document Intelligence tab is active but IDP is disabled, switch to 'all' tab
+    // If Document Intelligence tab is active but IDP is disabled, switch to 'agentic' tab
     if (activeTab === 'idp' && !processingConfig?.idp?.enabled) {
-      setActiveTab('all');
+      setActiveTab('agentic');
+    }
+    
+    // If 'all' tab is active, switch to 'agentic' tab (since we've removed the 'all' tab)
+    if (activeTab === 'all') {
+      setActiveTab('agentic');
     }
   }, [activeTab, processingConfig?.kg?.enabled, processingConfig?.idp?.enabled]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -578,6 +583,13 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
   // Function to navigate between tabs with visual feedback
   const navigateToTab = (tab: 'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic') => {
+    // Handle navigation to 'all' tab by redirecting to 'agentic' 
+    if (tab === 'all') {
+      console.log('Redirecting from "all" tab to "agentic" tab');
+      setActiveTab('agentic');
+      return;
+    }
+    
     // Only allow navigation to tabs that are enabled
     if (tab === 'kg' && !processingConfig?.kg?.enabled) {
       console.log('Cannot navigate to KG tab - KG processing is disabled');
@@ -720,14 +732,14 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <CardHeader>
             <div className="flex items-center space-x-2">
               <BrainCircuit className="h-5 w-5 text-purple-500" />
-              <CardTitle>Intelligent Query</CardTitle>
+              <CardTitle>Agentic Query/Prompt</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex gap-2">
                 <Input
-                  placeholder="Ask anything about your document..."
+                  placeholder="Enter your agentic prompt about the document..."
                   value={agenticQuery}
                   onChange={(e) => setAgenticQuery(e.target.value)}
                   onKeyPress={(e) => {
@@ -751,7 +763,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
               
               {/* Auto-suggestions */}
               <div className="space-y-2">
-                <p className="text-sm text-gray-600">Suggested queries:</p>
+                <p className="text-sm text-gray-600">Suggested agentic prompts:</p>
                 <div className="flex flex-wrap gap-2">
                   {agenticSuggestions.map((suggestion, idx) => (
                     <Button
@@ -1695,6 +1707,9 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
               // Clear results and then restore them after a simulated delay
               onClearResults();
               
+              // Set the active tab to Agentic Results
+              setActiveTab('agentic');
+              
               // Simulate processing delay
               setTimeout(() => {
                 setIsLoading(false);
@@ -1733,16 +1748,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
             <File className="h-4 w-4" />
             Source Doc
           </TabsTrigger>
-          <TabsTrigger value="all" onClick={() => {
-            // Set loading state
-            setIsLoading(true);
-            
-            // Simulate loading delay
-            setTimeout(() => {
-              setIsLoading(false);
-            }, 1200);
-          }}>All Results</TabsTrigger>
-          <TabsTrigger value="agentic" className="flex items-center gap-2">
+          <TabsTrigger value="agentic" className="flex items-center gap-2 bg-indigo-100">
             <BrainCircuit className="h-4 w-4" />
             Agentic Results
           </TabsTrigger>
@@ -1770,19 +1776,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <TabsContent value="source">
             {renderSourceDocument()}
           </TabsContent>
-          <TabsContent value="all">
-            {isLoading ? (
-              <Card className="h-[400px] flex items-center justify-center">
-                <CardContent className="flex flex-col items-center justify-center">
-                  <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Loading Results</h3>
-                  <p className="text-gray-500 text-center max-w-md">
-                    Preparing your document analysis and rendering all processing results...
-                  </p>
-                </CardContent>
-              </Card>
-            ) : renderAllResults()}
-          </TabsContent>
+          {/* All Results tab content removed */}
           <TabsContent value="rag">{renderRAGResults()}</TabsContent>
           {/* Only render KG tab content when KG is enabled */}
           {processingConfig?.kg?.enabled && (

@@ -234,30 +234,7 @@ const UnifiedSearchEnhanced: React.FC<UnifiedSearchProps> = ({
         </div>
       )}
 
-      {/* Type filters */}
-      <div className="mt-2 flex gap-2">
-        {(['rag', 'kg', 'idp'] as const).map((type) => (
-          <Button
-            key={type}
-            variant={selectedFilters.types.includes(type) ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              setSelectedFilters(prev => ({
-                ...prev,
-                types: prev.types.includes(type)
-                  ? prev.types.filter(t => t !== type)
-                  : [...prev.types, type]
-              }));
-            }}
-            className="flex items-center gap-1"
-          >
-            {type === 'rag' && <Database className="h-3 w-3" />}
-            {type === 'kg' && <GitBranch className="h-3 w-3" />}
-            {type === 'idp' && <FileText className="h-3 w-3" />}
-            {type.toUpperCase()}
-          </Button>
-        ))}
-      </div>
+      {/* Type filters removed */}
     </div>
   );
 };
