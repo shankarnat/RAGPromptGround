@@ -1300,25 +1300,24 @@ const UnifiedDashboard: FC = () => {
     switch (currentStep) {
       case "upload":
         return (
-          <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Manual Configuration - Conditionally rendered based on leftPanelVisible */}
-            {leftPanelVisible && (
-              <>
-                <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100 transition-all duration-300">
-                  <div className="h-full overflow-hidden">
-                    <ManualConfigurationPanel {...manualConfigPanelProps} />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-              </>
-            )}
+          <div className="h-full flex">
+            {/* Left Panel - Manual Configuration */}
+            <div 
+              className={`h-full bg-gray-100 transition-all duration-300 ease-in-out overflow-hidden ${
+                leftPanelVisible ? 'w-[20%] min-w-[240px] opacity-100' : 'w-0 opacity-0'
+              }`}
+            >
+              {leftPanelVisible && (
+                <div className="h-full overflow-auto">
+                  <ManualConfigurationPanel {...manualConfigPanelProps} />
+                </div>
+              )}
+            </div>
             
-          {/* Center Panel - Document & Results - Expands when left panel is hidden */}
-          <ResizablePanel 
-            defaultSize={leftPanelVisible ? 60 : 80} 
-            minSize={40} 
-            maxSize={leftPanelVisible ? 70 : 100}>
-            <div className="h-full bg-gray-50 overflow-y-auto">
+            {/* Center Panel - Document & Results - Expands when left panel is hidden */}
+            <div className={`h-full transition-all duration-300 ease-in-out bg-gray-50 overflow-y-auto ${
+              leftPanelVisible ? 'w-[60%]' : 'w-[80%]'
+            }`}>
               {!state.selectedDocument ? (
                 // Show upload panel when no document is selected
                 <div className="h-full p-6">
@@ -1394,62 +1393,59 @@ const UnifiedDashboard: FC = () => {
                 </div>
               )}
             </div>
-          </ResizablePanel>
             
-          <ResizableHandle withHandle />
-            
-          {/* Right Panel - Intelligent Content Agent */}
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-            <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
-              <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
-                    <Brain className="h-6 w-6 text-purple-600" />
+            {/* Right Panel - Intelligent Content Agent */}
+            <div className="h-full w-[20%]">
+              <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
+                <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
+                      <Brain className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                        Intelligent Content Agent
+                        <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-0.5">AI-powered document configuration</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                      Intelligent Content Agent
-                      <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
-                    </h2>
-                    <p className="text-sm text-gray-600 mt-0.5">AI-powered document configuration</p>
+                </CardHeader>
+                <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
+                  <div className="h-full">
+                    <ConversationalUI
+                      documentAnalysis={analysisState.analysis}
+                      onProcessingConfigured={handleConversationalConfig}
+                    />
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
-                <div className="h-full">
-                  <ConversationalUI
-                    documentAnalysis={analysisState.analysis}
-                    onProcessingConfigured={handleConversationalConfig}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         );
 
 
       case "process":
         return (
-          <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Manual Configuration - Conditionally rendered based on leftPanelVisible */}
-            {leftPanelVisible && (
-              <>
-                <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100 transition-all duration-300">
-                  <div className="h-full overflow-hidden">
-                    <ManualConfigurationPanel {...manualConfigPanelProps} />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-              </>
-            )}
+          <div className="h-full flex">
+            {/* Left Panel - Manual Configuration */}
+            <div 
+              className={`h-full bg-gray-100 transition-all duration-300 ease-in-out overflow-hidden ${
+                leftPanelVisible ? 'w-[20%] min-w-[240px] opacity-100' : 'w-0 opacity-0'
+              }`}
+            >
+              {leftPanelVisible && (
+                <div className="h-full overflow-auto">
+                  <ManualConfigurationPanel {...manualConfigPanelProps} />
+                </div>
+              )}
+            </div>
             
             {/* Center Panel - Processing Status - Expands when left panel is hidden */}
-            <ResizablePanel 
-              defaultSize={leftPanelVisible ? 60 : 80} 
-              minSize={40} 
-              maxSize={leftPanelVisible ? 70 : 100}>
-              <div className="h-full p-6 bg-gray-50 overflow-y-auto">
+            <div className={`h-full transition-all duration-300 ease-in-out bg-gray-50 overflow-y-auto ${
+              leftPanelVisible ? 'w-[60%]' : 'w-[80%]'
+            }`}>
+              <div className="h-full p-6">
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold mb-2">Processing Document</h2>
                   <p className="text-gray-600">Your document is being processed with the selected methods</p>
@@ -1477,12 +1473,10 @@ const UnifiedDashboard: FC = () => {
                   </Button>
                 </div>
               </div>
-            </ResizablePanel>
+            </div>
             
-            <ResizableHandle withHandle />
-            
-            {/* Right Panel - Intelligent Content Agent (same as upload) */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+            {/* Right Panel - Intelligent Content Agent */}
+            <div className="h-full w-[20%]">
               <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
                 <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
                   <div className="flex items-center space-x-3">
@@ -1507,31 +1501,31 @@ const UnifiedDashboard: FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+            </div>
+          </div>
         );
 
       case "results":
         return (
-          <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Manual Configuration - Conditionally rendered based on leftPanelVisible */}
-            {leftPanelVisible && (
-              <>
-                <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100 transition-all duration-300">
-                  <div className="h-full overflow-hidden">
-                    <ManualConfigurationPanel {...manualConfigPanelProps} />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-              </>
-            )}
+          <div className="h-full flex">
+            {/* Left Panel - Manual Configuration */}
+            <div 
+              className={`h-full bg-gray-100 transition-all duration-300 ease-in-out overflow-hidden ${
+                leftPanelVisible ? 'w-[20%] min-w-[240px] opacity-100' : 'w-0 opacity-0'
+              }`}
+            >
+              {leftPanelVisible && (
+                <div className="h-full overflow-auto">
+                  <ManualConfigurationPanel {...manualConfigPanelProps} />
+                </div>
+              )}
+            </div>
             
             {/* Center Panel - Results View - Expands when left panel is hidden */}
-            <ResizablePanel 
-              defaultSize={leftPanelVisible ? 60 : 80} 
-              minSize={40} 
-              maxSize={leftPanelVisible ? 70 : 100}>
-              <div className="h-full flex flex-col bg-gray-50">
+            <div className={`h-full transition-all duration-300 ease-in-out bg-gray-50 ${
+              leftPanelVisible ? 'w-[60%]' : 'w-[80%]'
+            }`}>
+              <div className="h-full flex flex-col">
                 {/* Add a Re-process button for updated configuration */}
                 <div className="flex items-center justify-between bg-gray-100 border-b border-gray-200 px-6 py-3">
                   <div>
@@ -1568,12 +1562,10 @@ const UnifiedDashboard: FC = () => {
                   />
                 </div>
               </div>
-            </ResizablePanel>
-            
-            <ResizableHandle withHandle />
+            </div>
             
             {/* Right Panel - Intelligent Content Agent */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+            <div className="h-full w-[20%]">
               <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
                 <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
                   <div className="flex items-center space-x-3">
@@ -1598,8 +1590,8 @@ const UnifiedDashboard: FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+            </div>
+          </div>
         );
 
       default:
