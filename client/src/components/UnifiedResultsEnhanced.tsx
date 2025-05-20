@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import UnifiedSearchEnhanced from '@/components/UnifiedSearchEnhanced';
 import { cn } from '@/lib/utils';
 import { 
@@ -176,6 +175,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   const [filteredChunks, setFilteredChunks] = useState<any[]>([]);
   const [filteredEntities, setFilteredEntities] = useState<any[]>([]);
   const [agenticQuery, setAgenticQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [agenticResults, setAgenticResults] = useState<any>(null);
   const [isAgenticLoading, setIsAgenticLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -738,55 +738,61 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Command className="rounded-lg border shadow-md" shouldFilter={false}>
-                <div className="flex items-center border-b px-3">
-                  <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
-                  <CommandInput
-                    placeholder="Enter your agentic prompt about the document..."
-                    value={agenticQuery}
-                    onValueChange={setAgenticQuery}
-                    className="h-10 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && agenticQuery.trim()) {
-                        processAgenticQuery(agenticQuery);
-                        e.preventDefault();
-                      }
-                    }}
-                  />
+              <div className="relative">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                      <Search className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <Input
+                      placeholder="Enter your agentic prompt about the document..."
+                      value={agenticQuery}
+                      onChange={(e) => setAgenticQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && agenticQuery.trim()) {
+                          processAgenticQuery(agenticQuery);
+                        }
+                      }}
+                      className="pl-10 pr-4 flex-1"
+                      onFocus={() => setShowSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    />
+                  </div>
                   <Button
                     onClick={() => agenticQuery.trim() && processAgenticQuery(agenticQuery)}
                     disabled={!agenticQuery.trim() || isAgenticLoading}
-                    variant="ghost"
-                    size="icon"
-                    className="ml-1"
                   >
                     {isAgenticLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Sparkles className="h-4 w-4 text-purple-500" />
+                      <Sparkles className="h-4 w-4" />
                     )}
                   </Button>
                 </div>
-                {agenticQuery.length === 0 && (
-                  <CommandList className="max-h-52">
-                    <CommandGroup heading="Suggested prompts">
-                      {agenticSuggestions.map((suggestion, idx) => (
-                        <CommandItem
-                          key={idx}
-                          onSelect={() => {
-                            setAgenticQuery(suggestion);
-                            processAgenticQuery(suggestion);
-                          }}
-                          className="cursor-pointer gap-2"
-                        >
-                          <Sparkles className="h-3.5 w-3.5 text-purple-500" />
-                          <span>{suggestion}</span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
+                
+                {showSuggestions && agenticQuery === '' && (
+                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg border overflow-hidden">
+                    <div className="p-2">
+                      <p className="text-sm font-medium text-gray-500 px-2 py-1">Suggested prompts</p>
+                      <div className="space-y-1 mt-1">
+                        {agenticSuggestions.map((suggestion, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center px-2 py-1.5 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() => {
+                              setAgenticQuery(suggestion);
+                              processAgenticQuery(suggestion);
+                            }}
+                          >
+                            <Sparkles className="h-3.5 w-3.5 mr-2 text-purple-500" />
+                            <span>{suggestion}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </Command>
+              </div>
             </div>
           </CardContent>
         </Card>
