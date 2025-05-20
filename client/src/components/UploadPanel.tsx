@@ -97,10 +97,10 @@ const UploadPanel: FC<UploadPanelProps> = ({
     <Card className="border-0 shadow-md">
       <CardHeader className="pb-4">
         <div className="flex items-center space-x-3">
-          <CloudUpload className="h-6 w-6 text-blue-600" />
+          <CloudUpload className="h-7 w-7 text-blue-600" />
           <div>
-            <h2 className="text-xl font-semibold text-gray-800">Document Ingestion Center</h2>
-            <p className="text-sm text-gray-600 mt-1">Upload and manage your documents for processing</p>
+            <h2 className="text-2xl font-bold text-gray-800">Content Ingestion Centre</h2>
+            <p className="text-sm text-gray-600 mt-1">Upload and manage your content for processing</p>
           </div>
         </div>
       </CardHeader>

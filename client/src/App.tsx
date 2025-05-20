@@ -75,13 +75,12 @@ function Router() {
 function App() {
   const [showWelcomePanel, setShowWelcomePanel] = useState(false);
 
-  // Show welcome panel on app launch
+  // Welcome panel is disabled
   useEffect(() => {
-    // Check if user has dismissed the panel before
-    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-    if (!hasSeenWelcome) {
-      setShowWelcomePanel(true);
-    }
+    // Always mark as seen to prevent showing
+    localStorage.setItem('hasSeenWelcome', 'true');
+    // Ensure panel stays hidden
+    setShowWelcomePanel(false);
   }, []);
 
   const handleCloseWelcomePanel = () => {

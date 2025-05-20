@@ -42,21 +42,7 @@ const WelcomeSlideout: FC<WelcomeSlideoutProps> = ({ isOpen, onClose, onToggle }
 
   return (
     <>
-      {/* Toggle button when panel is closed */}
-      {!isOpen && (
-        <div 
-          className="fixed left-0 top-1/2 transform -translate-y-1/2 z-30"
-        >
-          <Button 
-            onClick={onToggle}
-            className="h-12 px-2 rounded-r-lg rounded-l-none bg-primary text-white shadow-lg hover:bg-primary/90"
-            aria-label="Open welcome guide"
-          >
-            <ChevronRight className="h-5 w-5" />
-            <Info className="h-5 w-5 ml-1" />
-          </Button>
-        </div>
-      )}
+      {/* Toggle button is disabled */}
 
       {/* Overlay background */}
       {isOpen && (

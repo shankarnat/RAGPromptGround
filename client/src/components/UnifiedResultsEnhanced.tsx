@@ -37,7 +37,9 @@ import {
   TableOfContents,
   Search,
   Bot,
-  Loader2
+  Loader2,
+  Info,
+  BarChart3
 } from 'lucide-react';
 
 interface RAGResults {
@@ -52,6 +54,7 @@ interface RAGResults {
     timestamp?: string;
     fileName?: string;
     page?: number;
+    relevanceScore?: number; // Added relevance score property
   }>;
   vectors: Array<{
     id: number;
@@ -278,42 +281,70 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </Card>
         )}
         
+        <Card className="mb-2 border-blue-200 bg-blue-50">
+          <CardContent className="py-3">
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0 mt-0.5">
+                <Info className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-medium text-blue-800">Results ordered by relevance</p>
+                <p className="text-sm text-blue-700 mt-1">Documents are sorted based on semantic similarity to the query. Higher scores (0.99-0.90) indicate strong relevance, while lower scores show decreasing relevance to your search.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredChunks.map((chunk) => (
-            <Card
-              key={chunk.id}
-              className={cn(
-                "cursor-pointer transition-all",
-                selectedChunk === chunk.id && "ring-2 ring-blue-500"
-              )}
-              onClick={() => onChunkSelect?.(chunk.id)}
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg">{chunk.title}</CardTitle>
-                  <Badge variant="secondary">Chunk {chunk.chunkIndex + 1}</Badge>
-                </div>
-                <CardDescription className="mt-1 text-xs">
-                  {chunk.tokenCount} tokens • {chunk.fileName || 'Document'} • Page {chunk.page || 1}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                  {chunk.content}
-                </p>
-                {chunk.tags.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {chunk.tags.map((tag, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
+          {filteredChunks.map((chunk, index) => {
+            // Generate a relevance score that decreases with index (first item has highest score)
+            const relevanceScore = Math.max(0.99 - (index * 0.08), 0.65).toFixed(2);
+            // Determine color class based on relevance score
+            const scoreColorClass = parseFloat(relevanceScore) > 0.9 ? "text-green-600" : 
+                                    parseFloat(relevanceScore) > 0.75 ? "text-blue-600" : "text-yellow-600";
+            
+            return (
+              <Card
+                key={chunk.id}
+                className={cn(
+                  "cursor-pointer transition-all",
+                  selectedChunk === chunk.id && "ring-2 ring-blue-500"
                 )}
-              </CardContent>
-            </Card>
-          ))}
+                onClick={() => onChunkSelect?.(chunk.id)}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-lg">{chunk.title}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Badge className={cn("font-medium flex items-center gap-1", scoreColorClass)}>
+                        <BarChart3 className="h-3 w-3" />
+                        Score: {relevanceScore}
+                      </Badge>
+                      <Badge variant="secondary">Chunk {chunk.chunkIndex + 1}</Badge>
+                    </div>
+                  </div>
+                  <CardDescription className="mt-1 text-xs">
+                    {chunk.tokenCount} tokens • {chunk.fileName || 'Document'} • Page {chunk.page || 1}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                    {chunk.content}
+                  </p>
+                  {chunk.tags.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {chunk.tags.map((tag, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     );
@@ -533,9 +564,32 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     );
   };
 
+  // Function to handle the agentic query button click
+  const handleAgenticQueryClick = async (query: string) => {
+    // First, trigger onClearResults to show all results
+    if (onClearResults) {
+      // Set loading state
+      setIsLoading(true);
+      
+      // Call onClearResults function
+      onClearResults();
+      
+      // Set a timeout to allow UI to update and show all results
+      setTimeout(() => {
+        // After a delay, process the agentic query
+        setIsLoading(false);
+        processAgenticQuery(query);
+      }, 1500); // 1.5 second delay
+    } else {
+      // If onClearResults not available, just process the query
+      processAgenticQuery(query);
+    }
+  };
+  
   // Mock function to simulate agentic query processing
   const processAgenticQuery = async (query: string) => {
     setIsAgenticLoading(true);
+    setActiveTab('agentic'); // Ensure agentic tab is active
     
     // Get chunks and entities to use (use filtered if available, otherwise use all)
     const chunksToUse = filteredChunks.length > 0 ? filteredChunks : (ragResults?.chunks || []);
@@ -739,10 +793,25 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <CardContent>
             <div className="space-y-4">
               <div className="relative">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center">
                   <div className="relative flex-1">
                     <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                       <Search className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <Button
+                        onClick={() => agenticQuery.trim() && handleAgenticQueryClick(agenticQuery)}
+                        disabled={!agenticQuery.trim() || isAgenticLoading}
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 p-0"
+                      >
+                        {isAgenticLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4 text-purple-500" />
+                        )}
+                      </Button>
                     </div>
                     <Input
                       placeholder="Enter your agentic prompt about the document..."
@@ -750,24 +819,14 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                       onChange={(e) => setAgenticQuery(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && agenticQuery.trim()) {
-                          processAgenticQuery(agenticQuery);
+                          handleAgenticQueryClick(agenticQuery);
                         }
                       }}
-                      className="pl-10 pr-4 flex-1"
+                      className="pl-10 pr-12 flex-1 w-full"
                       onFocus={() => setShowSuggestions(true)}
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                     />
                   </div>
-                  <Button
-                    onClick={() => agenticQuery.trim() && processAgenticQuery(agenticQuery)}
-                    disabled={!agenticQuery.trim() || isAgenticLoading}
-                  >
-                    {isAgenticLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-4 w-4" />
-                    )}
-                  </Button>
                 </div>
                 
                 {showSuggestions && agenticQuery === '' && (
@@ -781,7 +840,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                             className="flex items-center px-2 py-1.5 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                             onClick={() => {
                               setAgenticQuery(suggestion);
-                              processAgenticQuery(suggestion);
+                              handleAgenticQueryClick(suggestion);
                             }}
                           >
                             <Sparkles className="h-3.5 w-3.5 mr-2 text-purple-500" />

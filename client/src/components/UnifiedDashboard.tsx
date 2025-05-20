@@ -1356,7 +1356,10 @@ const UnifiedDashboard: FC = () => {
                 // Show results view when document is selected
                 <div className="h-full p-6">
                   <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-2">Document Analysis & Results</h2>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Database className="h-7 w-7 text-blue-600" />
+                      <h2 className="text-2xl font-bold">Content Source</h2>
+                    </div>
                     <p className="text-gray-600">
                       {state.unifiedProcessing.processingStatus.rag === "completed" || 
                        state.unifiedProcessing.processingStatus.kg === "completed" || 
@@ -1374,35 +1377,9 @@ const UnifiedDashboard: FC = () => {
                         kgResults: state.unifiedProcessing.unifiedResults.kg,
                         idpResults: state.unifiedProcessing.unifiedResults.idp
                       })}
-                      <Tabs defaultValue="document" className="w-full mb-6">
-                        <TabsList className="w-full justify-start mb-4">
-                          <TabsTrigger value="document" className="flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            Document
-                          </TabsTrigger>
-                          <TabsTrigger value="results" className="flex items-center gap-2">
-                            <Database className="h-4 w-4" />
-                            Results
-                          </TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="document">
+                      <div className="w-full mb-6">
                           <DocumentPanel documentContent={state.document.content} />
-                        </TabsContent>
-                        <TabsContent value="results">
-                          <UnifiedResultsEnhanced
-                            ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
-                            kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
-                            idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
-                            processingConfig={processingConfig}
-                            onChunkSelect={selectChunk}
-                            onEntitySelect={(entityId) => {
-                              console.log('Entity selected:', entityId);
-                            }}
-                            selectedChunk={state.selectedChunk}
-                            onClearResults={clearAllResults}
-                          />
-                        </TabsContent>
-                      </Tabs>
+                      </div>
                     </>
                   ) : (
                     <ProgressiveDocumentLoader
