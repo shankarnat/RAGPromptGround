@@ -47,7 +47,7 @@ case $choice in
     2)
         echo -e "${GREEN}Starting production environment...${NC}"
         docker-compose up -d
-        echo -e "${GREEN}✅ Application is running at http://localhost:3000${NC}"
+        echo -e "${GREEN}✅ Application is running at http://localhost:3001${NC}"
         echo "Run 'docker-compose logs -f' to view logs"
         ;;
     *)

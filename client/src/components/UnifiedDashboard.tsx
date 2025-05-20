@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Upload, FileSearch, Network, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard, Layers, User, HelpCircle, Phone, LogOut, Brain, Sparkles, PlayCircle } from "lucide-react";
+import { Upload, FileSearch, Network, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard, Layers, User, HelpCircle, Phone, LogOut, Brain, Sparkles, PlayCircle, Database } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import {
   DropdownMenu,
@@ -75,7 +75,7 @@ const UnifiedDashboard: FC = () => {
   const { state, selectDocument, uploadDocument, updateChunkingMethod, updateChunkSize, 
     updateChunkOverlap, updateActiveTab, selectChunk, toggleUnifiedProcessing,
     updateProcessingStatus, processDocument, toggleProcessingType, processWithIntent,
-    clearAllResults } = useDocumentProcessing();
+    clearAllResults, switchDocumentExample } = useDocumentProcessing();
   const { toast } = useToast();
   const { state: analysisState, analyzeDocument } = useDocumentAnalysisContext();
   console.log('UnifiedDashboard: analysisState =', analysisState);
@@ -1335,6 +1335,16 @@ const UnifiedDashboard: FC = () => {
                         analyzeDocument(file);
                       }
                       
+                      // Set documentReady to true to show the document in the middle pane immediately
+                      setDocumentReady(true);
+                      
+                      // Set the appropriate document example based on the file name
+                      if (doc.name.toLowerCase().includes('csv') || doc.name.toLowerCase().includes('table')) {
+                        switchDocumentExample('financialCsv');
+                      } else {
+                        switchDocumentExample('financialReport');
+                      }
+                      
                       toast({
                         title: "Document Selected",
                         description: `${doc.name} has been loaded. Ask the AI assistant about processing options.`
@@ -1364,18 +1374,35 @@ const UnifiedDashboard: FC = () => {
                         kgResults: state.unifiedProcessing.unifiedResults.kg,
                         idpResults: state.unifiedProcessing.unifiedResults.idp
                       })}
-                      <UnifiedResultsEnhanced
-                        ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
-                        kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
-                        idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
-                        processingConfig={processingConfig}
-                        onChunkSelect={selectChunk}
-                        onEntitySelect={(entityId) => {
-                          console.log('Entity selected:', entityId);
-                        }}
-                        selectedChunk={state.selectedChunk}
-                        onClearResults={clearAllResults}
-                      />
+                      <Tabs defaultValue="document" className="w-full mb-6">
+                        <TabsList className="w-full justify-start mb-4">
+                          <TabsTrigger value="document" className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            Document
+                          </TabsTrigger>
+                          <TabsTrigger value="results" className="flex items-center gap-2">
+                            <Database className="h-4 w-4" />
+                            Results
+                          </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="document">
+                          <DocumentPanel documentContent={state.document.content} />
+                        </TabsContent>
+                        <TabsContent value="results">
+                          <UnifiedResultsEnhanced
+                            ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
+                            kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
+                            idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
+                            processingConfig={processingConfig}
+                            onChunkSelect={selectChunk}
+                            onEntitySelect={(entityId) => {
+                              console.log('Entity selected:', entityId);
+                            }}
+                            selectedChunk={state.selectedChunk}
+                            onClearResults={clearAllResults}
+                          />
+                        </TabsContent>
+                      </Tabs>
                     </>
                   ) : (
                     <ProgressiveDocumentLoader
