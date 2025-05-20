@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -16,29 +16,34 @@ import {
   ChevronRight,
   Package,
   User,
-  Calendar,
   Tag,
   Eye,
-  Copy,
-  Download,
   Table as TableIcon,
-  Trash2,
   Camera,
   Headphones,
-  Film,
   Image,
   Mic,
-  FileImage,
   ScanLine,
   Layers,
   BrainCircuit,
-  MessageSquare,
   Sparkles,
   TableOfContents,
   Search,
   Bot,
   Loader2
 } from 'lucide-react';
+
+// Define outside the component to prevent reference errors
+const AGENTIC_SUGGESTIONS = [
+  "Summarize the main points of this document",
+  "What are the key relationships between entities?",
+  "Extract and explain the data from tables",
+  "What are the compliance requirements?",
+  "Who are the main stakeholders mentioned?",
+  "What are the technical specifications?",
+  "Summarize the financial data",
+  "What are the project timelines?"
+];
 
 interface RAGResults {
   chunks: Array<{
@@ -151,20 +156,30 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   selectedChunk,
   onClearResults
 }) => {
-  const [activeTab, setActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic'>('all');
+  const [activeTab, setActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic'>('agentic');
+  // Use a ref instead of state to track if initial query has been triggered
+  const hasTriggeredInitialQueryRef = useRef(false);
   
   // Handle tab switching if the current tab is disabled
   useEffect(() => {
-    // If Knowledge Graph tab is active but KG is disabled, switch to 'all' tab
+    // If Knowledge Graph tab is active but KG is disabled, switch to 'agentic' tab
     if (activeTab === 'kg' && !processingConfig?.kg?.enabled) {
-      setActiveTab('all');
+      setActiveTab('agentic');
     }
     
-    // If Document Intelligence tab is active but IDP is disabled, switch to 'all' tab
+    // If Document Intelligence tab is active but IDP is disabled, switch to 'agentic' tab
     if (activeTab === 'idp' && !processingConfig?.idp?.enabled) {
-      setActiveTab('all');
+      setActiveTab('agentic');
     }
   }, [activeTab, processingConfig?.kg?.enabled, processingConfig?.idp?.enabled]);
+  
+  // Run once on component mount
+  useEffect(() => {
+    // Set default query from constants
+    if (AGENTIC_SUGGESTIONS.length > 0) {
+      setAgenticQuery(AGENTIC_SUGGESTIONS[0]);
+    }
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilters, setSearchFilters] = useState<any>({ types: ['rag', 'kg', 'idp'] });
   const [filteredChunks, setFilteredChunks] = useState<any[]>([]);
@@ -221,14 +236,30 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   }, [ragResults, kgResults]);
 
   // Initialize filtered data
-  useMemo(() => {
+  useEffect(() => {
     setFilteredChunks(ragResults?.chunks || []);
     setFilteredEntities(kgResults?.entities || []);
   }, [ragResults, kgResults]);
+  
+  // Just set the default query text when results become available, but don't auto-execute it
+  useEffect(() => {
+    // First, set the initial agentic query (only needs to be done once)
+    if (!agenticQuery && AGENTIC_SUGGESTIONS.length > 0) {
+      setAgenticQuery(AGENTIC_SUGGESTIONS[0]);
+    }
+    
+    // No auto-triggering of queries - user must explicitly click the search button
+    
+  }, [ragResults, agenticQuery]);
+  
+  // Reset the ref when results are cleared
+  useEffect(() => {
+    if (!ragResults || !ragResults.chunks || ragResults.chunks.length === 0) {
+      hasTriggeredInitialQueryRef.current = false;
+    }
+  }, [ragResults]);
 
   const renderRAGResults = () => {
-    const multimodalProcessing = getMultimodalProcessingInfo();
-    
     if (!ragResults || filteredChunks.length === 0) {
       return (
         <div className="text-center py-12">
@@ -239,41 +270,19 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
     return (
       <div className="space-y-4">
-        {/* Show multimodal processing info if available */}
-        {multimodalProcessing.length > 0 && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <Layers className="h-5 w-5 text-indigo-500" />
-                <CardTitle>Multimodal Processing Applied</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3">
-                {multimodalProcessing.map((process, idx) => {
-                  const Icon = process.icon;
-                  return (
-                    <div
-                      key={idx}
-                      className={cn(
-                        "flex items-center space-x-2 px-3 py-2 rounded-lg",
-                        process.bgColor
-                      )}
-                    >
-                      <Icon className={cn("h-5 w-5", process.color)} />
-                      <span className="font-medium text-sm text-gray-700">
-                        {process.name}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="py-4">
+            <div className="flex items-center space-x-2">
+              <Database className="h-5 w-5 text-blue-500" />
+              <p className="text-sm text-blue-700 font-medium">
+                Showing {filteredChunks.length} chunks ordered by relevance to your query
+              </p>
+            </div>
+          </CardContent>
+        </Card>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredChunks.map((chunk) => (
+          {filteredChunks.map((chunk, index) => (
             <Card
               key={chunk.id}
               className={cn(
@@ -285,7 +294,10 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-lg">{chunk.title}</CardTitle>
-                  <Badge variant="secondary">Chunk {chunk.chunkIndex + 1}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">Chunk {chunk.chunkIndex + 1}</Badge>
+                    <Badge variant="outline" className="bg-blue-50">#{index + 1}</Badge>
+                  </div>
                 </div>
                 <CardDescription className="mt-1 text-xs">
                   {chunk.tokenCount} tokens • {chunk.fileName || 'Document'} • Page {chunk.page || 1}
@@ -531,9 +543,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   const processAgenticQuery = async (query: string) => {
     setIsAgenticLoading(true);
     
-    // Get chunks and entities to use (use filtered if available, otherwise use all)
+    // Get chunks to use (use filtered if available, otherwise use all)
     const chunksToUse = filteredChunks.length > 0 ? filteredChunks : (ragResults?.chunks || []);
-    const entitiesToUse = filteredEntities.length > 0 ? filteredEntities : (kgResults?.entities || []);
     
     // Simulate API call - in real implementation, this would call an LLM API
     setTimeout(() => {
@@ -543,12 +554,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           relevantChunks: chunksToUse.slice(0, 3),
           summary: "The document contains detailed information about technical specifications and implementation guidelines."
         } : null,
-        kgInsights: kgResults ? {
-          relevantEntities: entitiesToUse.filter(e => e.type === 'Person' || e.type === 'Organization').slice(0, 3),
-          relationships: "The document mentions key stakeholders and organizations involved in the project.",
-          summary: "Multiple entities are connected through various business relationships."
-        } : null,
-        idpInsights: idpResults ? {
+        // Only include IDP insights when IDP is enabled
+        idpInsights: (idpResults && processingConfig?.idp?.enabled) ? {
           tables: idpResults.extractedData?.tables?.length || 0,
           tableSummary: "The document contains structured data that provides key metrics and comparisons.",
           formData: "Several forms were identified with important compliance information."
@@ -556,7 +563,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
         recommendations: [
           "Review the technical specifications in sections 2.3 and 4.1",
           "Pay attention to the compliance requirements mentioned in the forms",
-          "Consider the relationships between the identified entities"
+          "Consider key insights from the document analysis"
         ]
       };
       
@@ -565,16 +572,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     }, 2000);
   };
 
-  const agenticSuggestions = [
-    "Summarize the main points of this document",
-    "What are the key relationships between entities?",
-    "Extract and explain the data from tables",
-    "What are the compliance requirements?",
-    "Who are the main stakeholders mentioned?",
-    "What are the technical specifications?",
-    "Summarize the financial data",
-    "What are the project timelines?"
-  ];
+  // Use the constant defined outside the component
+  const agenticSuggestions = AGENTIC_SUGGESTIONS;
 
   // Function to navigate between tabs with visual feedback
   const navigateToTab = (tab: 'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic') => {
@@ -720,55 +719,66 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <CardHeader>
             <div className="flex items-center space-x-2">
               <BrainCircuit className="h-5 w-5 text-purple-500" />
-              <CardTitle>Intelligent Query</CardTitle>
+              <CardTitle>Type your Agentic Query</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Ask anything about your document..."
-                  value={agenticQuery}
-                  onChange={(e) => setAgenticQuery(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && agenticQuery.trim()) {
-                      processAgenticQuery(agenticQuery);
-                    }
-                  }}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={() => agenticQuery.trim() && processAgenticQuery(agenticQuery)}
-                  disabled={!agenticQuery.trim() || isAgenticLoading}
-                >
-                  {isAgenticLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Search className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              
-              {/* Auto-suggestions */}
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Suggested queries:</p>
-                <div className="flex flex-wrap gap-2">
-                  {agenticSuggestions.map((suggestion, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setAgenticQuery(suggestion);
-                        processAgenticQuery(suggestion);
+              <div className="relative">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      placeholder="Ask anything about your document..."
+                      value={agenticQuery}
+                      onChange={(e) => setAgenticQuery(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && agenticQuery.trim() && !isAgenticLoading) {
+                          processAgenticQuery(agenticQuery);
+                        }
                       }}
-                      className="text-xs"
-                    >
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      {suggestion}
-                    </Button>
-                  ))}
+                      className="flex-1"
+                      disabled={!ragResults?.chunks?.length}
+                    />
+                    {/* Show suggestions only when user types and not during loading */}
+                    {!isAgenticLoading && agenticQuery && agenticSuggestions.some(s => s.toLowerCase().includes(agenticQuery.toLowerCase())) && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                        {agenticSuggestions
+                          .filter(s => s.toLowerCase().includes(agenticQuery.toLowerCase()))
+                          .map((suggestion, idx) => (
+                            <div
+                              key={idx}
+                              className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                              onClick={() => {
+                                setAgenticQuery(suggestion);
+                                processAgenticQuery(suggestion);
+                              }}
+                            >
+                              {suggestion}
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => agenticQuery.trim() && processAgenticQuery(agenticQuery)}
+                    disabled={!agenticQuery.trim() || isAgenticLoading || !ragResults?.chunks?.length}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {isAgenticLoading ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Processing...</>
+                    ) : (
+                      <><Search className="h-4 w-4 mr-1" /> Search</>
+                    )}
+                  </Button>
                 </div>
+                {!ragResults?.chunks?.length && (
+                  <p className="text-xs text-orange-600 mt-2">
+                    <span className="inline-flex items-center">
+                      <Eye className="h-3 w-3 mr-1" />
+                      Query input is disabled until document processing is complete
+                    </span>
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -1161,7 +1171,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Bot className="h-5 w-5 text-blue-500" />
-                    <CardTitle>AI Analysis</CardTitle>
+                    <CardTitle>Agentic Results</CardTitle>
                   </div>
                   <Badge variant="secondary">Powered by LLM</Badge>
                 </div>
@@ -1192,37 +1202,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   </div>
                 )}
 
-                {/* KG Insights */}
-                {agenticResults.kgInsights && (
-                  <div className="mb-6">
-                    <h4 
-                      className="font-medium mb-3 flex items-center cursor-pointer hover:text-green-700 transition-colors rounded px-2 py-1 hover:bg-green-50 inline-flex"
-                      onClick={() => navigateToTab('kg')}
-                      title="Click to view Knowledge Graph details"
-                    >
-                      <Network className="h-4 w-4 mr-2 text-green-500" />
-                      Knowledge Graph Insights
-                    </h4>
-                    <p className="text-sm text-gray-600 mb-3">{agenticResults.kgInsights.summary}</p>
-                    <div className="space-y-2">
-                      {agenticResults.kgInsights.relevantEntities.map((entity: any) => (
-                        <div key={entity.id} className="flex items-center space-x-3 p-2 bg-green-50 rounded-lg">
-                          <Badge className={cn(
-                            "text-white",
-                            entity.type === 'Person' && "bg-blue-500",
-                            entity.type === 'Organization' && "bg-green-500"
-                          )}>
-                            {entity.type}
-                          </Badge>
-                          <span className="text-sm font-medium">{entity.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* IDP Insights */}
-                {agenticResults.idpInsights && (
+                {/* Only show Document Intelligence Insights when enabled */}
+                {agenticResults.idpInsights && processingConfig?.idp?.enabled && (
                   <div className="mb-6">
                     <h4 className="font-medium mb-3 flex items-center">
                       <FileText className="h-4 w-4 mr-2 text-purple-500" />
@@ -1285,9 +1266,9 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <Card>
             <CardContent className="py-8 text-center">
               <Bot className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600 mb-2">Ask questions to get AI-powered insights</p>
+              <p className="text-gray-600 mb-2">AI Analysis in Progress...</p>
               <p className="text-sm text-gray-500">
-                The AI will analyze all your processing results (RAG, KG, IDP) to provide comprehensive answers
+                Our intelligent agent is analyzing your document to extract key insights
               </p>
             </CardContent>
           </Card>
@@ -1406,38 +1387,6 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
     return (
       <div className="space-y-6">
-        {/* Multimodal Processing Info */}
-        {multimodalProcessing.length > 0 && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <Layers className="h-5 w-5 text-indigo-500" />
-                <CardTitle>Applied Processing</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3">
-                {multimodalProcessing.map((process, idx) => {
-                  const Icon = process.icon;
-                  return (
-                    <div
-                      key={idx}
-                      className={cn(
-                        "flex items-center space-x-2 px-3 py-2 rounded-lg",
-                        process.bgColor
-                      )}
-                    >
-                      <Icon className={cn("h-5 w-5", process.color)} />
-                      <span className="font-medium text-sm text-gray-700">
-                        {process.name}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* RAG Results Card */}
@@ -1717,31 +1666,10 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </Button>
         )}
       </div>
-      
-      <UnifiedSearchEnhanced
-        onSearch={handleSearch}
-        ragResults={ragResults}
-        kgResults={kgResults}
-        idpResults={idpResults}
-        className="mb-4"
-      />
 
       <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="flex-1">
         <TabsList className="w-full justify-start mb-4">
-          {/* Tab order: 1. Source Doc, 2. All Results, 3. Agentic Results, 4. RAG, 5. Doc Intelligence, 6. KG */}
-          <TabsTrigger value="source" className="flex items-center gap-2">
-            <File className="h-4 w-4" />
-            Source Doc
-          </TabsTrigger>
-          <TabsTrigger value="all" onClick={() => {
-            // Set loading state
-            setIsLoading(true);
-            
-            // Simulate loading delay
-            setTimeout(() => {
-              setIsLoading(false);
-            }, 1200);
-          }}>All Results</TabsTrigger>
+          {/* Tab order: 1. Agentic Results, 2. RAG, 3. Source Doc, 4. Doc Intelligence, 5. KG */}
           <TabsTrigger value="agentic" className="flex items-center gap-2">
             <BrainCircuit className="h-4 w-4" />
             Agentic Results
@@ -1749,6 +1677,10 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <TabsTrigger value="rag" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             RAG
+          </TabsTrigger>
+          <TabsTrigger value="source" className="flex items-center gap-2">
+            <File className="h-4 w-4" />
+            Source Doc
           </TabsTrigger>
           {/* Only show Document Intelligence tab when the IDP checkbox is enabled */}
           {processingConfig?.idp?.enabled && (
@@ -1767,23 +1699,15 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
         </TabsList>
 
         <ScrollArea className="flex-1">
+          <TabsContent value="agentic">
+            {renderAgenticResults()}
+          </TabsContent>
+          <TabsContent value="rag">
+            {renderRAGResults()}
+          </TabsContent>
           <TabsContent value="source">
             {renderSourceDocument()}
           </TabsContent>
-          <TabsContent value="all">
-            {isLoading ? (
-              <Card className="h-[400px] flex items-center justify-center">
-                <CardContent className="flex flex-col items-center justify-center">
-                  <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Loading Results</h3>
-                  <p className="text-gray-500 text-center max-w-md">
-                    Preparing your document analysis and rendering all processing results...
-                  </p>
-                </CardContent>
-              </Card>
-            ) : renderAllResults()}
-          </TabsContent>
-          <TabsContent value="rag">{renderRAGResults()}</TabsContent>
           {/* Only render KG tab content when KG is enabled */}
           {processingConfig?.kg?.enabled && (
             <TabsContent value="kg">{renderKGResults()}</TabsContent>
@@ -1792,7 +1716,6 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           {processingConfig?.idp?.enabled && (
             <TabsContent value="idp">{renderIDPResults()}</TabsContent>
           )}
-          <TabsContent value="agentic">{renderAgenticResults()}</TabsContent>
         </ScrollArea>
       </Tabs>
     </div>

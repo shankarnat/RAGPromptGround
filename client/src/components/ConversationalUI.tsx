@@ -28,7 +28,7 @@ import {
   Headphones,
   TextCursor
 } from 'lucide-react';
-import { useConversation } from '@/hooks/useConversation';
+import { useUnifiedConversation as useConversation } from '@/hooks/useUnifiedConversation';
 import { DocumentCharacteristics } from '@/services/DocumentAnalyzer';
 import { ConversationMessage } from '@/services/ConversationManager';
 import { cn } from '@/lib/utils';
@@ -209,9 +209,13 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
     else if (action === 'select_processing' && onProcessingConfigured) {
       console.log('Intercepting select_processing to trigger immediate processing', data);
       
+      // Ensure data has required properties to prevent TypeError
+      const safeConfiguration = data?.configuration || {};
+      const safeProcessingTypes = data?.processingTypes || [];
+      
       const config = {
-        configuration: data.configuration,
-        processingTypes: data.processingTypes,
+        configuration: safeConfiguration,
+        processingTypes: safeProcessingTypes,
         triggerType: 'conversation',
         intent: true,
         // Mark it for immediate processing
