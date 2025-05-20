@@ -429,6 +429,78 @@ const UnifiedDashboard: FC = () => {
   const handleConversationalConfig = async (config: any) => {
     console.log('handleConversationalConfig called with:', config);
     
+    // Special handling for process_directly action first - this MUST be handled first
+    // to ensure the checkbox gets enabled before other UI indicators
+    if (config.idpEnabled !== undefined) {
+      console.log('DIRECT IDP UPDATE: Handling process_directly data', { 
+        idpEnabled: config.idpEnabled, 
+        extractType: config.extractType 
+      });
+      
+      // Create IDP configuration based on the extractType
+      let idpConfig: any = {
+        enabled: true,
+        textExtraction: true,
+        classification: false,
+        metadata: false,
+        tables: false,
+        formFields: false
+      };
+      
+      // Additional properties based on extractType
+      if (config.extractType === 'structured') {
+        idpConfig.tables = true;
+        idpConfig.formFields = true;
+      } else if (config.extractType === 'metadata') {
+        idpConfig.metadata = true;
+        idpConfig.classification = true;
+      } else if (config.extractType === 'full') {
+        idpConfig.tables = true;
+        idpConfig.formFields = true;
+        idpConfig.metadata = true;
+        idpConfig.classification = true;
+      }
+      
+      console.log('DIRECT IDP UPDATE: Setting IDP config to:', idpConfig);
+      
+      // Force update the processing config with the new IDP settings IMMEDIATELY
+      // This must happen first to ensure the checkbox is checked
+      updateOption('idp', 'enabled', true);
+      
+      // Update specific IDP options with a slight delay to ensure the enabled state change happens first
+      setTimeout(() => {
+        if (config.extractType === 'structured') {
+          updateOption('idp', 'tables', true);
+          updateOption('idp', 'formFields', true);
+        } else if (config.extractType === 'metadata') {
+          updateOption('idp', 'metadata', true);
+          updateOption('idp', 'classification', true);
+        } else if (config.extractType === 'full') {
+          updateOption('idp', 'tables', true);
+          updateOption('idp', 'formFields', true);
+          updateOption('idp', 'metadata', true);
+          updateOption('idp', 'classification', true);
+        }
+      }, 50);
+      
+      // Also update the unified processing state
+      if (!state.unifiedProcessing.selectedProcessingTypes.includes('idp')) {
+        console.log('DIRECT IDP UPDATE: Adding idp to unified processing types');
+        toggleProcessingType('idp');
+      }
+      
+      // Show toast notification
+      let toastDescription = 'Document processing has been configured';
+      if (config.extractType === 'structured') {
+        toastDescription = 'Structured data extraction for tables and forms is now available';
+      }
+      
+      toast({
+        title: 'IDP Processing Enabled',
+        description: toastDescription,
+      });
+    }
+    
     // Apply configuration from conversational UI
     if (config.configuration) {
       // Set flag to indicate we're updating from AI
@@ -612,6 +684,68 @@ const UnifiedDashboard: FC = () => {
         }, 100);
         
         return; // Exit early for IDP updates
+      }
+      
+      // Handle specific IDP updates from process_directly action
+      if (config.idpEnabled !== undefined) {
+        console.log('UnifiedDashboard: Handling IDP update from process_directly action');
+        console.log('UnifiedDashboard: idpEnabled:', config.idpEnabled);
+        console.log('UnifiedDashboard: extractType:', config.extractType);
+        
+        // Create an appropriate IDP configuration based on the extractType
+        let idpConfig = {
+          enabled: config.idpEnabled,
+          textExtraction: true,
+          classification: false,
+          metadata: false,
+          tables: false,
+          formFields: false
+        };
+        
+        // Set specific options based on extractType
+        if (config.extractType === 'structured') {
+          idpConfig.tables = true;
+          idpConfig.formFields = true;
+        } else if (config.extractType === 'metadata') {
+          idpConfig.metadata = true;
+          idpConfig.classification = true;
+        } else if (config.extractType === 'full') {
+          idpConfig.tables = true;
+          idpConfig.formFields = true;
+          idpConfig.metadata = true;
+          idpConfig.classification = true;
+        }
+        
+        console.log('UnifiedDashboard: Setting IDP config to:', idpConfig);
+        
+        // Update the processing configuration
+        setProcessingConfig(prev => ({
+          ...prev,
+          idp: idpConfig
+        }));
+        
+        // Update the unified processing state if needed
+        if (config.idpEnabled && !state.unifiedProcessing.selectedProcessingTypes.includes('idp')) {
+          console.log('UnifiedDashboard: Adding idp to unified processing types');
+          toggleProcessingType('idp');
+        }
+        
+        // Show appropriate toast notification
+        let toastDescription = 'Document processing has been updated';
+        if (config.extractType === 'structured') {
+          toastDescription = 'Structured data extraction for tables and forms has been enabled';
+        } else if (config.extractType === 'metadata') {
+          toastDescription = 'Metadata and classification extraction has been enabled';
+        } else if (config.extractType === 'full') {
+          toastDescription = 'Full document processing has been enabled';
+        }
+        
+        toast({
+          title: 'Document Processing Updated',
+          description: toastDescription,
+        });
+        
+        // We don't return early here because the process_directly action also sets highlightProcessButton
       }
       
       // Handle specific multimodal updates from AI assistant

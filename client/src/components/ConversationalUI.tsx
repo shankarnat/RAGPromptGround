@@ -86,15 +86,25 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       // Let the ConversationManager handle the message
       handleAction(action, data);
       
-      // Request the highlight of the Process Document button with a delay
-      // to ensure the message appears first
+      // First update the IDP configuration IMMEDIATELY to ensure checkbox gets checked first
       if (onProcessingConfigured) {
+        // Pass the IDP configuration first WITHOUT the highlight button flag
+        const idpConfig = {
+          idpEnabled: data.idpEnabled,
+          extractType: data.extractType
+        };
+        console.log('DIRECT IDP UPDATE: First sending IDP config to update checkbox:', idpConfig);
+        onProcessingConfigured(idpConfig);
+        
+        // Then request the highlight of the Process Document button with a delay
+        // to ensure the IDP checkbox is checked first and message appears
         setTimeout(() => {
-          const config = {
+          const highlightConfig = {
             highlightProcessButton: true
           };
-          onProcessingConfigured(config);
-        }, 300); // Slight delay to allow the UI to update
+          console.log('DIRECT IDP UPDATE: Now sending highlight config after checkbox update');
+          onProcessingConfigured(highlightConfig);
+        }, 500); // Longer delay to ensure checkbox updates first
       }
       
       return; // Skip further processing

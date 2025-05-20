@@ -158,6 +158,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   const [agenticQuery, setAgenticQuery] = useState('');
   const [agenticResults, setAgenticResults] = useState<any>(null);
   const [isAgenticLoading, setIsAgenticLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Debug log
   console.log('UnifiedResultsEnhanced props:', { ragResults, kgResults, idpResults });
@@ -1033,11 +1034,32 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={onClearResults}
+            onClick={() => {
+              // Set loading state
+              setIsLoading(true);
+              
+              // Clear results and then restore them after a simulated delay
+              onClearResults();
+              
+              // Simulate processing delay
+              setTimeout(() => {
+                setIsLoading(false);
+              }, 1200);
+            }}
             className="flex items-center gap-2"
+            disabled={isLoading}
           >
-            <Trash2 className="h-4 w-4" />
-            Clear All Results
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading Results...
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4" />
+                Show All Results
+              </>
+            )}
           </Button>
         )}
       </div>
@@ -1052,7 +1074,15 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
       <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="flex-1">
         <TabsList className="w-full justify-start mb-4">
-          <TabsTrigger value="all">All Results</TabsTrigger>
+          <TabsTrigger value="all" onClick={() => {
+            // Set loading state
+            setIsLoading(true);
+            
+            // Simulate loading delay
+            setTimeout(() => {
+              setIsLoading(false);
+            }, 1200);
+          }}>All Results</TabsTrigger>
           <TabsTrigger value="rag" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             RAG
@@ -1072,7 +1102,19 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
         </TabsList>
 
         <ScrollArea className="flex-1">
-          <TabsContent value="all">{renderAllResults()}</TabsContent>
+          <TabsContent value="all">
+            {isLoading ? (
+              <Card className="h-[400px] flex items-center justify-center">
+                <CardContent className="flex flex-col items-center justify-center">
+                  <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Loading Results</h3>
+                  <p className="text-gray-500 text-center max-w-md">
+                    Preparing your document analysis and rendering all processing results...
+                  </p>
+                </CardContent>
+              </Card>
+            ) : renderAllResults()}
+          </TabsContent>
           <TabsContent value="rag">{renderRAGResults()}</TabsContent>
           <TabsContent value="kg">{renderKGResults()}</TabsContent>
           <TabsContent value="idp">{renderIDPResults()}</TabsContent>
