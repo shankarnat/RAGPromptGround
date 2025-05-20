@@ -572,6 +572,23 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     "What are the project timelines?"
   ];
 
+  // Function to navigate between tabs with visual feedback
+  const navigateToTab = (tab: 'all' | 'rag' | 'kg' | 'idp' | 'agentic') => {
+    // Only allow navigation to tabs that are enabled
+    if (tab === 'kg' && !processingConfig?.kg?.enabled) {
+      console.log('Cannot navigate to KG tab - KG processing is disabled');
+      return;
+    }
+    
+    if (tab === 'idp' && !processingConfig?.idp?.enabled) {
+      console.log('Cannot navigate to IDP tab - IDP processing is disabled');
+      return;
+    }
+    
+    console.log(`Navigating to tab: ${tab}`);
+    setActiveTab(tab);
+  };
+
   const renderAgenticResults = () => {
     return (
       <div className="space-y-6">
@@ -654,7 +671,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 {/* RAG Insights */}
                 {agenticResults.ragInsights && (
                   <div className="mb-6">
-                    <h4 className="font-medium mb-3 flex items-center">
+                    <h4 
+                      className="font-medium mb-3 flex items-center cursor-pointer hover:text-blue-700 transition-colors rounded px-2 py-1 hover:bg-blue-50 inline-flex"
+                      onClick={() => navigateToTab('rag')}
+                      title="Click to view RAG search details"
+                    >
                       <Database className="h-4 w-4 mr-2 text-blue-500" />
                       Document Search Insights
                     </h4>
@@ -673,7 +694,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 {/* KG Insights */}
                 {agenticResults.kgInsights && (
                   <div className="mb-6">
-                    <h4 className="font-medium mb-3 flex items-center">
+                    <h4 
+                      className="font-medium mb-3 flex items-center cursor-pointer hover:text-green-700 transition-colors rounded px-2 py-1 hover:bg-green-50 inline-flex"
+                      onClick={() => navigateToTab('kg')}
+                      title="Click to view Knowledge Graph details"
+                    >
                       <Network className="h-4 w-4 mr-2 text-green-500" />
                       Knowledge Graph Insights
                     </h4>
@@ -704,7 +729,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                     </h4>
                     <p className="text-sm text-gray-600 mb-3">{agenticResults.idpInsights.tableSummary}</p>
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="text-center p-3 bg-purple-50 rounded-lg">
+                      <div 
+                        className="text-center p-3 bg-purple-50 rounded-lg cursor-pointer hover:shadow-md transition-all"
+                        onClick={() => navigateToTab('idp')}
+                        title="Click to view Document Intelligence details"
+                      >
                         <div className="text-2xl font-bold text-purple-700">
                           {agenticResults.idpInsights.tables}
                         </div>
@@ -856,7 +885,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+                <div 
+                  className="flex items-center space-x-2 cursor-pointer hover:text-blue-700 transition-colors rounded px-2 py-1 hover:bg-blue-50 group"
+                  onClick={() => navigateToTab('rag')}
+                  title="Click to view RAG search details"
+                >
                   <Database className="h-5 w-5 text-blue-500" />
                   <CardTitle>Document Chunks</CardTitle>
                 </div>
@@ -907,7 +940,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+                <div 
+                  className="flex items-center space-x-2 cursor-pointer hover:text-purple-700 transition-colors rounded px-2 py-1 hover:bg-purple-50 group"
+                  onClick={() => navigateToTab('idp')}
+                  title="Click to view Document Intelligence details"
+                >
                   <FileText className="h-5 w-5 text-purple-500" />
                   <CardTitle>Document Intelligence</CardTitle>
                 </div>
@@ -954,7 +991,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                     <div>
                       <h4 className="font-medium mb-3">Extracted Data</h4>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="text-center p-3 bg-gray-50 rounded">
+                        <div 
+                          className="text-center p-3 bg-gray-50 rounded cursor-pointer hover:bg-purple-50 hover:shadow-md transition-all"
+                          onClick={() => navigateToTab('idp')}
+                          title="Click to view Document Intelligence details"
+                        >
                           <div className="text-2xl font-bold">
                             {idpResults.extractedData.tables?.length || 0}
                           </div>
@@ -966,7 +1007,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                           </div>
                           <div className="text-sm text-gray-600">Images</div>
                         </div>
-                        <div className="text-center p-3 bg-gray-50 rounded">
+                        <div 
+                          className="text-center p-3 bg-gray-50 rounded cursor-pointer hover:bg-purple-50 hover:shadow-md transition-all"
+                          onClick={() => navigateToTab('idp')}
+                          title="Click to view Document Intelligence details"
+                        >
                           <div className="text-2xl font-bold">
                             {Object.keys(idpResults.extractedData.formFields || {}).length}
                           </div>
@@ -986,7 +1031,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+                <div 
+                  className="flex items-center space-x-2 cursor-pointer hover:text-green-700 transition-colors rounded px-2 py-1 hover:bg-green-50 group"
+                  onClick={() => navigateToTab('kg')}
+                  title="Click to view Knowledge Graph details"
+                >
                   <Network className="h-5 w-5 text-green-500" />
                   <CardTitle>Knowledge Graph</CardTitle>
                 </div>
