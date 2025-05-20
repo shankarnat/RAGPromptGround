@@ -120,6 +120,58 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           state: 'checked', // Set the data-state attribute
           refreshUI: true   // Signal to refresh the UI
         });
+        
+        // Direct DOM manipulation for maximum reliability
+        if (window && window.document) {
+          try {
+            console.log('Attempting direct checkbox manipulation');
+            // Find the RAG Search checkbox by its role and nearby text content
+            const allCheckboxes = document.querySelectorAll('button[role="checkbox"]');
+            let ragCheckbox = null;
+            
+            // Find the checkbox next to "RAG Search" text
+            for (let i = 0; i < allCheckboxes.length; i++) {
+              const checkbox = allCheckboxes[i];
+              // Check if there's nearby text containing "RAG Search"
+              const parent = checkbox.closest('.flex.items-start.space-x-3');
+              if (parent && parent.textContent.includes('RAG Search')) {
+                ragCheckbox = checkbox;
+                break;
+              }
+            }
+            
+            if (ragCheckbox) {
+              console.log('Found RAG Search checkbox, setting attributes');
+              // Set all the attributes that might control the checked state
+              ragCheckbox.setAttribute('aria-checked', 'true');
+              ragCheckbox.setAttribute('data-state', 'checked');
+              ragCheckbox.classList.add('data-[state=checked]:bg-primary');
+              ragCheckbox.classList.add('data-[state=checked]:text-primary-foreground');
+              
+              // Also directly set background color
+              ragCheckbox.style.backgroundColor = 'hsl(var(--primary))';
+              ragCheckbox.style.color = 'hsl(var(--primary-foreground))';
+              
+              // Add a checkmark icon inside
+              const checkIcon = document.createElement('svg');
+              checkIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+              checkIcon.setAttribute('width', '15');
+              checkIcon.setAttribute('height', '15');
+              checkIcon.setAttribute('viewBox', '0 0 15 15');
+              checkIcon.setAttribute('fill', 'none');
+              checkIcon.innerHTML = '<path d="M11.4669 3.72684C11.7558 3.91574 11.8369 4.30308 11.648 4.59198L7.39799 11.092C7.29783 11.2452 7.13556 11.3467 6.95402 11.3699C6.77247 11.3931 6.58989 11.3355 6.45446 11.2124L3.70446 8.71241C3.44905 8.48022 3.43023 8.08494 3.66242 7.82953C3.89461 7.57412 4.28989 7.55529 4.5453 7.78749L6.75292 9.79441L10.6018 3.90792C10.7907 3.61902 11.178 3.53795 11.4669 3.72684Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>';
+              
+              ragCheckbox.innerHTML = '';
+              ragCheckbox.appendChild(checkIcon);
+              
+              console.log('Direct checkbox manipulation complete');
+            } else {
+              console.log('Could not find RAG Search checkbox');
+            }
+          } catch (error) {
+            console.error('Error during direct checkbox manipulation:', error);
+          }
+        }
       }, 300);
       
       // No follow-up message for RAG
@@ -238,6 +290,58 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
                   state: 'checked',
                   refreshUI: true // Signal to refresh the UI
                 });
+                
+                // Direct DOM manipulation for maximum reliability
+                if (window && window.document) {
+                  try {
+                    console.log('Attempting direct checkbox manipulation');
+                    // Find the RAG Search checkbox by its role and nearby text content
+                    const allCheckboxes = document.querySelectorAll('button[role="checkbox"]');
+                    let ragCheckbox = null;
+                    
+                    // Find the checkbox next to "RAG Search" text
+                    for (let i = 0; i < allCheckboxes.length; i++) {
+                      const checkbox = allCheckboxes[i];
+                      // Check if there's nearby text containing "RAG Search"
+                      const parent = checkbox.closest('.flex.items-start.space-x-3');
+                      if (parent && parent.textContent.includes('RAG Search')) {
+                        ragCheckbox = checkbox;
+                        break;
+                      }
+                    }
+                    
+                    if (ragCheckbox) {
+                      console.log('Found RAG Search checkbox, setting attributes');
+                      // Set all the attributes that might control the checked state
+                      ragCheckbox.setAttribute('aria-checked', 'true');
+                      ragCheckbox.setAttribute('data-state', 'checked');
+                      ragCheckbox.classList.add('data-[state=checked]:bg-primary');
+                      ragCheckbox.classList.add('data-[state=checked]:text-primary-foreground');
+                      
+                      // Also directly set background color
+                      ragCheckbox.style.backgroundColor = 'hsl(var(--primary))';
+                      ragCheckbox.style.color = 'hsl(var(--primary-foreground))';
+                      
+                      // Add a checkmark icon inside
+                      const checkIcon = document.createElement('svg');
+                      checkIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                      checkIcon.setAttribute('width', '15');
+                      checkIcon.setAttribute('height', '15');
+                      checkIcon.setAttribute('viewBox', '0 0 15 15');
+                      checkIcon.setAttribute('fill', 'none');
+                      checkIcon.innerHTML = '<path d="M11.4669 3.72684C11.7558 3.91574 11.8369 4.30308 11.648 4.59198L7.39799 11.092C7.29783 11.2452 7.13556 11.3467 6.95402 11.3699C6.77247 11.3931 6.58989 11.3355 6.45446 11.2124L3.70446 8.71241C3.44905 8.48022 3.43023 8.08494 3.66242 7.82953C3.89461 7.57412 4.28989 7.55529 4.5453 7.78749L6.75292 9.79441L10.6018 3.90792C10.7907 3.61902 11.178 3.53795 11.4669 3.72684Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>';
+                      
+                      ragCheckbox.innerHTML = '';
+                      ragCheckbox.appendChild(checkIcon);
+                      
+                      console.log('Direct checkbox manipulation complete');
+                    } else {
+                      console.log('Could not find RAG Search checkbox');
+                    }
+                  } catch (error) {
+                    console.error('Error during direct checkbox manipulation:', error);
+                  }
+                }
               }, 300);
             }
           }
@@ -271,6 +375,58 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               state: 'checked',
               refreshUI: true // Signal to refresh the UI
             });
+            
+            // Direct DOM manipulation for maximum reliability
+            if (window && window.document) {
+              try {
+                console.log('Attempting direct checkbox manipulation');
+                // Find the RAG Search checkbox by its role and nearby text content
+                const allCheckboxes = document.querySelectorAll('button[role="checkbox"]');
+                let ragCheckbox = null;
+                
+                // Find the checkbox next to "RAG Search" text
+                for (let i = 0; i < allCheckboxes.length; i++) {
+                  const checkbox = allCheckboxes[i];
+                  // Check if there's nearby text containing "RAG Search"
+                  const parent = checkbox.closest('.flex.items-start.space-x-3');
+                  if (parent && parent.textContent.includes('RAG Search')) {
+                    ragCheckbox = checkbox;
+                    break;
+                  }
+                }
+                
+                if (ragCheckbox) {
+                  console.log('Found RAG Search checkbox, setting attributes');
+                  // Set all the attributes that might control the checked state
+                  ragCheckbox.setAttribute('aria-checked', 'true');
+                  ragCheckbox.setAttribute('data-state', 'checked');
+                  ragCheckbox.classList.add('data-[state=checked]:bg-primary');
+                  ragCheckbox.classList.add('data-[state=checked]:text-primary-foreground');
+                  
+                  // Also directly set background color
+                  ragCheckbox.style.backgroundColor = 'hsl(var(--primary))';
+                  ragCheckbox.style.color = 'hsl(var(--primary-foreground))';
+                  
+                  // Add a checkmark icon inside
+                  const checkIcon = document.createElement('svg');
+                  checkIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                  checkIcon.setAttribute('width', '15');
+                  checkIcon.setAttribute('height', '15');
+                  checkIcon.setAttribute('viewBox', '0 0 15 15');
+                  checkIcon.setAttribute('fill', 'none');
+                  checkIcon.innerHTML = '<path d="M11.4669 3.72684C11.7558 3.91574 11.8369 4.30308 11.648 4.59198L7.39799 11.092C7.29783 11.2452 7.13556 11.3467 6.95402 11.3699C6.77247 11.3931 6.58989 11.3355 6.45446 11.2124L3.70446 8.71241C3.44905 8.48022 3.43023 8.08494 3.66242 7.82953C3.89461 7.57412 4.28989 7.55529 4.5453 7.78749L6.75292 9.79441L10.6018 3.90792C10.7907 3.61902 11.178 3.53795 11.4669 3.72684Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>';
+                  
+                  ragCheckbox.innerHTML = '';
+                  ragCheckbox.appendChild(checkIcon);
+                  
+                  console.log('Direct checkbox manipulation complete');
+                } else {
+                  console.log('Could not find RAG Search checkbox');
+                }
+              } catch (error) {
+                console.error('Error during direct checkbox manipulation:', error);
+              }
+            }
           }, 300);
         }
         
