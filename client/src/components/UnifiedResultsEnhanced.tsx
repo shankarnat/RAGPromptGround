@@ -12,6 +12,7 @@ import {
   FileText, 
   Network, 
   Database,
+  File,
   ChevronRight,
   Package,
   User,
@@ -150,7 +151,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   selectedChunk,
   onClearResults
 }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'rag' | 'kg' | 'idp' | 'agentic'>('all');
+  const [activeTab, setActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic'>('all');
   
   // Handle tab switching if the current tab is disabled
   useEffect(() => {
@@ -573,7 +574,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   ];
 
   // Function to navigate between tabs with visual feedback
-  const navigateToTab = (tab: 'all' | 'rag' | 'kg' | 'idp' | 'agentic') => {
+  const navigateToTab = (tab: 'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic') => {
     // Only allow navigation to tabs that are enabled
     if (tab === 'kg' && !processingConfig?.kg?.enabled) {
       console.log('Cannot navigate to KG tab - KG processing is disabled');
@@ -829,6 +830,54 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     return activeProcessing;
   };
 
+  // Render the source document content
+  const renderSourceDocument = () => {
+    // If no document is selected or no RAG results available, show placeholder
+    if (!ragResults || !ragResults.chunks || ragResults.chunks.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No source document available.</p>
+        </div>
+      );
+    }
+
+    // Get document metadata from the first chunk
+    const firstChunk = ragResults.chunks[0];
+    const documentName = firstChunk.fileName || 'Document';
+    const totalChunks = ragResults.chunks.length;
+    
+    // In a real implementation, we'd fetch the full document content
+    // For this prototype, we'll concatenate all the chunks
+    const combinedContent = ragResults.chunks
+      .sort((a, b) => a.chunkIndex - b.chunkIndex)
+      .map(chunk => chunk.content)
+      .join('\n\n');
+
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <File className="h-5 w-5 text-gray-600" />
+                <CardTitle>Source Document</CardTitle>
+              </div>
+              <Badge variant="outline">{documentName}</Badge>
+            </div>
+            <CardDescription>
+              {totalChunks} chunks • Approximately {ragResults.chunks.reduce((sum, chunk) => sum + chunk.tokenCount, 0)} tokens
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="border rounded-md p-4 bg-white overflow-auto max-h-[600px] whitespace-pre-wrap font-mono text-sm">
+              {combinedContent}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   const renderAllResults = () => {
     const hasRagResults = ragResults && filteredChunks.length > 0;
     const hasKgResults = kgResults && filteredEntities.length > 0 && processingConfig?.kg?.enabled;
@@ -893,7 +942,17 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   <Database className="h-5 w-5 text-blue-500" />
                   <CardTitle>Document Chunks</CardTitle>
                 </div>
-                <Badge variant="secondary">{filteredChunks.length} chunks</Badge>
+                <Badge 
+                  variant="secondary" 
+                  className="cursor-pointer hover:bg-blue-100 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering parent onClick
+                    navigateToTab('source');
+                  }}
+                  title="Click to view full source document"
+                >
+                  {filteredChunks.length} chunks
+                </Badge>
               </div>
             </CardHeader>
             <CardContent>
@@ -1158,6 +1217,10 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
       <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="flex-1">
         <TabsList className="w-full justify-start mb-4">
+          <TabsTrigger value="source" className="flex items-center gap-2">
+            <File className="h-4 w-4" />
+            Source Doc
+          </TabsTrigger>
           <TabsTrigger value="all" onClick={() => {
             // Set loading state
             setIsLoading(true);
@@ -1192,6 +1255,9 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
         </TabsList>
 
         <ScrollArea className="flex-1">
+          <TabsContent value="source">
+            {renderSourceDocument()}
+          </TabsContent>
           <TabsContent value="all">
             {isLoading ? (
               <Card className="h-[400px] flex items-center justify-center">
