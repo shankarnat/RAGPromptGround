@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -151,6 +151,19 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   onClearResults
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'rag' | 'kg' | 'idp' | 'agentic'>('all');
+  
+  // Handle tab switching if the current tab is disabled
+  useEffect(() => {
+    // If Knowledge Graph tab is active but KG is disabled, switch to 'all' tab
+    if (activeTab === 'kg' && !processingConfig?.kg?.enabled) {
+      setActiveTab('all');
+    }
+    
+    // If Document Intelligence tab is active but IDP is disabled, switch to 'all' tab
+    if (activeTab === 'idp' && !processingConfig?.idp?.enabled) {
+      setActiveTab('all');
+    }
+  }, [activeTab, processingConfig?.kg?.enabled, processingConfig?.idp?.enabled]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilters, setSearchFilters] = useState<any>({ types: ['rag', 'kg', 'idp'] });
   const [filteredChunks, setFilteredChunks] = useState<any[]>([]);
@@ -297,14 +310,22 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   };
 
   const renderKGResults = () => {
-    if (!kgResults || filteredEntities.length === 0 || !processingConfig?.kg?.enabled) {
+    // Check if Knowledge Graph processing is enabled through the checkbox
+    if (!processingConfig?.kg?.enabled) {
       return (
         <div className="text-center py-12">
           <p className="text-gray-500">
-            {!processingConfig?.kg?.enabled 
-              ? "Knowledge Graph is disabled. Enable it in the left panel to view results."
-              : "No Knowledge Graph entities found."}
+            Knowledge Graph is disabled. Enable it in the left panel to view results.
           </p>
+        </div>
+      );
+    }
+    
+    // Now check if we have actual results to display
+    if (!kgResults || filteredEntities.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No Knowledge Graph entities found.</p>
         </div>
       );
     }
@@ -369,10 +390,20 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   };
 
   const renderIDPResults = () => {
-    if (!idpResults || !processingConfig?.idp?.enabled) {
+    // Check if Document Intelligence processing is enabled through the checkbox
+    if (!processingConfig?.idp?.enabled) {
       return (
         <div className="text-center py-12">
           <p className="text-gray-500">Document Intelligence is disabled. Enable it in the left panel to view results.</p>
+        </div>
+      );
+    }
+
+    // Now check if we have actual results to display
+    if (!idpResults) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No Document Intelligence results found.</p>
         </div>
       );
     }
@@ -1091,14 +1122,20 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
             <Database className="h-4 w-4" />
             RAG
           </TabsTrigger>
-          <TabsTrigger value="kg" className="flex items-center gap-2">
-            <Network className="h-4 w-4" />
-            Knowledge Graph
-          </TabsTrigger>
-          <TabsTrigger value="idp" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Document Intelligence
-          </TabsTrigger>
+          {/* Only show Knowledge Graph tab when the KG checkbox is enabled */}
+          {processingConfig?.kg?.enabled && (
+            <TabsTrigger value="kg" className="flex items-center gap-2">
+              <Network className="h-4 w-4" />
+              Knowledge Graph
+            </TabsTrigger>
+          )}
+          {/* Only show Document Intelligence tab when the IDP checkbox is enabled */}
+          {processingConfig?.idp?.enabled && (
+            <TabsTrigger value="idp" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Document Intelligence
+            </TabsTrigger>
+          )}
           <TabsTrigger value="agentic" className="flex items-center gap-2">
             <BrainCircuit className="h-4 w-4" />
             Agentic Results
@@ -1120,8 +1157,14 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
             ) : renderAllResults()}
           </TabsContent>
           <TabsContent value="rag">{renderRAGResults()}</TabsContent>
-          <TabsContent value="kg">{renderKGResults()}</TabsContent>
-          <TabsContent value="idp">{renderIDPResults()}</TabsContent>
+          {/* Only render KG tab content when KG is enabled */}
+          {processingConfig?.kg?.enabled && (
+            <TabsContent value="kg">{renderKGResults()}</TabsContent>
+          )}
+          {/* Only render IDP tab content when IDP is enabled */}
+          {processingConfig?.idp?.enabled && (
+            <TabsContent value="idp">{renderIDPResults()}</TabsContent>
+          )}
           <TabsContent value="agentic">{renderAgenticResults()}</TabsContent>
         </ScrollArea>
       </Tabs>

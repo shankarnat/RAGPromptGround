@@ -86,10 +86,14 @@ const ChunkingSection = memo<{
   // Slider change handlers
   const handleSliderChunkSizeChange = useCallback((value: number[]) => {
     onChunkSizeChange(value[0]);
+    console.log('Chunk size changed to:', value[0]);
+    console.log('Triggering config change in CombinedConfigurationPanel');
   }, [onChunkSizeChange]);
 
   const handleSliderChunkOverlapChange = useCallback((value: number[]) => {
     onChunkOverlapChange(value[0]);
+    console.log('Chunk overlap changed to:', value[0]);
+    console.log('Triggering config change in CombinedConfigurationPanel');
   }, [onChunkOverlapChange]);
 
   return (
@@ -104,7 +108,11 @@ const ChunkingSection = memo<{
               className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
               name="chunking-method"
               checked={chunkingMethod === "semantic"}
-              onChange={() => onChunkingMethodChange("semantic")}
+              onChange={() => {
+                console.log('Changing chunking method to: semantic');
+                onChunkingMethodChange("semantic");
+                console.log('Chunking method changed, should trigger config change');
+              }}
             />
             <span className="ml-2 text-xs md:text-sm text-gray-700">Semantic</span>
           </label>
@@ -114,7 +122,11 @@ const ChunkingSection = memo<{
               className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
               name="chunking-method"
               checked={chunkingMethod === "fixed"}
-              onChange={() => onChunkingMethodChange("fixed")}
+              onChange={() => {
+                console.log('Changing chunking method to: fixed');
+                onChunkingMethodChange("fixed");
+                console.log('Chunking method changed, should trigger config change');
+              }}
             />
             <span className="ml-2 text-xs md:text-sm text-gray-700">Fixed Size</span>
           </label>
@@ -124,7 +136,11 @@ const ChunkingSection = memo<{
               className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
               name="chunking-method"
               checked={chunkingMethod === "header"}
-              onChange={() => onChunkingMethodChange("header")}
+              onChange={() => {
+                console.log('Changing chunking method to: header');
+                onChunkingMethodChange("header");
+                console.log('Chunking method changed, should trigger config change');
+              }}
             />
             <span className="ml-2 text-xs md:text-sm text-gray-700">Header-based</span>
           </label>

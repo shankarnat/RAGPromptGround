@@ -136,17 +136,53 @@ const UnifiedDashboard: FC = () => {
     },
   });
 
-  // Monitor processingConfig changes
+  // Monitor processingConfig changes and chunking configuration
   useEffect(() => {
-    console.log('processingConfig updated:', processingConfig);
+    console.log('Checking for configuration changes...');
     
     // If we have a last processed config, check if current config is different
     if (lastProcessedConfig) {
-      const isChanged = JSON.stringify(processingConfig) !== JSON.stringify(lastProcessedConfig);
+      // Create a current config object with the same structure as lastProcessedConfig
+      const currentFullConfig = {
+        ...processingConfig,
+        chunking: {
+          method: state.chunkingMethod,
+          size: state.chunkSize,
+          overlap: state.chunkOverlap
+        }
+      };
+      
+      // Compare the JSON strings of both configs to detect any changes
+      const isChanged = (
+        JSON.stringify(processingConfig) !== JSON.stringify(lastProcessedConfig) ||
+        currentFullConfig.chunking.method !== lastProcessedConfig.chunking?.method ||
+        currentFullConfig.chunking.size !== lastProcessedConfig.chunking?.size ||
+        currentFullConfig.chunking.overlap !== lastProcessedConfig.chunking?.overlap
+      );
+      
       setConfigChanged(isChanged);
       console.log(`Configuration ${isChanged ? 'changed' : 'unchanged'} from last processed config`);
+      
+      // Log detailed comparison when changes are detected
+      if (isChanged) {
+        console.log('Current configuration:', currentFullConfig);
+        console.log('Last processed configuration:', lastProcessedConfig);
+        console.log('Chunking configuration comparison:', {
+          lastChunkingMethod: lastProcessedConfig.chunking?.method,
+          currentChunkingMethod: state.chunkingMethod,
+          chunkingMethodChanged: lastProcessedConfig.chunking?.method !== state.chunkingMethod,
+          
+          lastChunkSize: lastProcessedConfig.chunking?.size,
+          currentChunkSize: state.chunkSize,
+          chunkSizeChanged: lastProcessedConfig.chunking?.size !== state.chunkSize,
+          
+          lastChunkOverlap: lastProcessedConfig.chunking?.overlap,
+          currentChunkOverlap: state.chunkOverlap,
+          chunkOverlapChanged: lastProcessedConfig.chunking?.overlap !== state.chunkOverlap
+        });
+      }
     }
-  }, [processingConfig, lastProcessedConfig]);
+  }, [processingConfig, lastProcessedConfig, state.chunkingMethod, state.chunkSize, state.chunkOverlap]);
   
   // Track AI-driven RAG enablement
   const [pendingRagEnable, setPendingRagEnable] = useState(false);
@@ -1078,7 +1114,20 @@ const UnifiedDashboard: FC = () => {
     }
 
     // Save the current configuration for comparison after processing
-    setLastProcessedConfig(JSON.parse(JSON.stringify(processingConfig)));
+    // Include the chunking configuration in the saved state
+    const configToSave = {
+      ...JSON.parse(JSON.stringify(processingConfig)),
+      chunking: {
+        method: state.chunkingMethod,
+        size: state.chunkSize,
+        overlap: state.chunkOverlap
+      }
+    };
+    console.log('Saving last processed config:', configToSave);
+    setLastProcessedConfig(configToSave);
+    
+    // Reset the configChanged flag since we're processing with current config
+    setConfigChanged(false);
 
     // Enable Document Processing (IDP) when process document is clicked
     if (!processingConfig.idp.enabled) {
@@ -1168,8 +1217,26 @@ const UnifiedDashboard: FC = () => {
     </div>
   );
 
-  // Memoize the manual configuration panel props to prevent re-renders
+  // Create wrapper functions for chunking configuration updates to trigger config changes
+  const wrappedUpdateChunkingMethod = useCallback((method) => {
+    console.log('Chunking method changed to:', method);
+    updateChunkingMethod(method);
+    setConfigChanged(true);
+  }, [updateChunkingMethod]);
+
+  const wrappedUpdateChunkSize = useCallback((size) => {
+    console.log('Chunk size changed to:', size);
+    updateChunkSize(size);
+    setConfigChanged(true);
+  }, [updateChunkSize]);
+
+  const wrappedUpdateChunkOverlap = useCallback((overlap) => {
+    console.log('Chunk overlap changed to:', overlap);
+    updateChunkOverlap(overlap);
+    setConfigChanged(true);
+  }, [updateChunkOverlap]);
   
+  // Memoize the manual configuration panel props to prevent re-renders
   const manualConfigPanelProps = useMemo(() => ({
     processingTypes,
     processingConfig,
@@ -1177,9 +1244,10 @@ const UnifiedDashboard: FC = () => {
     handleOptionToggle,
     onProcessDocument: handleProcessDocument,
     state,
-    updateChunkingMethod,
-    updateChunkSize,
-    updateChunkOverlap,
+    // Use the wrapped functions instead of direct update functions
+    updateChunkingMethod: wrappedUpdateChunkingMethod,
+    updateChunkSize: wrappedUpdateChunkSize,
+    updateChunkOverlap: wrappedUpdateChunkOverlap,
     selectedDocument: state.selectedDocument,
     multimodalConfig: multimodalConfig.config,
     // Always allow editing of options, even in results view
@@ -1194,9 +1262,9 @@ const UnifiedDashboard: FC = () => {
     handleOptionToggle,
     handleProcessDocument,
     state,
-    updateChunkingMethod,
-    updateChunkSize,
-    updateChunkOverlap,
+    wrappedUpdateChunkingMethod,
+    wrappedUpdateChunkSize,
+    wrappedUpdateChunkOverlap,
     multimodalConfig.config,
     highlightProcessButton,
     pulseProcessButton
@@ -1432,13 +1500,14 @@ const UnifiedDashboard: FC = () => {
                     )}
                   </div>
                   <Button
-                    variant="default"
+                    variant={configChanged ? "default" : "outline"}
                     onClick={handleProcessDocument}
-                    className="flex items-center gap-2"
+                    className={`flex items-center gap-2 ${configChanged ? 'bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-md transform hover:scale-[1.02]' : ''}`}
                     disabled={!configChanged}
                   >
                     <PlayCircle className="h-4 w-4" />
                     Re-process with Current Configuration
+                    {configChanged && <span className="ml-1 text-xs animate-pulse">•</span>}
                   </Button>
                 </div>
                 <div className="flex-1 p-6 overflow-y-auto">
