@@ -316,11 +316,13 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg">{chunk.title}</CardTitle>
                     <div className="flex items-center gap-2">
-                      <Badge className={cn("font-medium flex items-center gap-1", scoreColorClass)}>
+                      <Badge className={cn("font-medium flex items-center gap-1 text-white", 
+                        parseFloat(relevanceScore) > 0.9 ? "bg-green-600" : 
+                        parseFloat(relevanceScore) > 0.75 ? "bg-blue-600" : "bg-amber-600")}>
                         <BarChart3 className="h-3 w-3" />
                         Score: {relevanceScore}
                       </Badge>
-                      <Badge variant="secondary">Chunk {chunk.chunkIndex + 1}</Badge>
+                      <Badge variant="secondary" className="bg-gray-200 text-gray-800">Chunk {chunk.chunkIndex + 1}</Badge>
                     </div>
                   </div>
                   <CardDescription className="mt-1 text-xs">
@@ -334,8 +336,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   {chunk.tags.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {chunk.tags.map((tag, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          <Tag className="h-3 w-3 mr-1" />
+                        <Badge key={idx} variant="outline" className="text-xs bg-white text-gray-700 border-gray-300">
+                          <Tag className="h-3 w-3 mr-1 text-blue-600" />
                           {tag}
                         </Badge>
                       ))}

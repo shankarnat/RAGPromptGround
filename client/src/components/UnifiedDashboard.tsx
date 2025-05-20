@@ -1262,6 +1262,14 @@ const UnifiedDashboard: FC = () => {
   }, [updateChunkOverlap]);
   
   // Memoize the manual configuration panel props to prevent re-renders
+  // State for sidebar collapse
+  const [configPanelCollapsed, setConfigPanelCollapsed] = useState(false);
+  
+  // Handler for sidebar collapse state changes
+  const handleConfigPanelCollapse = useCallback((collapsed) => {
+    setConfigPanelCollapsed(collapsed);
+  }, []);
+  
   const manualConfigPanelProps = useMemo(() => ({
     processingTypes,
     processingConfig,
@@ -1279,7 +1287,10 @@ const UnifiedDashboard: FC = () => {
     disabled: false,
     // Pass the highlighting and pulse flags to draw attention to the Process button when needed
     highlightProcessButton: highlightProcessButton,
-    pulseEffect: pulseProcessButton
+    pulseEffect: pulseProcessButton,
+    // Add the collapse state and handler
+    initialCollapsed: configPanelCollapsed,
+    onCollapseChange: handleConfigPanelCollapse
   }), [
     processingTypes,
     processingConfig,
@@ -1292,7 +1303,9 @@ const UnifiedDashboard: FC = () => {
     wrappedUpdateChunkOverlap,
     multimodalConfig.config,
     highlightProcessButton,
-    pulseProcessButton
+    pulseProcessButton,
+    configPanelCollapsed,
+    handleConfigPanelCollapse
   ]);
 
   const renderContent = () => {
@@ -1301,8 +1314,13 @@ const UnifiedDashboard: FC = () => {
       case "upload":
         return (
           <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Manual Configuration */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100">
+            {/* Left Panel - Manual Configuration - minimal size when collapsed */}
+            <ResizablePanel 
+              defaultSize={configPanelCollapsed ? 3 : 20} 
+              minSize={configPanelCollapsed ? 3 : 15} 
+              maxSize={configPanelCollapsed ? 3 : 30} 
+              className="h-full bg-gray-100"
+            >
               <div className="h-full overflow-hidden">
                 <ManualConfigurationPanel {...manualConfigPanelProps} />
               </div>
@@ -1310,8 +1328,8 @@ const UnifiedDashboard: FC = () => {
             
           <ResizableHandle withHandle />
             
-          {/* Center Panel - Document & Results */}
-          <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
+          {/* Center Panel - Document & Results - expands when left panel is collapsed */}
+          <ResizablePanel defaultSize={configPanelCollapsed ? 77 : 60} minSize={40} maxSize={configPanelCollapsed ? 87 : 70}>
             <div className="h-full bg-gray-50 overflow-y-auto">
               {!state.selectedDocument ? (
                 // Show upload panel when no document is selected
@@ -1430,8 +1448,13 @@ const UnifiedDashboard: FC = () => {
       case "process":
         return (
           <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Manual Configuration (same as upload) */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100">
+            {/* Left Panel - Manual Configuration - minimal size when collapsed */}
+            <ResizablePanel 
+              defaultSize={configPanelCollapsed ? 3 : 20} 
+              minSize={configPanelCollapsed ? 3 : 15} 
+              maxSize={configPanelCollapsed ? 3 : 30} 
+              className="h-full bg-gray-100"
+            >
               <div className="h-full overflow-hidden">
                 <ManualConfigurationPanel {...manualConfigPanelProps} />
               </div>
@@ -1439,8 +1462,8 @@ const UnifiedDashboard: FC = () => {
             
             <ResizableHandle withHandle />
             
-            {/* Center Panel - Processing Status */}
-            <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
+            {/* Center Panel - Processing Status - expands when left panel is collapsed */}
+            <ResizablePanel defaultSize={configPanelCollapsed ? 77 : 60} minSize={40} maxSize={configPanelCollapsed ? 87 : 70}>
               <div className="h-full p-6 bg-gray-50 overflow-y-auto">
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold mb-2">Processing Document</h2>
@@ -1506,8 +1529,13 @@ const UnifiedDashboard: FC = () => {
       case "results":
         return (
           <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Manual Configuration (same as upload/process) */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100">
+            {/* Left Panel - Manual Configuration - minimal size when collapsed */}
+            <ResizablePanel 
+              defaultSize={configPanelCollapsed ? 3 : 20} 
+              minSize={configPanelCollapsed ? 3 : 15} 
+              maxSize={configPanelCollapsed ? 3 : 30} 
+              className="h-full bg-gray-100"
+            >
               <div className="h-full overflow-hidden">
                 <ManualConfigurationPanel {...manualConfigPanelProps} />
               </div>
@@ -1515,8 +1543,8 @@ const UnifiedDashboard: FC = () => {
             
             <ResizableHandle withHandle />
             
-            {/* Center Panel - Results View */}
-            <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
+            {/* Center Panel - Results View - expands when left panel is collapsed */}
+            <ResizablePanel defaultSize={configPanelCollapsed ? 77 : 60} minSize={40} maxSize={configPanelCollapsed ? 87 : 70}>
               <div className="h-full flex flex-col bg-gray-50">
                 {/* Add a Re-process button for updated configuration */}
                 <div className="flex items-center justify-between bg-gray-100 border-b border-gray-200 px-6 py-3">
@@ -1604,8 +1632,10 @@ const UnifiedDashboard: FC = () => {
       <div className="flex-1 flex flex-col">
         <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shadow-sm">
           <div className="flex items-center space-x-3">
-            <Layers className="h-7 w-7 text-blue-600" />
-            <h1 className="text-xl font-semibold text-gray-800">Unified Content Processing</h1>
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1.5 rounded-lg shadow-md">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <h1 className="text-xl font-semibold text-gray-800">Content Workbench</h1>
           </div>
           
           <div className="flex items-center space-x-4">

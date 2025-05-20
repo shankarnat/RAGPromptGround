@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FileSearch, Network, FileText, PlayCircle, Wand2, Check, Settings } from "lucide-react";
+import { FileSearch, Network, FileText, PlayCircle, Wand2, Check, Settings, ChevronRight, ChevronLeft } from "lucide-react";
 import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
 
 interface ManualConfigurationPanelProps {
@@ -24,6 +24,8 @@ interface ManualConfigurationPanelProps {
   disabled?: boolean;
   highlightProcessButton?: boolean; // Flag to highlight the Process Document button
   pulseEffect?: boolean; // Flag to add extra pulse effect for more attention
+  initialCollapsed?: boolean; // Flag to determine if sidebar is initially collapsed
+  onCollapseChange?: (collapsed: boolean) => void; // Callback for collapse state changes
 }
 
 const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo(({
@@ -38,13 +40,31 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   updateChunkOverlap,
   disabled = false,
   highlightProcessButton = false,
-  pulseEffect = false
+  pulseEffect = false,
+  initialCollapsed = false,
+  onCollapseChange
 }) => {
   console.log('ManualConfigurationPanel render - processingConfig:', processingConfig);
   console.log('ManualConfigurationPanel render - processingConfig.rag:', processingConfig.rag);
   console.log('ManualConfigurationPanel render - processingConfig.rag.enabled:', processingConfig.rag?.enabled);
   console.log('ManualConfigurationPanel render - processingConfig.kg:', processingConfig.kg);
   console.log('ManualConfigurationPanel render - processingConfig.kg.enabled:', processingConfig.kg?.enabled);
+  
+  // State for tracking if sidebar is collapsed
+  const [collapsed, setCollapsed] = useState(initialCollapsed);
+  
+  // Sync collapsed state with initialCollapsed prop when it changes
+  useEffect(() => {
+    if (initialCollapsed !== collapsed) {
+      console.log('Syncing collapsed state from props:', initialCollapsed);
+      setCollapsed(initialCollapsed);
+      
+      // Notify parent component about collapse state change if needed
+      if (onCollapseChange) {
+        onCollapseChange(initialCollapsed);
+      }
+    }
+  }, [initialCollapsed, collapsed, onCollapseChange]);
   
   // Track which accordions should be open based on enabled state
   const [openSections, setOpenSections] = useState<string[]>(() => {
@@ -63,12 +83,63 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
     if (processingConfig.idp?.enabled) newOpenSections.push('idp');
     setOpenSections(newOpenSections);
   }, [processingConfig.rag?.enabled, processingConfig.kg?.enabled, processingConfig.idp?.enabled]);
+  
+  // Toggle sidebar collapse
+  const toggleCollapse = () => {
+    const newCollapsedState = !collapsed;
+    setCollapsed(newCollapsedState);
+    
+    // Notify parent component about collapse state change
+    if (onCollapseChange) {
+      onCollapseChange(newCollapsedState);
+    }
+  };
+  
   return (
-    <div className="h-full overflow-y-auto p-4 space-y-6 relative">
-      {/* Content Configuration - always visible */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-2">
+    <div className="h-full overflow-hidden flex w-full">
+      {/* Collapsible toggle button - always visible */}
+      <button 
+        type="button"
+        className="flex flex-col items-center justify-between h-full bg-gray-700 border-r border-gray-600 shadow-md cursor-pointer hover:bg-gray-600 transition-all duration-200 py-8 px-1 w-8 flex-shrink-0"
+        style={{zIndex: 100}} 
+        onClick={toggleCollapse}
+        aria-label={collapsed ? "Expand configuration panel" : "Collapse configuration panel"}
+      >
+        {/* Top section with icon */}
+        <div className="flex flex-col items-center gap-2">
+          {collapsed ? (
+            <ChevronRight className="h-6 w-6 text-gray-300" />
+          ) : (
+            <ChevronLeft className="h-6 w-6 text-gray-300" />
+          )}
+        </div>
+        
+        {/* Middle section with text */}
+        <div className="flex-grow flex items-center justify-center">
+          <div className="transform rotate-90 text-gray-300 text-xs font-medium tracking-wide whitespace-nowrap">
+            {collapsed ? "CONFIGURATION" : "COLLAPSE PANEL"}
+          </div>
+        </div>
+        
+        {/* Bottom section with icons representing different parts */}
+        <div className="flex flex-col gap-3 items-center">
+          <Settings className="h-5 w-5 text-gray-400" />
+          <FileSearch className="h-5 w-5 text-gray-400" />
+          <FileText className="h-5 w-5 text-gray-400" />
+          <Network className="h-5 w-5 text-gray-400" />
+        </div>
+      </button>
+      
+      {/* Main content area - content changes based on collapsed state */}
+      <div className={`h-full transition-all duration-300 ease-in-out ${collapsed ? 'w-0 opacity-0' : 'flex-1'}`}
+           style={{overflow: collapsed ? 'hidden' : 'visible'}}>
+        {!collapsed && (
+          /* Expanded state - show full configuration */
+          <div className="h-full overflow-y-auto p-4 space-y-6 relative">
+            {/* Content Configuration - always visible */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
             <Settings className="w-5 h-5 text-gray-700" />
             <CardTitle>Content Configuration</CardTitle>
           </div>
@@ -331,6 +402,9 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
           </Button>
         </div>
       )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }, (prevProps, nextProps) => {
@@ -365,9 +439,19 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   
   const highlightEqual = prevProps.highlightProcessButton === nextProps.highlightProcessButton;
   const pulseEqual = prevProps.pulseEffect === nextProps.pulseEffect;
+  const collapsedEqual = prevProps.initialCollapsed === nextProps.initialCollapsed;
   
-  const shouldSkipRender = configEqual && disabledEqual && stateEqual && highlightEqual && pulseEqual;
-  console.log('  Deep comparison:', { configEqual, disabledEqual, stateEqual, highlightEqual, pulseEqual, shouldSkipRender });
+  // Also check if collapse handlers are the same
+  const onCollapseChangeEqual = prevProps.onCollapseChange === nextProps.onCollapseChange;
+  
+  const shouldSkipRender = configEqual && disabledEqual && stateEqual && 
+                           highlightEqual && pulseEqual && collapsedEqual && 
+                           onCollapseChangeEqual;
+                           
+  console.log('  Deep comparison:', { 
+    configEqual, disabledEqual, stateEqual, highlightEqual, 
+    pulseEqual, collapsedEqual, onCollapseChangeEqual, shouldSkipRender 
+  });
   
   return shouldSkipRender;
 });
