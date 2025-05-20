@@ -1217,6 +1217,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
       <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="flex-1">
         <TabsList className="w-full justify-start mb-4">
+          {/* Tab order: 1. Source Doc, 2. All Results, 3. Agentic Results, 4. RAG, 5. Doc Intelligence, 6. KG */}
           <TabsTrigger value="source" className="flex items-center gap-2">
             <File className="h-4 w-4" />
             Source Doc
@@ -1230,17 +1231,14 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
               setIsLoading(false);
             }, 1200);
           }}>All Results</TabsTrigger>
+          <TabsTrigger value="agentic" className="flex items-center gap-2">
+            <BrainCircuit className="h-4 w-4" />
+            Agentic Results
+          </TabsTrigger>
           <TabsTrigger value="rag" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             RAG
           </TabsTrigger>
-          {/* Only show Knowledge Graph tab when the KG checkbox is enabled */}
-          {processingConfig?.kg?.enabled && (
-            <TabsTrigger value="kg" className="flex items-center gap-2">
-              <Network className="h-4 w-4" />
-              Knowledge Graph
-            </TabsTrigger>
-          )}
           {/* Only show Document Intelligence tab when the IDP checkbox is enabled */}
           {processingConfig?.idp?.enabled && (
             <TabsTrigger value="idp" className="flex items-center gap-2">
@@ -1248,10 +1246,13 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
               Document Intelligence
             </TabsTrigger>
           )}
-          <TabsTrigger value="agentic" className="flex items-center gap-2">
-            <BrainCircuit className="h-4 w-4" />
-            Agentic Results
-          </TabsTrigger>
+          {/* Only show Knowledge Graph tab when the KG checkbox is enabled */}
+          {processingConfig?.kg?.enabled && (
+            <TabsTrigger value="kg" className="flex items-center gap-2">
+              <Network className="h-4 w-4" />
+              Knowledge Graph
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <ScrollArea className="flex-1">
