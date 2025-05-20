@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Upload, FileSearch, Network, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard, Layers, User, HelpCircle, Phone, LogOut, Brain, Sparkles, PlayCircle } from "lucide-react";
+import { Upload, FileSearch, Network, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard, Layers, User, HelpCircle, Phone, LogOut, Brain, Sparkles, PlayCircle, PanelLeft, PanelRightOpen } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import {
   DropdownMenu,
@@ -1301,17 +1301,23 @@ const UnifiedDashboard: FC = () => {
       case "upload":
         return (
           <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Manual Configuration */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100">
-              <div className="h-full overflow-hidden">
-                <ManualConfigurationPanel {...manualConfigPanelProps} />
-              </div>
-            </ResizablePanel>
+            {/* Left Panel - Manual Configuration - Conditionally rendered based on leftPanelVisible */}
+            {leftPanelVisible && (
+              <>
+                <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100 transition-all duration-300">
+                  <div className="h-full overflow-hidden">
+                    <ManualConfigurationPanel {...manualConfigPanelProps} />
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+              </>
+            )}
             
-          <ResizableHandle withHandle />
-            
-          {/* Center Panel - Document & Results */}
-          <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
+          {/* Center Panel - Document & Results - Expands when left panel is hidden */}
+          <ResizablePanel 
+            defaultSize={leftPanelVisible ? 60 : 80} 
+            minSize={40} 
+            maxSize={leftPanelVisible ? 70 : 100}>
             <div className="h-full bg-gray-50 overflow-y-auto">
               {!state.selectedDocument ? (
                 // Show upload panel when no document is selected
@@ -1426,17 +1432,23 @@ const UnifiedDashboard: FC = () => {
       case "process":
         return (
           <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Manual Configuration (same as upload) */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100">
-              <div className="h-full overflow-hidden">
-                <ManualConfigurationPanel {...manualConfigPanelProps} />
-              </div>
-            </ResizablePanel>
+            {/* Left Panel - Manual Configuration - Conditionally rendered based on leftPanelVisible */}
+            {leftPanelVisible && (
+              <>
+                <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100 transition-all duration-300">
+                  <div className="h-full overflow-hidden">
+                    <ManualConfigurationPanel {...manualConfigPanelProps} />
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+              </>
+            )}
             
-            <ResizableHandle withHandle />
-            
-            {/* Center Panel - Processing Status */}
-            <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
+            {/* Center Panel - Processing Status - Expands when left panel is hidden */}
+            <ResizablePanel 
+              defaultSize={leftPanelVisible ? 60 : 80} 
+              minSize={40} 
+              maxSize={leftPanelVisible ? 70 : 100}>
               <div className="h-full p-6 bg-gray-50 overflow-y-auto">
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold mb-2">Processing Document</h2>
@@ -1502,17 +1514,23 @@ const UnifiedDashboard: FC = () => {
       case "results":
         return (
           <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Manual Configuration (same as upload/process) */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100">
-              <div className="h-full overflow-hidden">
-                <ManualConfigurationPanel {...manualConfigPanelProps} />
-              </div>
-            </ResizablePanel>
+            {/* Left Panel - Manual Configuration - Conditionally rendered based on leftPanelVisible */}
+            {leftPanelVisible && (
+              <>
+                <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-full bg-gray-100 transition-all duration-300">
+                  <div className="h-full overflow-hidden">
+                    <ManualConfigurationPanel {...manualConfigPanelProps} />
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+              </>
+            )}
             
-            <ResizableHandle withHandle />
-            
-            {/* Center Panel - Results View */}
-            <ResizablePanel defaultSize={60} minSize={40} maxSize={70}>
+            {/* Center Panel - Results View - Expands when left panel is hidden */}
+            <ResizablePanel 
+              defaultSize={leftPanelVisible ? 60 : 80} 
+              minSize={40} 
+              maxSize={leftPanelVisible ? 70 : 100}>
               <div className="h-full flex flex-col bg-gray-50">
                 {/* Add a Re-process button for updated configuration */}
                 <div className="flex items-center justify-between bg-gray-100 border-b border-gray-200 px-6 py-3">
@@ -1592,14 +1610,42 @@ const UnifiedDashboard: FC = () => {
 
   console.log('UnifiedDashboard: Main render');
   
+  // State for controlling the left panel visibility
+  const [leftPanelVisible, setLeftPanelVisible] = useState(true);
+  
+  // Toggle function for the left panel
+  const toggleLeftPanel = () => {
+    setLeftPanelVisible(!leftPanelVisible);
+  };
+  
   try {
     return (
       <div className="flex bg-gray-50 h-screen overflow-hidden">
-      {/* Sidebar removed - full width layout */}
+      {/* Collapsible sidebar layout */}
       
       <div className="flex-1 flex flex-col">
         <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shadow-sm">
           <div className="flex items-center space-x-3">
+            <div className="flex items-center">
+              <Button 
+                variant="ghost" 
+                onClick={toggleLeftPanel} 
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 relative transition-all"
+                title={leftPanelVisible ? "Hide configuration panel" : "Show configuration panel"}
+              >
+                {leftPanelVisible ? (
+                  <PanelLeft className="h-5 w-5 transition-all" />
+                ) : (
+                  <PanelRightOpen className="h-5 w-5 transition-all" />
+                )}
+                <span className={`text-sm font-medium transition-opacity duration-200 ${leftPanelVisible ? 'opacity-100' : 'opacity-0 hidden md:inline'}`}>
+                  {leftPanelVisible ? "Hide Panel" : "Show Panel"}
+                </span>
+                <span className="sr-only">
+                  {leftPanelVisible ? "Hide configuration panel" : "Show configuration panel"}
+                </span>
+              </Button>
+            </div>
             <Layers className="h-7 w-7 text-blue-600" />
             <h1 className="text-xl font-semibold text-gray-800">Unified Content Processing</h1>
           </div>
