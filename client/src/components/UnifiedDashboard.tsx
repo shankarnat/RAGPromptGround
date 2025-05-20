@@ -475,6 +475,31 @@ const UnifiedDashboard: FC = () => {
     
     // Special handling for process_directly action first - this MUST be handled first
     // to ensure the checkbox gets enabled before other UI indicators
+    // Special handling for direct KG enablement from conversation
+    if (config.kgEnabled !== undefined && config.kgUpdate) {
+      console.log('DIRECT KG UPDATE: Handling KG enablement', { 
+        kgEnabled: config.kgEnabled, 
+        entityTypes: config.entityTypes 
+      });
+      
+      // Update KG configuration
+      updateOption('kg', 'enabled', true);
+      
+      // Also update the unified processing state
+      if (!state.unifiedProcessing.selectedProcessingTypes.includes('kg')) {
+        console.log('DIRECT KG UPDATE: Adding kg to unified processing types');
+        toggleProcessingType('kg');
+      }
+      
+      // Show toast notification
+      toast({
+        title: 'Knowledge Graph Enabled',
+        description: 'Entity extraction and relationship mapping has been activated',
+      });
+      
+      return; // Skip further processing
+    }
+    
     if (config.idpEnabled !== undefined) {
       console.log('DIRECT IDP UPDATE: Handling process_directly data', { 
         idpEnabled: config.idpEnabled, 

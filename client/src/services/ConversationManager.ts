@@ -271,37 +271,38 @@ export class ConversationManager {
     visual_analysis_check: () => ({
       message: 'Would you like AI to analyze and describe visual content (charts, diagrams, etc.)?',
       actions: [
-        { label: 'Yes, analyze visuals', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'kg_check' } },
-        { label: 'No visual analysis needed', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'kg_check' } }
+        { label: 'Yes, analyze visuals', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
+        { label: 'No visual analysis needed', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
       ]
     }),
     
     kg_check: () => ({
       message: 'Would you like to extract entities and relationships to build a knowledge graph?',
       actions: [
-        { label: 'Yes, all entities', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'all', nextStep: 'idp_check' } },
+        /* Special case to enable KG checkbox first then proceed */
+        { label: 'Yes, all entities', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: 'all', extractType: 'full' } },
         { label: 'Yes, specific entities', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'specific', nextStep: 'kg_entity_selection' } },
-        { label: 'No graph needed', action: 'set_kg_preferences', data: { kgEnabled: false, nextStep: 'idp_check' } }
+        { label: 'No graph needed', action: 'process_directly', data: { idpEnabled: true, kgEnabled: false, extractType: 'full' } }
       ]
     }),
     
     kg_entity_selection: () => ({
       message: 'Which types of entities should we extract?',
       actions: [
-        { label: 'People & Orgs', action: 'set_kg_entities', data: { entities: ['person', 'organization'], nextStep: 'idp_check' } },
-        { label: 'Products & Services', action: 'set_kg_entities', data: { entities: ['product', 'service'], nextStep: 'idp_check' } },
-        { label: 'Locations & Events', action: 'set_kg_entities', data: { entities: ['location', 'event'], nextStep: 'idp_check' } },
-        { label: 'All entities', action: 'set_kg_entities', data: { entities: ['all'], nextStep: 'idp_check' } }
+        { label: 'People & Orgs', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['person', 'organization'], extractType: 'full' } },
+        { label: 'Products & Services', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['product', 'service'], extractType: 'full' } },
+        { label: 'Locations & Events', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['location', 'event'], extractType: 'full' } },
+        { label: 'All entities', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['all'], extractType: 'full' } }
       ]
     }),
     
     idp_check: () => ({
       message: 'What type of document data extraction do you need?',
       actions: [
-        { label: 'Structured data', action: 'process_directly', data: { idpEnabled: true, extractType: 'structured' } },
-        { label: 'Metadata', action: 'process_directly', data: { idpEnabled: true, extractType: 'metadata' } },
-        { label: 'Full processing', action: 'process_directly', data: { idpEnabled: true, extractType: 'full' } },
-        { label: 'No processing', action: 'process_directly', data: { idpEnabled: false } }
+        { label: 'Structured data', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'kg_check' } },
+        { label: 'Metadata', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'kg_check' } },
+        { label: 'Full processing', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'kg_check' } },
+        { label: 'No processing', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'kg_check' } }
       ]
     }),
     
@@ -802,13 +803,22 @@ export class ConversationManager {
         break;
         
       case 'set_idp_preferences':
+        console.log('ConversationManager: Setting IDP preferences:', { enabled: data.idpEnabled, extractType: data.extractType });
         newState.idpPreferences = { enabled: data.idpEnabled, extractType: data.extractType };
         newState.conversationStep = data.nextStep;
         break;
         
       case 'process_directly':
-        // First, save the IDP preferences
+        // Save both IDP and KG preferences if provided
         newState.idpPreferences = { enabled: data.idpEnabled, extractType: data.extractType };
+        
+        // Save KG preferences if provided
+        if (data.kgEnabled !== undefined) {
+          newState.kgPreferences = { 
+            enabled: data.kgEnabled, 
+            entityTypes: data.entityTypes || 'all' 
+          };
+        }
         
         // Generate the final configuration
         const config = this.buildFinalConfiguration(newState);

@@ -79,6 +79,49 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
 
   // Override the handleAction to intercept start_processing, select_processing, and process_directly
   const handleActionWithConfig = (action: string, data?: any) => {
+    // Special handling for "Yes, all entities" action
+    if (action === 'process_directly' && data?.kgEnabled === true && data?.entityTypes === 'all') {
+      console.log('"Yes, all entities" button clicked, adding delay before processing');
+      
+      // Handle the KG preferences first to ensure the KG checkbox is checked
+      if (onProcessingConfigured) {
+        const kgConfig = {
+          kgEnabled: true,
+          entityTypes: 'all',
+          kgUpdate: true // Flag to mark this as a dedicated KG update
+        };
+        console.log('First sending KG config to update checkbox:', kgConfig);
+        onProcessingConfigured(kgConfig);
+        
+        // Then process the IDP preferences with another delay
+        setTimeout(() => {
+          console.log('Now processing IDP preferences after KG delay');
+          const idpConfig = {
+            idpEnabled: data.idpEnabled,
+            extractType: data.extractType
+          };
+          onProcessingConfigured(idpConfig);
+          
+          // After IDP is configured, complete the action with a final delay
+          setTimeout(() => {
+            console.log('Now processing the full action after all delays');
+            handleAction(action, data);
+            
+            // Additional delay before highlighting the Process button
+            setTimeout(() => {
+              const highlightConfig = {
+                highlightProcessButton: true
+              };
+              console.log('Now sending highlight config after all updates');
+              onProcessingConfigured(highlightConfig);
+            }, 800); // Delay before highlighting button
+          }, 1000); // Delay before final processing
+        }, 1000); // Delay before processing IDP
+        
+        return; // Skip further processing
+      }
+    }
+    
     // Handle process_directly action to guide to Process Document button
     if (action === 'process_directly') {
       console.log('Processing process_directly action to guide to Process Document button', data);
