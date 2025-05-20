@@ -497,7 +497,7 @@ export class ConversationManager {
         return this.handleAction('custom_contract_flow', { 
           step: 'processing_confirmation',
           userResponse: message, // Use the actual user message
-          keepChatOpen: true     // Flag to keep chat open
+          keepChatOpen: false     // Don't keep chat open
         }, { ...state, messages: newMessages });
       }
     }
@@ -909,7 +909,7 @@ export class ConversationManager {
                 data: { 
                   step: 'processing_confirmation',
                   userResponse: 'Yes, we do have contracts with floor plans and technical drawings that should be searchable too. Also confirm if semantic chunking is done.',
-                  keepChatOpen: true
+                  keepChatOpen: false
                 } 
               },
               { 
@@ -919,7 +919,7 @@ export class ConversationManager {
                   step: 'processing_confirmation', 
                   skipImages: true,
                   userResponse: 'No, just text is fine',
-                  keepChatOpen: true
+                  keepChatOpen: false
                 } 
               }
             ]
@@ -990,7 +990,7 @@ export class ConversationManager {
             timestamp: new Date(),
             actions: [{
               id: this.generateId(),
-              label: 'Process Document',
+              label: 'Apply RAG Search Checkbox',
               action: 'highlight_process_button',
               data: {}
             }]
