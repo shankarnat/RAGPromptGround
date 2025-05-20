@@ -973,8 +973,15 @@ export class ConversationManager {
           // Ensure selectedProcessingTypes includes 'rag' to check the RAG Search checkbox
           newState.selectedProcessingTypes = ['rag', 'kg'];
           
-          // Add explicit flag for parent component
+          // Add explicit flags for parent component to ensure the checkbox is checked
           newState.ragEnabled = true;
+          newState.checked = true;
+          newState.forceCheck = true;
+          newState.refreshUI = true;
+          newState.state = 'checked';
+          
+          // Add an aria-checked state to force the checkbox to be checked
+          newState.ariaChecked = 'true';
           
           const confirmationMessage: ConversationMessage = {
             id: this.generateId(),

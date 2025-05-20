@@ -99,6 +99,9 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       // Enable RAG with proper multimodal settings
       const config = {
         ragEnabled: true, // This will enable the RAG checkbox
+        checked: true,    // Explicitly mark the checkbox as checked
+        forceCheck: true, // Force check the checkbox
+        active: true,     // Indicate the feature is active
         multimodal: {
           imageCaption: hasVisualElements,
           ocr: hasVisualElements
@@ -107,6 +110,17 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       
       // Configure RAG
       onProcessingConfigured(config);
+      
+      // Send a second update after a small delay to ensure the UI updates
+      setTimeout(() => {
+        console.log('Sending secondary RAG checkbox update');
+        onProcessingConfigured({
+          ragEnabled: true,
+          checked: true,
+          state: 'checked', // Set the data-state attribute
+          refreshUI: true   // Signal to refresh the UI
+        });
+      }, 300);
       
       // No follow-up message for RAG
     }
@@ -202,6 +216,10 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
             if (onProcessingConfigured) {
               const config = {
                 ragEnabled: true,
+                checked: true,    // Explicitly mark the checkbox as checked
+                forceCheck: true, // Force check the checkbox
+                active: true,     // Indicate the feature is active
+                state: 'checked', // Set the data-state attribute
                 multimodal: {
                   imageCaption: !data.skipImages,
                   ocr: !data.skipImages,
@@ -210,6 +228,17 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               };
               console.log('Sending RAG config to update checkbox:', config);
               onProcessingConfigured(config);
+              
+              // Send a second update after a small delay to ensure the UI updates
+              setTimeout(() => {
+                console.log('Sending secondary RAG checkbox update');
+                onProcessingConfigured({
+                  ragEnabled: true,
+                  checked: true,
+                  state: 'checked',
+                  refreshUI: true // Signal to refresh the UI
+                });
+              }, 300);
             }
           }
           
@@ -221,6 +250,10 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         if (data?.step === 'processing_confirmation' && onProcessingConfigured) {
           const config = {
             ragEnabled: true,
+            checked: true,    // Explicitly mark the checkbox as checked
+            forceCheck: true, // Force check the checkbox
+            active: true,     // Indicate the feature is active
+            state: 'checked', // Set the data-state attribute
             multimodal: {
               imageCaption: !data.skipImages,
               ocr: !data.skipImages,
@@ -228,6 +261,17 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
             }
           };
           onProcessingConfigured(config);
+          
+          // Send a second update after a small delay to ensure the UI updates
+          setTimeout(() => {
+            console.log('Sending secondary RAG checkbox update');
+            onProcessingConfigured({
+              ragEnabled: true,
+              checked: true,
+              state: 'checked',
+              refreshUI: true // Signal to refresh the UI
+            });
+          }, 300);
         }
         
         handleAction(action, data);
