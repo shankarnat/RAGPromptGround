@@ -1216,10 +1216,11 @@ const UnifiedDashboard: FC = () => {
   }, [state.selectedDocument, processingConfig, state.unifiedProcessing, toast, toggleProcessingType, processDocument, setLastProcessedConfig, currentStep]);
 
   const renderStepIndicator = () => (
-    <div className="flex items-center justify-evenly px-8 py-5 bg-gray-700 border-b border-gray-600 shadow-sm">
+    <div className="relative flex items-center justify-evenly px-8 py-5 bg-gray-700 border-b border-gray-600 shadow-sm">
+      {/* Absolute positioned panel toggle button on left extreme */}
       <button
         onClick={toggleLeftPanel}
-        className="w-8 h-8 rounded-md bg-gray-600 hover:bg-gray-500 flex items-center justify-center transition-colors"
+        className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-md bg-gray-600 hover:bg-gray-500 flex items-center justify-center transition-colors"
         title={leftPanelVisible ? "Hide panel" : "Show panel"}
       >
         {leftPanelVisible ? (
