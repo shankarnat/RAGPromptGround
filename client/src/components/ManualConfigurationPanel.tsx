@@ -83,7 +83,8 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                   checked={processingConfig[configKey]?.enabled || false}
                   onCheckedChange={(checked) => {
                     if (!disabled) {
-                      handleProcessingToggle(configKey, checked as boolean);
+                      // Pass true for forceUpdate to ensure the change is registered immediately
+                      handleProcessingToggle(configKey, checked as boolean, true);
                     }
                   }}
                   disabled={disabled}
@@ -182,7 +183,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     checked={processingConfig.kg.entityExtraction}
                     onCheckedChange={(checked) => {
                       if (!disabled) {
-                        handleOptionToggle("kg", "entityExtraction", checked as boolean);
+                        handleOptionToggle("kg", "entityExtraction", checked as boolean, false);
                       }
                     }}
                     disabled={disabled}
@@ -194,7 +195,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     checked={processingConfig.kg.relationMapping}
                     onCheckedChange={(checked) => {
                       if (!disabled) {
-                        handleOptionToggle("kg", "relationMapping", checked as boolean);
+                        handleOptionToggle("kg", "relationMapping", checked as boolean, false);
                       }
                     }}
                     disabled={disabled}
@@ -206,7 +207,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     checked={processingConfig.kg.graphBuilding}
                     onCheckedChange={(checked) => {
                       if (!disabled) {
-                        handleOptionToggle("kg", "graphBuilding", checked as boolean);
+                        handleOptionToggle("kg", "graphBuilding", checked as boolean, false);
                       }
                     }}
                     disabled={disabled}
@@ -234,7 +235,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     checked={processingConfig.idp.textExtraction}
                     onCheckedChange={(checked) => {
                       if (!disabled) {
-                        handleOptionToggle("idp", "textExtraction", checked as boolean);
+                        handleOptionToggle("idp", "textExtraction", checked as boolean, false);
                       }
                     }}
                     disabled={disabled}
@@ -246,7 +247,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     checked={processingConfig.idp.classification}
                     onCheckedChange={(checked) => {
                       if (!disabled) {
-                        handleOptionToggle("idp", "classification", checked as boolean);
+                        handleOptionToggle("idp", "classification", checked as boolean, false);
                       }
                     }}
                     disabled={disabled}
@@ -258,7 +259,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     checked={processingConfig.idp.metadata}
                     onCheckedChange={(checked) => {
                       if (!disabled) {
-                        handleOptionToggle("idp", "metadata", checked as boolean);
+                        handleOptionToggle("idp", "metadata", checked as boolean, false);
                       }
                     }}
                     disabled={disabled}

@@ -89,6 +89,7 @@ const UnifiedDashboard: FC = () => {
   const [basicAnalysis, setBasicAnalysis] = useState<any>(null);
   const multimodalUpdateRef = useRef<boolean>(false);
   const [lastProcessedConfig, setLastProcessedConfig] = useState<any>(null);
+  const [configChanged, setConfigChanged] = useState(false);
   const [highlightProcessButton, setHighlightProcessButton] = useState(false);
   const [pulseProcessButton, setPulseProcessButton] = useState(false);
   
@@ -138,7 +139,14 @@ const UnifiedDashboard: FC = () => {
   // Monitor processingConfig changes
   useEffect(() => {
     console.log('processingConfig updated:', processingConfig);
-  }, [processingConfig]);
+    
+    // If we have a last processed config, check if current config is different
+    if (lastProcessedConfig) {
+      const isChanged = JSON.stringify(processingConfig) !== JSON.stringify(lastProcessedConfig);
+      setConfigChanged(isChanged);
+      console.log(`Configuration ${isChanged ? 'changed' : 'unchanged'} from last processed config`);
+    }
+  }, [processingConfig, lastProcessedConfig]);
   
   // Track AI-driven RAG enablement
   const [pendingRagEnable, setPendingRagEnable] = useState(false);
@@ -1416,8 +1424,7 @@ const UnifiedDashboard: FC = () => {
                 {/* Add a Re-process button for updated configuration */}
                 <div className="flex items-center justify-between bg-gray-100 border-b border-gray-200 px-6 py-3">
                   <div>
-                    {lastProcessedConfig && 
-                     JSON.stringify(processingConfig) !== JSON.stringify(lastProcessedConfig) && (
+                    {configChanged && (
                       <div className="text-sm text-blue-600 font-medium animate-pulse flex items-center">
                         <div className="w-2 h-2 rounded-full bg-blue-600 mr-2"></div>
                         Configuration changed - click Re-process to update results
@@ -1428,10 +1435,7 @@ const UnifiedDashboard: FC = () => {
                     variant="default"
                     onClick={handleProcessDocument}
                     className="flex items-center gap-2"
-                    disabled={
-                      !lastProcessedConfig || 
-                      JSON.stringify(processingConfig) === JSON.stringify(lastProcessedConfig)
-                    }
+                    disabled={!configChanged}
                   >
                     <PlayCircle className="h-4 w-4" />
                     Re-process with Current Configuration
