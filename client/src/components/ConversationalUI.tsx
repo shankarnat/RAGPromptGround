@@ -77,7 +77,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
     }
   }, [state.isComplete, onProcessingConfigured, getProcessingConfig, handleAction]);
 
-  // Override the handleAction to intercept start_processing and select_processing
+  // Override the handleAction to intercept start_processing, select_processing, and process_directly
   const handleActionWithConfig = (action: string, data?: any) => {
     // Handle process_directly action to guide to Process Document button
     if (action === 'process_directly') {
@@ -86,17 +86,71 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       // Let the ConversationManager handle the message
       handleAction(action, data);
       
-      // Request the highlight of the Process Document button
+      // Request the highlight of the Process Document button with a delay
+      // to ensure the message appears first
       if (onProcessingConfigured) {
         setTimeout(() => {
           const config = {
             highlightProcessButton: true
           };
           onProcessingConfigured(config);
-        }, 500); // Slight delay to allow the UI to update
+        }, 300); // Slight delay to allow the UI to update
       }
       
       return; // Skip further processing
+    }
+    
+    // Handle the direct button to highlight process button
+    if (action === 'highlight_process_button') {
+      console.log('Explicit request to highlight Process Document button');
+      
+      // Create a very noticeable highlight effect
+      if (onProcessingConfigured) {
+        const config = {
+          highlightProcessButton: true,
+          pulseEffect: true // Add special pulse effect for more attention
+        };
+        onProcessingConfigured(config);
+        
+        // Also display a toast notification pointing to the left panel
+        if (window && window.document) {
+          // Create a visual arrow effect using CSS animation
+          const leftPanelHighlight = document.createElement('div');
+          leftPanelHighlight.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 30%;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            animation: pulse-left 1.5s infinite;
+            pointer-events: none;
+            z-index: 9999;
+          `;
+          
+          // Add keyframe animation
+          const style = document.createElement('style');
+          style.textContent = `
+            @keyframes pulse-left {
+              0% { transform: translateY(-50%) scale(0.8); opacity: 0.5; }
+              50% { transform: translateY(-50%) scale(1.2); opacity: 0.8; }
+              100% { transform: translateY(-50%) scale(0.8); opacity: 0.5; }
+            }
+          `;
+          document.head.appendChild(style);
+          document.body.appendChild(leftPanelHighlight);
+          
+          // Remove after 3 seconds
+          setTimeout(() => {
+            leftPanelHighlight.remove();
+            style.remove();
+          }, 3000);
+        }
+      }
+      
+      return; // Skip standard handling
     }
     // Handle select_processing similar to an immediate process_document action
     else if (action === 'select_processing' && onProcessingConfigured) {

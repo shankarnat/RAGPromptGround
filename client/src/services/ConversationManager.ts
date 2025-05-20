@@ -817,9 +817,14 @@ export class ConversationManager {
         const completeMessage: ConversationMessage = {
           id: this.generateId(),
           type: 'assistant',
-          content: 'Configuration complete! Click the "Process Document" button on the left side to start processing.',
+          content: 'Configuration complete! ✅ Now click the highlighted "Process Document" button on the left panel to start processing your document. →',
           timestamp: new Date(),
-          actions: []  // No actions needed as we want to guide user to the left panel button
+          actions: [{
+            id: this.generateId(),
+            label: 'Go to Process Document button',
+            action: 'highlight_process_button',
+            data: {}
+          }]  // Add a clear action to direct the user
         };
         
         // Mark the conversation as complete and pass configuration to be available

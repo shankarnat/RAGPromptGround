@@ -90,6 +90,7 @@ const UnifiedDashboard: FC = () => {
   const multimodalUpdateRef = useRef<boolean>(false);
   const [lastProcessedConfig, setLastProcessedConfig] = useState<any>(null);
   const [highlightProcessButton, setHighlightProcessButton] = useState(false);
+  const [pulseProcessButton, setPulseProcessButton] = useState(false);
   
   // Use multimodal config hook for better state management
   const {
@@ -832,13 +833,45 @@ const UnifiedDashboard: FC = () => {
     if (config.highlightProcessButton) {
       console.log('Process button highlight requested from conversation UI');
       
-      // Set the highlight flag to make the Process Document button more visible
-      setHighlightProcessButton(true);
+      // Check if this is a standard highlight or an enhanced pulse effect
+      if (config.pulseEffect) {
+        console.log('Enhanced pulse effect requested for Process Document button');
+        setPulseProcessButton(true);
+        setHighlightProcessButton(true);
+        
+        // Create a blinking effect
+        let blinkCount = 0;
+        const blinkInterval = setInterval(() => {
+          setPulseProcessButton(prev => !prev);
+          blinkCount++;
+          
+          // Stop blinking after 5 cycles but keep highlighted
+          if (blinkCount >= 5) {
+            clearInterval(blinkInterval);
+            setPulseProcessButton(true);
+            
+            // Keep highlighted for a longer period
+            setTimeout(() => {
+              setPulseProcessButton(false);
+              setHighlightProcessButton(false);
+            }, 10000);
+          }
+        }, 500);
+      } else {
+        // Standard highlight
+        setHighlightProcessButton(true);
+        
+        // Auto-disable the highlight after 10 seconds to avoid confusion
+        setTimeout(() => {
+          setHighlightProcessButton(false);
+        }, 10000);
+      }
       
-      // Auto-disable the highlight after 10 seconds to avoid confusion
-      setTimeout(() => {
-        setHighlightProcessButton(false);
-      }, 10000);
+      // Show a toast notification pointing to the process button
+      toast({
+        title: "Configuration Complete!",
+        description: "Click the highlighted 'Process Document' button on the left to continue.",
+      });
       
       return;
     }
@@ -1009,8 +1042,9 @@ const UnifiedDashboard: FC = () => {
     multimodalConfig: multimodalConfig.config,
     // Always allow editing of options, even in results view
     disabled: false,
-    // Pass the highlighting flag to draw attention to the Process button when needed
-    highlightProcessButton: highlightProcessButton
+    // Pass the highlighting and pulse flags to draw attention to the Process button when needed
+    highlightProcessButton: highlightProcessButton,
+    pulseEffect: pulseProcessButton
   }), [
     processingTypes,
     processingConfig,
@@ -1022,7 +1056,8 @@ const UnifiedDashboard: FC = () => {
     updateChunkSize,
     updateChunkOverlap,
     multimodalConfig.config,
-    highlightProcessButton
+    highlightProcessButton,
+    pulseProcessButton
   ]);
 
   const renderContent = () => {
