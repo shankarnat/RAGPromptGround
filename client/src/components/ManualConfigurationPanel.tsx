@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FileSearch, Network, FileText, PlayCircle } from "lucide-react";
+import { FileSearch, Network, FileText, PlayCircle, Wand2, Check } from "lucide-react";
 import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
 
 interface ManualConfigurationPanelProps {
@@ -98,6 +98,27 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
               </div>
             );
           })}
+        </CardContent>
+      </Card>
+      
+      {/* Finalize and Create button - placed below Processing Methods */}
+      <Card className="border-2 border-green-200 bg-green-50">
+        <CardContent className="pt-4 pb-4">
+          <Button 
+            className="w-full bg-green-600 hover:bg-green-700 flex items-center gap-2 transition-all hover:scale-[1.01]"
+            size="lg"
+            onClick={() => {
+              // Add any finalization logic here
+              // For now, just call onProcessDocument if available
+              if (onProcessDocument && !disabled) {
+                onProcessDocument();
+              }
+            }}
+            disabled={disabled || !Object.values(processingConfig).some((config: any) => config.enabled)}
+          >
+            <Wand2 className="w-5 h-5 mr-1" />
+            Finalize and Create
+          </Button>
         </CardContent>
       </Card>
 
