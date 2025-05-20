@@ -30,6 +30,7 @@ import TemplateSystem from "@/components/TemplateSystem";
 import ConversationalUI from "@/components/ConversationalUI";
 import ProgressiveDocumentLoader from "@/components/ProgressiveDocumentLoader";
 import ManualConfigurationPanel from "@/components/ManualConfigurationPanel";
+import SourceDocumentView from "@/components/SourceDocumentView";
 import IntentBasedProcessingTrigger from "@/services/IntentBasedProcessingTrigger";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import { useToast } from "@/hooks/use-toast";
@@ -92,6 +93,7 @@ const UnifiedDashboard: FC = () => {
   const [configChanged, setConfigChanged] = useState(false);
   const [highlightProcessButton, setHighlightProcessButton] = useState(false);
   const [pulseProcessButton, setPulseProcessButton] = useState(false);
+  const [showSourceDocument, setShowSourceDocument] = useState(false);
   
   // Use multimodal config hook for better state management
   const {
@@ -1353,9 +1355,12 @@ const UnifiedDashboard: FC = () => {
                         analyzeDocument(file);
                       }
                       
+                      // Show the source document in middle pane
+                      setShowSourceDocument(true);
+                      
                       toast({
                         title: "Document Selected",
-                        description: `${doc.name} has been loaded. Ask the AI assistant about processing options.`
+                        description: `${doc.name} has been loaded. Source document view is displayed.`
                       });
                     }}
                   />
@@ -1363,45 +1368,67 @@ const UnifiedDashboard: FC = () => {
               ) : (
                 // Show results view when document is selected
                 <div className="h-full p-6">
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-2">Document Analysis & Results</h2>
-                    <p className="text-gray-600">
-                      {state.unifiedProcessing.processingStatus.rag === "completed" || 
-                       state.unifiedProcessing.processingStatus.kg === "completed" || 
-                       state.unifiedProcessing.processingStatus.idp === "completed" 
-                        ? "View and explore the results from processing"
-                        : "Document loaded. Configure processing options in the left panel or with AI assistant."}
-                    </p>
+                  <div className="mb-6 flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-semibold mb-2">
+                        {showSourceDocument ? "Source Document" : "Document Analysis & Results"}
+                      </h2>
+                      <p className="text-gray-600">
+                        {showSourceDocument 
+                          ? "View the original document content" 
+                          : state.unifiedProcessing.processingStatus.rag === "completed" || 
+                            state.unifiedProcessing.processingStatus.kg === "completed" || 
+                            state.unifiedProcessing.processingStatus.idp === "completed" 
+                              ? "View and explore the results from processing"
+                              : "Document loaded. Configure processing options in the left panel or with AI assistant."
+                        }
+                      </p>
+                    </div>
+                    {/* Toggle button to switch between source document and results */}
+                    {documentReady && (
+                      <Button 
+                        variant="outline"
+                        onClick={() => setShowSourceDocument(!showSourceDocument)}
+                        className="text-sm"
+                      >
+                        {showSourceDocument ? "Show Analysis Results" : "Show Source Document"}
+                      </Button>
+                    )}
                   </div>
                   
-                  {/* Progressive Document Loader for initial analysis */}
-                  {documentReady ? (
-                    <>
-                      {console.log('UnifiedDashboard passing data:', {
-                        ragResults: state.unifiedProcessing.unifiedResults.standard,
-                        kgResults: state.unifiedProcessing.unifiedResults.kg,
-                        idpResults: state.unifiedProcessing.unifiedResults.idp
-                      })}
-                      <UnifiedResultsEnhanced
-                        ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
-                        kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
-                        idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
-                        processingConfig={processingConfig}
-                        onChunkSelect={selectChunk}
-                        onEntitySelect={(entityId) => {
-                          console.log('Entity selected:', entityId);
-                        }}
-                        selectedChunk={state.selectedChunk}
-                        onClearResults={clearAllResults}
-                      />
-                    </>
+                  {/* Source Document View */}
+                  {showSourceDocument ? (
+                    <SourceDocumentView document={state.selectedDocument} />
                   ) : (
-                    <ProgressiveDocumentLoader
-                      document={state.selectedDocument}
-                      onProcessingRequest={handleOnDemandProcessing}
-                      onDocumentReady={handleDocumentReady}
-                      autoAnalyze={true}
-                    />
+                    /* Progressive Document Loader for initial analysis */
+                    documentReady ? (
+                      <>
+                        {console.log('UnifiedDashboard passing data:', {
+                          ragResults: state.unifiedProcessing.unifiedResults.standard,
+                          kgResults: state.unifiedProcessing.unifiedResults.kg,
+                          idpResults: state.unifiedProcessing.unifiedResults.idp
+                        })}
+                        <UnifiedResultsEnhanced
+                          ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
+                          kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
+                          idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
+                          processingConfig={processingConfig}
+                          onChunkSelect={selectChunk}
+                          onEntitySelect={(entityId) => {
+                            console.log('Entity selected:', entityId);
+                          }}
+                          selectedChunk={state.selectedChunk}
+                          onClearResults={clearAllResults}
+                        />
+                      </>
+                    ) : (
+                      <ProgressiveDocumentLoader
+                        document={state.selectedDocument}
+                        onProcessingRequest={handleOnDemandProcessing}
+                        onDocumentReady={handleDocumentReady}
+                        autoAnalyze={true}
+                      />
+                    )
                   )}
                 </div>
               )}
@@ -1459,9 +1486,22 @@ const UnifiedDashboard: FC = () => {
               leftPanelVisible ? 'w-[60%]' : 'w-[80%]'
             }`}>
               <div className="h-full p-6">
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-2">Processing Document</h2>
-                  <p className="text-gray-600">Your document is being processed with the selected methods</p>
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold mb-2">Processing Document</h2>
+                    <p className="text-gray-600">Your document is being processed with the selected methods</p>
+                  </div>
+                  {/* View source document button */}
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setCurrentStep("upload");
+                      setShowSourceDocument(true);
+                    }}
+                    className="text-sm"
+                  >
+                    View Source Document
+                  </Button>
                 </div>
 
                 {/* Pipeline Visualization */}
@@ -1549,16 +1589,28 @@ const UnifiedDashboard: FC = () => {
                       </div>
                     )}
                   </div>
-                  <Button
-                    variant={configChanged ? "default" : "outline"}
-                    onClick={handleProcessDocument}
-                    className={`flex items-center gap-2 ${configChanged ? 'bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-md transform hover:scale-[1.02]' : ''}`}
-                    disabled={!configChanged}
-                  >
-                    <PlayCircle className="h-4 w-4" />
-                    Re-process with Current Configuration
-                    {configChanged && <span className="ml-1 text-xs animate-pulse">•</span>}
-                  </Button>
+                  <div className="flex space-x-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setCurrentStep("upload");
+                        setShowSourceDocument(true);
+                      }}
+                      className="text-sm"
+                    >
+                      View Source Document
+                    </Button>
+                    <Button
+                      variant={configChanged ? "default" : "outline"}
+                      onClick={handleProcessDocument}
+                      className={`flex items-center gap-2 ${configChanged ? 'bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-md transform hover:scale-[1.02]' : ''}`}
+                      disabled={!configChanged}
+                    >
+                      <PlayCircle className="h-4 w-4" />
+                      Re-process with Current Configuration
+                      {configChanged && <span className="ml-1 text-xs animate-pulse">•</span>}
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex-1 p-6 overflow-y-auto">
                   <UnifiedResultsEnhanced
