@@ -1217,6 +1217,18 @@ const UnifiedDashboard: FC = () => {
 
   const renderStepIndicator = () => (
     <div className="flex items-center justify-evenly px-8 py-5 bg-gray-700 border-b border-gray-600 shadow-sm">
+      <button
+        onClick={toggleLeftPanel}
+        className="w-8 h-8 rounded-md bg-gray-600 hover:bg-gray-500 flex items-center justify-center transition-colors"
+        title={leftPanelVisible ? "Hide panel" : "Show panel"}
+      >
+        {leftPanelVisible ? (
+          <PanelLeft className="h-5 w-5 text-gray-100" />
+        ) : (
+          <PanelRightOpen className="h-5 w-5 text-gray-100" />
+        )}
+      </button>
+      
       {steps.map((step, index) => {
         const isActive = step.id === currentStep;
         const isCompleted = steps.findIndex(s => s.id === currentStep) > index;
@@ -1618,26 +1630,6 @@ const UnifiedDashboard: FC = () => {
       <div className="flex-1 flex flex-col">
         <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shadow-sm">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center">
-              <Button 
-                variant="ghost" 
-                onClick={toggleLeftPanel} 
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 relative transition-all"
-                title={leftPanelVisible ? "Hide configuration panel" : "Show configuration panel"}
-              >
-                {leftPanelVisible ? (
-                  <PanelLeft className="h-5 w-5 transition-all" />
-                ) : (
-                  <PanelRightOpen className="h-5 w-5 transition-all" />
-                )}
-                <span className={`text-sm font-medium transition-opacity duration-200 ${leftPanelVisible ? 'opacity-100' : 'opacity-0 hidden md:inline'}`}>
-                  {leftPanelVisible ? "Hide Panel" : "Show Panel"}
-                </span>
-                <span className="sr-only">
-                  {leftPanelVisible ? "Hide configuration panel" : "Show configuration panel"}
-                </span>
-              </Button>
-            </div>
             <Layers className="h-7 w-7 text-blue-600" />
             <h1 className="text-xl font-semibold text-gray-800">Unified Content Processing</h1>
           </div>
