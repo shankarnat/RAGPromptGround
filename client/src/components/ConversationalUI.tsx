@@ -392,7 +392,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         'hasVisual': [
           'yes analyze', 'analyze visuals', 'visual analysis', 'yes please', 'analyze images',
           'yes', 'yeah', 'yep', 'yup', 'correct', 'affirmative', 'indeed', 'absolutely', 'sure',
-          'please do', 'i want that', 'that would be helpful', 'that would be useful', 'that's needed',
+          'please do', 'i want that', 'that would be helpful', 'that would be useful', 'that\'s needed',
           'analyze charts', 'analyze diagrams', 'analyze graphs', 'include visual analysis',
           'please analyze', 'yes analyze', 'visual understanding', 'understand visuals',
           'need visual analysis', 'analyze the visuals'
@@ -400,9 +400,9 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         'noVisual': [
           'no analysis', 'no visual', 'skip visual', 'no need', 'don\'t analyze',
           'no', 'nope', 'nah', 'negative', 'not at all', 'not needed', 'unnecessary',
-          'not required', 'skip it', 'don't need that', 'not important', 'pass', 'no thanks',
+          'not required', 'skip it', 'don\'t need that', 'not important', 'pass', 'no thanks',
           'skip that part', 'unnecessary analysis', 'not worth it', 'skip the visuals',
-          'ignore visuals', 'text is enough', 'just the text', 'don't worry about visuals'
+          'ignore visuals', 'text is enough', 'just the text', 'don\'t worry about visuals'
         ]
       },
       'kg': {
