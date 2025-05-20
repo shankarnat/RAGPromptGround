@@ -200,7 +200,7 @@ export class ConversationManager {
     }),
     
     user_profile: () => ({
-      message: 'First, could you tell me about your role in the organization?',
+      message: "What's your role? This helps us tailor how the content will be presented to end users.",
       actions: [
         { label: 'Sales Representative', action: 'set_role', data: { role: 'sales_rep', nextStep: 'department' } },
         { label: 'Sales Manager', action: 'set_role', data: { role: 'sales_manager', nextStep: 'department' } },
@@ -211,7 +211,7 @@ export class ConversationManager {
     }),
     
     department: () => ({
-      message: 'Which department are you working with?',
+      message: 'Who will be consuming this content? Select the primary department or team:',
       actions: [
         { label: 'Sales/Business Development', action: 'set_department', data: { department: 'sales', nextStep: 'goals' } },
         { label: 'Customer Service/Support', action: 'set_department', data: { department: 'service', nextStep: 'goals' } },
@@ -224,12 +224,12 @@ export class ConversationManager {
     // experience: () => ({ ... }),
     
     goals: () => ({
-      message: 'What\'s your primary goal with this document?',
+      message: 'How do you want end users to interact with this content?',
       actions: [
-        { label: 'Quick information retrieval', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
-        { label: 'Extract structured data', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
-        { label: 'Understand relationships', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
-        { label: 'Comprehensive analysis', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
+        { label: 'Search and find answers quickly', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
+        { label: 'Extract and export data tables/forms', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
+        { label: 'Map connections between entities', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
+        { label: 'Full analysis with all capabilities', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
       ]
     }),
     

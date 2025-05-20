@@ -242,27 +242,39 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           'rag search', 'document search', 'search functionality', 'question answering', 
           'semantic search', 'information retrieval', 'search capability', 'find information', 
           'search document', 'query document', 'rag', 'search', 'retrieval', 'looking up',
-          'vector search', 'text search', 'find answers', 'quick search', 'document qa'
+          'vector search', 'text search', 'find answers', 'quick search', 'document qa',
+          'question answer', 'return answers', 'document lookup', 'answer questions',
+          'query answering', 'qa system', 'document querying', 'content search',
+          'content lookup', 'content querying', 'content questions', 'search content'
         ],
         'idp': [
           'document processing', 'idp', 'intelligent document', 'data extraction',
           'extract data', 'form extraction', 'structured data', 'document extraction',
           'document analysis', 'document intelligence', 'document understanding',
           'form processing', 'field extraction', 'table extraction', 'data capture',
-          'automated extraction', 'metadata extraction', 'information extraction'
+          'automated extraction', 'metadata extraction', 'information extraction',
+          'document parsing', 'document ai', 'structured extraction', 'form recognition',
+          'table recognition', 'document recognition', 'data recognition', 'extract fields',
+          'extract tables', 'extract documents', 'extract content', 'document insights'
         ],
         'kg': [
           'knowledge graph', 'kg', 'graph analysis', 'entity extraction', 
           'relationship mapping', 'entity relationship', 'graph building',
           'semantic network', 'entity recognition', 'relation extraction',
           'network analysis', 'concept mapping', 'ontology', 'entity linking',
-          'graph database', 'knowledge network', 'entity graph', 'knowledge extraction'
+          'graph database', 'knowledge network', 'entity graph', 'knowledge extraction',
+          'relationship extraction', 'entity detection', 'graph relationships',
+          'entity connections', 'relationship detection', 'concept connections',
+          'concept network', 'semantic mapping', 'topic mapping', 'entity map'
         ],
         'all': [
           'all processing', 'all methods', 'everything', 'all of the above', 'comprehensive',
           'full processing', 'combined methods', 'all approaches', 'maximum processing',
           'complete analysis', 'all features', 'full suite', 'everything available',
-          'every method', 'all options', 'full analysis', 'use everything', 'all tools'
+          'every method', 'all options', 'full analysis', 'use everything', 'all tools',
+          'all of them', 'do everything', 'use all', 'enable all', 'all capabilities',
+          'full spectrum', 'maximum performance', 'all features', 'complete solution',
+          'total processing', 'all processing types', 'use all methods', 'complete package'
         ]
       },
       'role': {
@@ -270,34 +282,54 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           'sales rep', 'sales representative', 'seller', 'sales person', 'salesperson', 
           'sales associate', 'sales consultant', 'account executive', 'account rep', 
           'sales executive', 'sales agent', 'i sell', 'i am in sales', 'work in sales', 
-          'sales team member', 'sales professional', 'business development rep', 'bdr'
+          'sales team member', 'sales professional', 'business development rep', 'bdr',
+          'client manager', 'account manager', 'client advisor', 'customer advisor',
+          'relationship manager', 'business consultant', 'sales consultant', 'sales advisor',
+          'client executive', 'sales', 'sales role', 'client facing', 'client representative',
+          'territory manager', 'field sales', 'inside sales', 'selling', 'pipeline management'
         ],
         'sales_manager': [
           'sales manager', 'sales lead', 'sales director', 'sales boss', 'head of sales', 
           'sales supervisor', 'sales team lead', 'regional sales manager', 'district manager',
           'vp of sales', 'sales vp', 'senior sales', 'sales leadership', 'manage sales team',
-          'sales management', 'director of sales', 'chief sales officer', 'cso', 'sales executive'
+          'sales management', 'director of sales', 'chief sales officer', 'cso', 'sales executive',
+          'business unit manager', 'business development director', 'bd manager',
+          'business development manager', 'commercial director', 'revenue manager',
+          'revenue director', 'sales operations director', 'national sales manager',
+          'channel manager', 'partner manager', 'head of business development'
         ],
         'service_agent': [
           'service agent', 'customer service', 'support agent', 'cs agent', 'help desk',
           'customer support', 'customer care', 'support rep', 'support representative',
           'customer success', 'client services', 'technical support', 'service desk',
           'service rep', 'customer advocate', 'service specialist', 'support specialist',
-          'customer experience', 'cx', 'service professional', 'customer happiness'
+          'customer experience', 'cx', 'service professional', 'customer happiness',
+          'helpdesk agent', 'client support', 'customer relations', 'client relations',
+          'customer service representative', 'support technician', 'service consultant',
+          'client advocate', 'cx specialist', 'account support', 'product support',
+          'customer advisor', 'service delivery', 'client success manager'
         ],
         'marketing_specialist': [
           'marketing specialist', 'marketing expert', 'marketer', 'marketing professional',
           'digital marketer', 'content marketer', 'marketing coordinator', 'marketing associate',
           'brand specialist', 'communications specialist', 'marketing analyst', 'growth marketer',
           'marketing strategist', 'product marketer', 'marketing manager', 'marketing team',
-          'pr specialist', 'marketing communications', 'marcom', 'social media specialist'
+          'pr specialist', 'marketing communications', 'marcom', 'social media specialist',
+          'content creator', 'seo specialist', 'marketing technologist', 'marketing ops',
+          'growth hacker', 'brand manager', 'digital marketing specialist', 'campaign manager',
+          'demand generation', 'social media manager', 'community manager', 'content strategist',
+          'email marketer', 'marketing automation', 'marketing', 'comms', 'creative'
         ],
         'business_analyst': [
           'business analyst', 'analyst', 'ba', 'business intelligence', 'data analyst',
           'financial analyst', 'operations analyst', 'research analyst', 'systems analyst',
           'business systems analyst', 'process analyst', 'requirements analyst', 'analytics',
           'intelligence specialist', 'insights specialist', 'data scientist', 'market research',
-          'analytics professional', 'bi analyst', 'business analytics'
+          'analytics professional', 'bi analyst', 'business analytics', 'data engineer',
+          'reporting analyst', 'dashboard developer', 'performance analyst', 'metrics analyst',
+          'product analyst', 'operations research', 'statistical analyst', 'data modeler',
+          'insights manager', 'strategy analyst', 'competitive analyst', 'quantitative analyst',
+          'management consultant', 'research', 'analysis', 'trends analyst', 'forecasting'
         ]
       },
       'department': {
@@ -305,27 +337,47 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           'sales', 'business development', 'biz dev', 'selling', 'revenue', 'accounts',
           'business development', 'business growth', 'sales ops', 'sales operations',
           'commercial', 'revenue generation', 'deal team', 'deal desk', 'sales enablement',
-          'enterprise sales', 'inside sales', 'field sales', 'direct sales', 'channel sales'
+          'enterprise sales', 'inside sales', 'field sales', 'direct sales', 'channel sales',
+          'client acquisition', 'account management', 'solution selling', 'business expansion',
+          'client relations', 'revenue operations', 'pipeline management', 'prospecting team',
+          'new business', 'customer acquisition', 'relationship management', 'client management',
+          'business development team', 'renewal team', 'commercial team', 'quota carriers',
+          'potential buyers', 'potential customers', 'prospects', 'buyers', 'end buyers', 'clients'
         ],
         'service': [
           'service', 'support', 'customer service', 'help desk', 'customer support',
           'technical support', 'customer success', 'client services', 'service desk',
           'service operations', 'support operations', 'customer care', 'client care',
-          'customer experience', 'cx team', 'customer happiness', 'customer advocacy'
+          'customer experience', 'cx team', 'customer happiness', 'customer advocacy',
+          'support team', 'help center', 'customer relations', 'customer assistance',
+          'client support', 'user support', 'account support', 'customer help',
+          'service center', 'customer engagement', 'client engagement', 'implementation team',
+          'onboarding team', 'client success team', 'technical assistance', 'customer helpdesk',
+          'support agents', 'service specialists', 'assistance team', 'support staff', 'consumers'
         ],
         'marketing': [
           'marketing', 'communications', 'marcom', 'brand', 'advertising', 'pr',
           'digital marketing', 'content marketing', 'product marketing', 'growth',
           'demand generation', 'lead generation', 'social media', 'creative',
           'market research', 'marketing ops', 'marketing analytics', 'events',
-          'communications', 'branding', 'promotion', 'public relations'
+          'communications', 'branding', 'promotion', 'public relations',
+          'content strategy', 'content creation', 'community management', 'email marketing',
+          'campaigns', 'brand strategy', 'digital presence', 'market awareness',
+          'audience engagement', 'media relations', 'market positioning', 'customer acquisition',
+          'customer communication', 'growth marketing', 'field marketing', 'marketing technology',
+          'user acquisition', 'audience development', 'outreach', 'promotional teams', 'messaging team'
         ],
         'operations': [
           'operations', 'analytics', 'ops', 'data analysis', 'reporting', 'finance',
           'business operations', 'business intelligence', 'data science', 'bi',
           'strategy', 'planning', 'business strategy', 'strategic planning',
           'process improvement', 'operational excellence', 'performance analysis', 
-          'systems', 'logistics', 'supply chain', 'procurement', 'administration'
+          'systems', 'logistics', 'supply chain', 'procurement', 'administration',
+          'research', 'quality assurance', 'qa', 'data operations', 'efficiency team',
+          'continuous improvement', 'data insights', 'metrics', 'kpis', 'dashboard',
+          'business efficiency', 'process optimization', 'analysis team', 'decision science',
+          'operations research', 'workflow team', 'technical operations', 'internal team',
+          'stakeholders', 'leadership', 'executive team', 'management', 'internal departments'
         ]
       },
       'goal': {
@@ -1033,9 +1085,9 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         )}
       >
         {!isUser && (
-          <Avatar className="h-9 w-9 ring-2 ring-purple-100">
-            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
-              <Brain className="h-5 w-5 text-purple-600" />
+          <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+            <AvatarFallback className="bg-gradient-to-br from-gray-200 to-gray-300">
+              <Brain className="h-5 w-5 text-gray-600" />
             </AvatarFallback>
           </Avatar>
         )}
@@ -1043,8 +1095,8 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         <div className={cn(
           "max-w-[80%] rounded-xl shadow-sm overflow-hidden",
           isUser 
-            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4" 
-            : "bg-white border border-gray-200 p-4"
+            ? "bg-gradient-to-r from-gray-600 to-gray-700 text-white p-4" 
+            : "bg-gray-50 border border-gray-300 p-4"
         )}>
           <div className="text-sm leading-relaxed whitespace-pre-wrap">
             {renderContent(message.content)}
@@ -1141,9 +1193,9 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         </div>
         
         {isUser && (
-          <Avatar className="h-9 w-9 ring-2 ring-blue-100">
-            <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
-              <User className="h-5 w-5 text-blue-600" />
+          <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+            <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400">
+              <User className="h-5 w-5 text-gray-600" />
             </AvatarFallback>
           </Avatar>
         )}
@@ -1153,10 +1205,10 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
 
   if (!documentAnalysis) {
     return (
-      <Card className={cn("bg-gradient-to-br from-gray-50 to-gray-100", className)}>
+      <Card className={cn("bg-gradient-to-br from-gray-200 to-gray-300", className)}>
         <CardContent className="p-8 text-center">
-          <div className="bg-white rounded-full p-4 w-16 h-16 mx-auto mb-4 shadow-md">
-            <MessageSquare className="h-8 w-8 text-gray-400" />
+          <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 shadow-md">
+            <MessageSquare className="h-8 w-8 text-gray-500" />
           </div>
           <h3 className="text-lg font-semibold text-gray-800 mb-2">No Document Selected</h3>
           <p className="text-gray-600">Upload a document to start the conversation</p>
@@ -1218,12 +1270,12 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
   return (
     <Card className={cn("flex flex-col h-full overflow-hidden", className)}>
       {documentAnalysis && (
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 px-4 py-2 border-b">
+        <div className="bg-gradient-to-r from-gray-200 to-gray-300 px-4 py-2 border-b">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-700 font-medium">
               Document Type: <Badge variant="secondary" className="ml-2">{documentAnalysis.documentType}</Badge>
             </p>
-            <Badge variant="outline" className="bg-white">
+            <Badge variant="outline" className="bg-gray-100">
               <Activity className="h-3 w-3 mr-1" />
               Active
             </Badge>
@@ -1232,15 +1284,15 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       )}
       
       <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
-        <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-white to-gray-50">
+        <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-gray-100 to-gray-200">
           <div className="space-y-4">
             {state.messages.map(renderMessage)}
             
             {isTyping && (
               <div className="flex gap-3 justify-start">
-                <Avatar className="h-9 w-9 ring-2 ring-purple-100">
-                  <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
-                    <Brain className="h-5 w-5 text-purple-600" />
+                <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+                  <AvatarFallback className="bg-gradient-to-br from-gray-200 to-gray-300">
+                    <Brain className="h-5 w-5 text-gray-600" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
@@ -1257,7 +1309,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         </ScrollArea>
       </CardContent>
       
-      <div className="border-t bg-white px-4 py-3">
+      <div className="border-t bg-gray-200 px-4 py-3">
         {!state.isComplete ? (
           <div className="flex gap-2">
             <Input
@@ -1266,7 +1318,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Tell me what you'd like to do with this document..."
-              className="flex-1 bg-gray-50 border-gray-200"
+              className="flex-1 bg-gray-100 border-gray-300"
               disabled={isTyping}
             />
             <Button 
