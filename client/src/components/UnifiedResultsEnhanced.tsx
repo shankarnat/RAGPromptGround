@@ -297,10 +297,14 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   };
 
   const renderKGResults = () => {
-    if (!kgResults || filteredEntities.length === 0) {
+    if (!kgResults || filteredEntities.length === 0 || !processingConfig?.kg?.enabled) {
       return (
         <div className="text-center py-12">
-          <p className="text-gray-500">No Knowledge Graph entities found.</p>
+          <p className="text-gray-500">
+            {!processingConfig?.kg?.enabled 
+              ? "Knowledge Graph is disabled. Enable it in the left panel to view results."
+              : "No Knowledge Graph entities found."}
+          </p>
         </div>
       );
     }
@@ -767,7 +771,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
   const renderAllResults = () => {
     const hasRagResults = ragResults && filteredChunks.length > 0;
-    const hasKgResults = kgResults && filteredEntities.length > 0;
+    const hasKgResults = kgResults && filteredEntities.length > 0 && processingConfig?.kg?.enabled;
     const hasIdpResults = idpResults && processingConfig?.idp?.enabled;
     const hasAnyResults = hasRagResults || hasKgResults || hasIdpResults;
     const multimodalProcessing = getMultimodalProcessingInfo();
@@ -946,8 +950,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </Card>
         )}
 
-        {/* Knowledge Graph Results Card - Moved after IDP */}
-        {hasKgResults && (
+        {/* Knowledge Graph Results Card - Moved after IDP - only shown when KG checkbox is checked */}
+        {hasKgResults && processingConfig?.kg?.enabled && (
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
