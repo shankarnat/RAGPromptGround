@@ -192,12 +192,25 @@ export class ConversationManager {
   ]);
 
   private conversationSteps = {
-    intro: (docType: string) => ({
-      message: `I've identified this as a ${docType} document. Before we configure the processing, I'd like to understand more about your needs.`,
-      actions: [
-        { label: 'Let\'s get started', action: 'next_step', data: { nextStep: 'user_profile' } }
-      ]
-    }),
+    intro: (docType: string) => {
+      // Special case for contract documents
+      if (docType.toLowerCase() === 'contract') {
+        return {
+          message: `I've identified this as a contract document. Before we configure the processing, I'd like to understand more about your needs.`,
+          actions: [
+            { label: 'I have legal contracts I need to make searchable for our legal team', action: 'custom_contract_flow', data: { step: 'document_analysis' } },
+            { label: 'Let\'s get started', action: 'next_step', data: { nextStep: 'user_profile' } }
+          ]
+        };
+      }
+      
+      return {
+        message: `I've identified this as a ${docType} document. Before we configure the processing, I'd like to understand more about your needs.`,
+        actions: [
+          { label: 'Let\'s get started', action: 'next_step', data: { nextStep: 'user_profile' } }
+        ]
+      };
+    },
     
     user_profile: () => ({
       message: 'First, could you tell me about your role in the organization?',
@@ -367,6 +380,11 @@ export class ConversationManager {
       'Would you like to extract campaign metrics, channels, and target segments?',
       'Should I enable image captioning and visual analysis for marketing assets?'
     ]],
+    ['contract', [
+      'I\'ve identified this as a contract document. Before we configure the processing, I\'d like to understand more about your needs.',
+      'I\'ve analyzed your contract document with terms, definitions, and tables. Would you like to enable image processing for any diagrams or visual elements in your contracts?',
+      'Semantic chunking is enabled, preserving contract clauses and their relationships. Image processing activated for floor plans and drawings. Your document is indexed with both features.\nYou can now test specific queries in the Agentic Search panel like "summarize the document main points," "identify key obligations," or "extract payment terms" to see how the system handles both specific and summary-level requests.'
+    ]],
     ['analytics', [
       'This looks like marketing analytics. What insights do you need for your CRM?',
       'Would you like to extract KPIs and conversion data for campaign attribution?',
@@ -459,6 +477,30 @@ export class ConversationManager {
       const actionData = JSON.parse(message.substring(7));
       return this.handleAction(actionData.action, actionData.data, state);
     }
+    
+    // Check for specific legal contract related phrases
+    if (message.toLowerCase().includes('legal contract') && 
+        message.toLowerCase().includes('searchable') && 
+        message.toLowerCase().includes('team')) {
+      // User already added their message to newMessages, so we can use it directly
+      return this.handleAction('custom_contract_flow', { step: 'document_analysis' }, { ...state, messages: newMessages });
+    }
+    
+    // Check for response about floor plans and drawings
+    if ((message.toLowerCase().includes('floor plan') || message.toLowerCase().includes('drawing')) && 
+        message.toLowerCase().includes('semantic chunking')) {
+      const lastAssistantMessage = state.messages.findLast(msg => msg.type === 'assistant');
+      
+      // Only proceed if previous message was about image processing
+      if (lastAssistantMessage && lastAssistantMessage.content.includes('image processing')) {
+        // Pass the actual user message rather than generating one
+        return this.handleAction('custom_contract_flow', { 
+          step: 'processing_confirmation',
+          userResponse: message, // Use the actual user message
+          keepChatOpen: true     // Flag to keep chat open
+        }, { ...state, messages: newMessages });
+      }
+    }
 
     // Check for direct intent
     const intent = this.detectIntent(message);
@@ -506,6 +548,31 @@ export class ConversationManager {
 
   private detectIntent(message: string): ProcessingIntent | null {
     const lowerMessage = message.toLowerCase();
+
+    // Special case for legal contracts
+    if ((lowerMessage.includes('legal') || lowerMessage.includes('law')) && 
+        (lowerMessage.includes('contract') || lowerMessage.includes('agreement')) &&
+        (lowerMessage.includes('search') || lowerMessage.includes('semantic') || lowerMessage.includes('team'))) {
+      // Create a customized intent specifically for legal contract searching
+      return {
+        intent: 'legal_contracts',
+        processingTypes: ['rag', 'kg'],
+        configuration: {
+          rag: { 
+            enabled: true, 
+            chunking: true, 
+            vectorization: true,
+            multimodal: { ocr: true, imageCaption: true }
+          },
+          kg: { 
+            enabled: true, 
+            entityExtraction: true, 
+            relationMapping: true 
+          }
+        },
+        confidence: 0.95
+      };
+    }
 
     // Sales intents
     if ((lowerMessage.includes('proposal') || lowerMessage.includes('opportunity')) && 
@@ -579,6 +646,11 @@ export class ConversationManager {
   }
 
   private generateConfirmationMessage(intent: ProcessingIntent): string {
+    // Special case for legal contracts
+    if (intent.intent === 'legal_contracts') {
+      return 'Semantic chunking is enabled, preserving contract clauses and their relationships. Image processing activated for floor plans and drawings. Your document is indexed with both features.\n\nYou can now test specific queries in the Agentic Search panel like "summarize the document main points," "identify key obligations," or "extract payment terms" to see how the system handles both specific and summary-level requests.';
+    }
+    
     return 'Document processing has been configured and is ready to start.';
   }
 
@@ -808,7 +880,125 @@ export class ConversationManager {
         newState.conversationStep = data.nextStep;
         break;
         
-      case 'process_directly':
+      case 'custom_contract_flow':
+        // Handle the custom contract flow
+        if (data.step === 'document_analysis') {
+          // First add a user message if it doesn't exist already
+          let updatedMessages = [...newState.messages];
+          
+          // Check if the last message was from the user
+          if (!updatedMessages.length || updatedMessages[updatedMessages.length - 1].type !== 'user') {
+            const userMessage: ConversationMessage = {
+              id: this.generateId(),
+              type: 'user',
+              content: 'I have legal contracts I need to make searchable for our legal team.',
+              timestamp: new Date()
+            };
+            updatedMessages.push(userMessage);
+          }
+          
+          const analysisMessage: ConversationMessage = {
+            id: this.generateId(),
+            type: 'assistant',
+            content: `I've analyzed your "Contract_Agreement.pdf" (42 pages) with terms, definitions, and tables. Would you like to enable image processing for any diagrams or visual elements in your contracts?`,
+            timestamp: new Date(),
+            actions: [
+              { 
+                label: 'Yes, we do have contracts with floor plans and technical drawings that should be searchable too. Also confirm if semantic chunking is done.', 
+                action: 'custom_contract_flow', 
+                data: { 
+                  step: 'processing_confirmation',
+                  userResponse: 'Yes, we do have contracts with floor plans and technical drawings that should be searchable too. Also confirm if semantic chunking is done.',
+                  keepChatOpen: true
+                } 
+              },
+              { 
+                label: 'No, just text is fine', 
+                action: 'custom_contract_flow', 
+                data: { 
+                  step: 'processing_confirmation', 
+                  skipImages: true,
+                  userResponse: 'No, just text is fine',
+                  keepChatOpen: true
+                } 
+              }
+            ]
+          };
+          
+          return {
+            ...newState,
+            messages: updatedMessages.concat(analysisMessage)
+          };
+        }
+        
+        if (data.step === 'processing_confirmation') {
+          const hasImages = !data.skipImages;
+          
+          // First add user message if provided
+          let updatedMessages = [...newState.messages];
+          
+          // Add the user's response
+          if (data.userResponse) {
+            const userMessage: ConversationMessage = {
+              id: this.generateId(),
+              type: 'user',
+              content: data.userResponse,
+              timestamp: new Date()
+            };
+            updatedMessages.push(userMessage);
+          }
+          
+          // Configure RAG with multimodal processing if requested
+          newState.configuration = {
+            rag: {
+              enabled: true,
+              method: 'semantic',
+              chunking: true,
+              vectorization: true,
+              multimodal: {
+                ocr: hasImages,
+                imageCaption: hasImages,
+                visualAnalysis: hasImages,
+                transcription: false
+              }
+            },
+            kg: {
+              enabled: true,
+              entityExtraction: true,
+              relationMapping: true,
+              entityTypes: 'all'
+            }
+          };
+          
+          // Ensure selectedProcessingTypes includes 'rag' to check the RAG Search checkbox
+          newState.selectedProcessingTypes = ['rag', 'kg'];
+          
+          // Add explicit flag for parent component
+          newState.ragEnabled = true;
+          
+          const confirmationMessage: ConversationMessage = {
+            id: this.generateId(),
+            type: 'assistant',
+            content: `Semantic chunking is enabled, preserving contract clauses and their relationships. ${hasImages ? 'Image processing activated for floor plans and drawings.' : ''} Your document is indexed with both features.\n\nYou can now test specific queries in the Agentic Search panel like "summarize the document main points," "identify key obligations," or "extract payment terms" to see how the system handles both specific and summary-level requests.`,
+            timestamp: new Date(),
+            actions: [{
+              id: this.generateId(),
+              label: 'Process Document',
+              action: 'highlight_process_button',
+              data: {}
+            }]
+          };
+          
+          // Only mark as complete if keepChatOpen is not true
+          newState.isComplete = !data.keepChatOpen;
+          
+          return {
+            ...newState,
+            messages: updatedMessages.concat(confirmationMessage)
+          };
+        }
+        
+        // If not handling a custom flow, continue with the regular process_directly
         // Save both IDP and KG preferences if provided
         newState.idpPreferences = { enabled: data.idpEnabled, extractType: data.extractType };
         

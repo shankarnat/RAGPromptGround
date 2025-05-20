@@ -76,9 +76,165 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       }
     }
   }, [state.isComplete, onProcessingConfigured, getProcessingConfig, handleAction]);
+  
+  // Check for semantic chunking messages and enable RAG checkbox
+  useEffect(() => {
+    // Look for the specific message about semantic chunking
+    const semanticChunkingMessage = state.messages.find(msg => 
+      msg.type === 'assistant' && 
+      (msg.content.includes("Semantic chunking is enabled") || 
+       msg.content.includes("semantic chunking"))
+    );
+    
+    // If the message is found and we have a handler for processing configuration
+    if (semanticChunkingMessage && onProcessingConfigured) {
+      console.log('Found semantic chunking message, enabling RAG checkbox');
+      
+      // Check if the message mentions 'floor plans', 'drawings', or similar visual terms
+      const hasVisualElements = semanticChunkingMessage.content.toLowerCase().includes('floor plan') || 
+                                semanticChunkingMessage.content.toLowerCase().includes('drawing') ||
+                                semanticChunkingMessage.content.toLowerCase().includes('visual') ||
+                                semanticChunkingMessage.content.toLowerCase().includes('diagram');
+      
+      // Enable RAG with proper multimodal settings
+      const config = {
+        ragEnabled: true, // This will enable the RAG checkbox
+        multimodal: {
+          imageCaption: hasVisualElements,
+          ocr: hasVisualElements
+        }
+      };
+      
+      // Configure RAG
+      onProcessingConfigured(config);
+      
+      // No follow-up message for RAG
+    }
+  }, [state.messages, onProcessingConfigured]);
+  
+  // Check for knowledge graph ready messages and enable KG checkbox
+  useEffect(() => {
+    // Look for the specific message about knowledge graph being ready
+    const knowledgeGraphMessage = state.messages.find(msg => 
+      msg.type === 'assistant' && 
+      msg.content.includes("Knowledge graph is ready")
+    );
+    
+    // If the message is found and we have a handler for processing configuration
+    if (knowledgeGraphMessage && onProcessingConfigured) {
+      console.log('Found knowledge graph ready message, enabling KG checkbox');
+      
+      // Enable KG with entities
+      const config = {
+        kgEnabled: true, // This will enable the KG checkbox
+        entityTypes: 'all', // Default to all entity types
+        kgUpdate: true // Flag to mark this as a dedicated KG update
+      };
+      
+      // Configure KG
+      onProcessingConfigured(config);
+      
+      // After a 2-second delay, send a follow-up message
+      setTimeout(() => {
+        // Add a message to the conversation
+        sendMessage("I have now enabled Knowledge Graph processing, what else would you like to do?");
+      }, 2000);
+    }
+  }, [state.messages, onProcessingConfigured, sendMessage]);
+  
+  // Check for document processing available messages and enable IDP checkbox
+  useEffect(() => {
+    // Look for the specific message about document processing being available
+    const documentProcessingMessage = state.messages.find(msg => 
+      msg.type === 'assistant' && 
+      msg.content.includes("Document processing is available")
+    );
+    
+    // If the message is found and we have a handler for processing configuration
+    if (documentProcessingMessage && onProcessingConfigured) {
+      console.log('Found document processing message, enabling IDP checkbox');
+      
+      // Enable IDP with default settings
+      const config = {
+        idpEnabled: true, // This will enable the IDP checkbox
+        extractType: 'full', // Default to full extraction
+      };
+      
+      // Configure IDP
+      onProcessingConfigured(config);
+      
+      // After a 2-second delay, send a follow-up message
+      setTimeout(() => {
+        // Add a message to the conversation
+        sendMessage("I have now enabled Document Processing, what else would you like to do?");
+      }, 2000);
+    }
+  }, [state.messages, onProcessingConfigured, sendMessage]);
 
   // Override the handleAction to intercept start_processing, select_processing, and process_directly
   const handleActionWithConfig = (action: string, data?: any) => {
+    // Special handling for custom contract flow actions
+    if (action === 'custom_contract_flow') {
+      console.log('Custom contract flow action triggered:', data);
+      
+      // Create a direct user message instead of using sendMessage
+      // This ensures it appears immediately in the conversation
+      if (data?.userResponse) {
+        const userMessage: ConversationMessage = {
+          id: Math.random().toString(36).substring(2, 9),
+          type: 'user',
+          content: data.userResponse,
+          timestamp: new Date()
+        };
+        
+        // Directly add to state instead of using sendMessage
+        setState(prev => ({
+          ...prev,
+          messages: [...prev.messages, userMessage]
+        }));
+        
+        // Add a small delay before proceeding to ensure user message is visible
+        setTimeout(() => {
+          // If we've reached the confirmation step with semantic chunking, ensure RAG is enabled
+          if (data?.step === 'processing_confirmation') {
+            console.log('Processing confirmation step - enabling RAG checkbox');
+            
+            if (onProcessingConfigured) {
+              const config = {
+                ragEnabled: true,
+                multimodal: {
+                  imageCaption: !data.skipImages,
+                  ocr: !data.skipImages,
+                  visualAnalysis: !data.skipImages
+                }
+              };
+              console.log('Sending RAG config to update checkbox:', config);
+              onProcessingConfigured(config);
+            }
+          }
+          
+          // Then continue with the standard action handling
+          handleAction(action, data);
+        }, 100);
+      } else {
+        // If no user response, just handle the action directly
+        if (data?.step === 'processing_confirmation' && onProcessingConfigured) {
+          const config = {
+            ragEnabled: true,
+            multimodal: {
+              imageCaption: !data.skipImages,
+              ocr: !data.skipImages,
+              visualAnalysis: !data.skipImages
+            }
+          };
+          onProcessingConfigured(config);
+        }
+        
+        handleAction(action, data);
+      }
+      return;
+    }
+  
     // Special handling for "Yes, all entities" action
     if (action === 'process_directly' && data?.kgEnabled === true && data?.entityTypes === 'all') {
       console.log('"Yes, all entities" button clicked, adding delay before processing');
@@ -295,20 +451,22 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       <div
         key={message.id}
         className={cn(
-          "flex gap-3 mb-4",
+          "flex gap-3 mb-4 w-full",
           isUser ? "justify-end" : "justify-start"
         )}
       >
         {!isUser && (
-          <Avatar className="h-9 w-9 ring-2 ring-purple-100">
-            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
-              <Brain className="h-5 w-5 text-purple-600" />
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex-shrink-0">
+            <Avatar className="h-9 w-9 ring-2 ring-purple-100">
+              <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
+                <Brain className="h-5 w-5 text-purple-600" />
+              </AvatarFallback>
+            </Avatar>
+          </div>
         )}
         
         <div className={cn(
-          "max-w-[80%] rounded-xl shadow-sm overflow-hidden",
+          "max-w-[75%] rounded-xl shadow-sm overflow-hidden",
           isUser 
             ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4" 
             : "bg-white border border-gray-200 p-4"
@@ -354,20 +512,22 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           
           {/* Render action buttons if available */}
           {message.actions && message.actions.length > 0 && (
-            <div className="mt-4 space-y-2 max-w-full">
-              {message.actions.map(action => (
-                <Button
-                  key={action.id}
-                  variant={isUser ? "secondary" : "outline"}
-                  size="sm"
-                  className="w-full justify-start gap-2 transition-all hover:scale-[1.02] overflow-hidden"
-                  onClick={() => handleActionWithConfig(action.action, action.data)}
-                  title={action.label} // Add title for tooltip on hover
-                >
-                  {getActionIcon(action.action)}
-                  <span className="truncate">{action.label}</span>
-                </Button>
-              ))}
+            <div className="mt-4 space-y-2 w-full">
+              <div className="max-h-60 overflow-y-auto pr-1">
+                {message.actions.map(action => (
+                  <Button
+                    key={action.id}
+                    variant={isUser ? "secondary" : "outline"}
+                    size="sm"
+                    className="w-full justify-start gap-2 transition-all hover:scale-[1.02] overflow-hidden mb-2"
+                    onClick={() => handleActionWithConfig(action.action, action.data)}
+                    title={action.label} // Add title for tooltip on hover
+                  >
+                    {getActionIcon(action.action)}
+                    <span className="truncate">{action.label}</span>
+                  </Button>
+                ))}
+              </div>
               
               {/* Add "Other" option with text input for AI responses */}
               {!isUser && (
@@ -408,11 +568,13 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         </div>
         
         {isUser && (
-          <Avatar className="h-9 w-9 ring-2 ring-blue-100">
-            <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
-              <User className="h-5 w-5 text-blue-600" />
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex-shrink-0">
+            <Avatar className="h-9 w-9 ring-2 ring-blue-100">
+              <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
+                <User className="h-5 w-5 text-blue-600" />
+              </AvatarFallback>
+            </Avatar>
+          </div>
         )}
       </div>
     );
@@ -500,17 +662,19 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       
       <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
         <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-white to-gray-50">
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col w-full">
             {state.messages.map(renderMessage)}
             
             {isTyping && (
-              <div className="flex gap-3 justify-start">
-                <Avatar className="h-9 w-9 ring-2 ring-purple-100">
-                  <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
-                    <Brain className="h-5 w-5 text-purple-600" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <div className="flex gap-3 justify-start w-full">
+                <div className="flex-shrink-0">
+                  <Avatar className="h-9 w-9 ring-2 ring-purple-100">
+                    <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
+                      <Brain className="h-5 w-5 text-purple-600" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="max-w-[75%] bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
                     <span className="text-sm text-gray-600">Processing your request...</span>
