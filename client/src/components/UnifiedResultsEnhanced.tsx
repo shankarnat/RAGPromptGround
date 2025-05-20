@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import UnifiedSearchEnhanced from '@/components/UnifiedSearchEnhanced';
 import { cn } from '@/lib/utils';
 import { 
@@ -737,51 +738,55 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter your agentic prompt about the document..."
-                  value={agenticQuery}
-                  onChange={(e) => setAgenticQuery(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && agenticQuery.trim()) {
-                      processAgenticQuery(agenticQuery);
-                    }
-                  }}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={() => agenticQuery.trim() && processAgenticQuery(agenticQuery)}
-                  disabled={!agenticQuery.trim() || isAgenticLoading}
-                >
-                  {isAgenticLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Search className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              
-              {/* Auto-suggestions */}
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Suggested agentic prompts:</p>
-                <div className="flex flex-wrap gap-2">
-                  {agenticSuggestions.map((suggestion, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setAgenticQuery(suggestion);
-                        processAgenticQuery(suggestion);
-                      }}
-                      className="text-xs"
-                    >
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      {suggestion}
-                    </Button>
-                  ))}
+              <Command className="rounded-lg border shadow-md" shouldFilter={false}>
+                <div className="flex items-center border-b px-3">
+                  <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <CommandInput
+                    placeholder="Enter your agentic prompt about the document..."
+                    value={agenticQuery}
+                    onValueChange={setAgenticQuery}
+                    className="h-10 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && agenticQuery.trim()) {
+                        processAgenticQuery(agenticQuery);
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={() => agenticQuery.trim() && processAgenticQuery(agenticQuery)}
+                    disabled={!agenticQuery.trim() || isAgenticLoading}
+                    variant="ghost"
+                    size="icon"
+                    className="ml-1"
+                  >
+                    {isAgenticLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4 text-purple-500" />
+                    )}
+                  </Button>
                 </div>
-              </div>
+                {agenticQuery.length === 0 && (
+                  <CommandList className="max-h-52">
+                    <CommandGroup heading="Suggested prompts">
+                      {agenticSuggestions.map((suggestion, idx) => (
+                        <CommandItem
+                          key={idx}
+                          onSelect={() => {
+                            setAgenticQuery(suggestion);
+                            processAgenticQuery(suggestion);
+                          }}
+                          className="cursor-pointer gap-2"
+                        >
+                          <Sparkles className="h-3.5 w-3.5 text-purple-500" />
+                          <span>{suggestion}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                )}
+              </Command>
             </div>
           </CardContent>
         </Card>
@@ -1173,7 +1178,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Bot className="h-5 w-5 text-blue-500" />
-                    <CardTitle>AI Analysis</CardTitle>
+                    <CardTitle>Agentic Results</CardTitle>
                   </div>
                   <Badge variant="secondary">Powered by LLM</Badge>
                 </div>
@@ -1204,8 +1209,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   </div>
                 )}
 
-                {/* KG Insights */}
-                {agenticResults.kgInsights && (
+                {/* KG Insights - only show if KG tab is enabled */}
+                {agenticResults.kgInsights && processingConfig?.kg?.enabled && (
                   <div className="mb-6">
                     <h4 
                       className="font-medium mb-3 flex items-center cursor-pointer hover:text-green-700 transition-colors rounded px-2 py-1 hover:bg-green-50 inline-flex"
@@ -1233,8 +1238,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   </div>
                 )}
 
-                {/* IDP Insights */}
-                {agenticResults.idpInsights && (
+                {/* IDP Insights - only show if IDP tab is enabled */}
+                {agenticResults.idpInsights && processingConfig?.idp?.enabled && (
                   <div className="mb-6">
                     <h4 className="font-medium mb-3 flex items-center">
                       <FileText className="h-4 w-4 mr-2 text-purple-500" />
@@ -1695,7 +1700,10 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Processing Results</h2>
+        <div className="flex items-center gap-2">
+          <BrainCircuit className="h-6 w-6 text-purple-500" />
+          <h2 className="text-2xl font-semibold">Content Understanding Results</h2>
+        </div>
         {onClearResults && (
           <Button 
             variant="outline" 
