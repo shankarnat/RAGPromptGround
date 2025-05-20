@@ -94,7 +94,9 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     <Icon className="w-4 h-4 text-gray-500" />
                     <span className="font-medium">{type.label}</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">{type.description}</p>
+                  {processingConfig[configKey]?.enabled && (
+                    <p className="text-sm text-gray-500 mt-1">{type.description}</p>
+                  )}
                 </div>
               </div>
             );
@@ -102,26 +104,28 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
         </CardContent>
       </Card>
       
-      {/* Finalize and Create button - placed below Processing Methods */}
-      <Card className="border-2 border-green-200 bg-green-50">
-        <CardContent className="pt-4 pb-4">
-          <Button 
-            className="w-full bg-green-600 hover:bg-green-700 flex items-center gap-2 transition-all hover:scale-[1.01]"
-            size="lg"
-            onClick={() => {
-              // Add any finalization logic here
-              // For now, just call onProcessDocument if available
-              if (onProcessDocument && !disabled) {
-                onProcessDocument();
-              }
-            }}
-            disabled={disabled || !Object.values(processingConfig).some((config: any) => config.enabled)}
-          >
-            <Wand2 className="w-5 h-5 mr-1" />
-            Finalize and Create
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Finalize and Create button - placed below Processing Methods - only visible when options selected */}
+      {Object.values(processingConfig).some((config: any) => config.enabled) && (
+        <Card className="border-2 border-green-200 bg-green-50 transition-all duration-300">
+          <CardContent className="pt-4 pb-4">
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700 flex items-center gap-2 transition-all hover:scale-[1.01]"
+              size="lg"
+              onClick={() => {
+                // Add any finalization logic here
+                // For now, just call onProcessDocument if available
+                if (onProcessDocument && !disabled) {
+                  onProcessDocument();
+                }
+              }}
+              disabled={disabled}
+            >
+              <Wand2 className="w-5 h-5 mr-1" />
+              Finalize and Create
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Collapsible configuration sections */}
       <Accordion 
@@ -272,17 +276,18 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
         )}
       </Accordion>
       
-      {/* Spacer to ensure content isn't hidden behind sticky button */}
-      {onProcessDocument && !disabled && (
+      {/* Spacer to ensure content isn't hidden behind sticky button - only shown when button is visible */}
+      {onProcessDocument && !disabled && Object.values(processingConfig).some((config: any) => config.enabled) && (
         <div className="h-20"></div>
       )}
       
-      {/* Process Document Button */}
-      {onProcessDocument && !disabled && (
+      {/* Process Document Button - only visible when at least one processing method is enabled */}
+      {onProcessDocument && !disabled && Object.values(processingConfig).some((config: any) => config.enabled) && (
         <div className={`
           sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 shadow-lg z-10 -mx-4 
           ${highlightProcessButton ? 'ring-2 ring-blue-500 rounded-md' : ''}
           ${pulseEffect ? 'animate-[pulse_1s_infinite]' : highlightProcessButton ? 'animate-[pulse_2s_infinite]' : ''}
+          transition-all duration-300
         `}>
           {/* Add an arrow pointing to the button when highlighted with pulse effect */}
           {pulseEffect && (
@@ -291,22 +296,20 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
             </div>
           )}
           
-          {(Object.values(processingConfig).some((config: any) => config.enabled) || highlightProcessButton) && (
-            <div className="mb-3 text-center">
-              <p className={`
-                font-medium
-                ${pulseEffect ? 'text-blue-700 text-lg animate-[pulse_0.5s_infinite]' : 
-                  highlightProcessButton ? 'text-blue-600 text-base animate-pulse' : 'text-blue-500 text-sm animate-pulse'}
-              `}>
-                {pulseEffect 
-                  ? "👉 Click this button to process your document! 👈"
-                  : highlightProcessButton 
-                    ? "Configuration complete! Click here to process your document."
-                    : "Ready to process! Click the button below to start."
-                }
-              </p>
-            </div>
-          )}
+          <div className="mb-3 text-center">
+            <p className={`
+              font-medium
+              ${pulseEffect ? 'text-blue-700 text-lg animate-[pulse_0.5s_infinite]' : 
+                highlightProcessButton ? 'text-blue-600 text-base animate-pulse' : 'text-blue-500 text-sm animate-pulse'}
+            `}>
+              {pulseEffect 
+                ? "👉 Click this button to process your document! 👈"
+                : highlightProcessButton 
+                  ? "Configuration complete! Click here to process your document."
+                  : "Ready to process! Click the button below to start."
+              }
+            </p>
+          </div>
           
           <Button
             className={`
@@ -320,7 +323,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
             `}
             size="lg"
             onClick={onProcessDocument}
-            disabled={!Object.values(processingConfig).some((config: any) => config.enabled)}
             title={highlightProcessButton ? "Click to process the document with the configuration from the AI assistant" : "Process the document with the current configuration"}
           >
             <PlayCircle className={`w-5 h-5 mr-2 ${pulseEffect || highlightProcessButton ? 'text-white' : ''}`} />
