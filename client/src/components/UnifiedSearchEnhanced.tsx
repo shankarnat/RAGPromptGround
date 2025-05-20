@@ -172,39 +172,6 @@ const UnifiedSearchEnhanced: React.FC<UnifiedSearchProps> = ({
 
   return (
     <div className={cn("relative w-full", className)}>
-      <div className="relative">
-        <Input
-          ref={searchInputRef}
-          type="text"
-          placeholder="Search documents, entities, or data..."
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setIsOpen(true);
-          }}
-          onFocus={() => setIsOpen(true)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleSearch();
-            }
-          }}
-          className="pl-10 pr-10"
-        />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-        {query && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setQuery('');
-              setSuggestions([]);
-            }}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
 
       {/* Suggestions dropdown */}
       {isOpen && suggestions.length > 0 && (
