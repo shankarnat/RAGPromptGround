@@ -1302,29 +1302,40 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     if (!multimodal) return [];
     
     const activeProcessing = [];
+    // Only show Audio Transcription label if transcription toggle is enabled
     if (multimodal.transcription) activeProcessing.push({ 
       name: 'Audio Transcription', 
       icon: Headphones, 
       color: 'text-blue-500',
-      bgColor: 'bg-blue-50'
+      bgColor: 'bg-blue-50',
+      id: 'audio-transcription' // ID matching the toggle in the multimodal panel
     });
+    
+    // Only show OCR label if OCR toggle is enabled
     if (multimodal.ocr) activeProcessing.push({ 
       name: 'OCR (Text Extraction)', 
       icon: ScanLine, 
       color: 'text-green-500',
-      bgColor: 'bg-green-50'
+      bgColor: 'bg-green-50',
+      id: 'ocr-processing' // ID matching the toggle in the multimodal panel
     });
+    
+    // Only show Image Captioning label if image caption toggle is enabled
     if (multimodal.imageCaption) activeProcessing.push({ 
       name: 'Image Captioning', 
       icon: Camera, 
       color: 'text-purple-500',
-      bgColor: 'bg-purple-50'
+      bgColor: 'bg-purple-50',
+      id: 'image-captioning' // ID matching the toggle in the multimodal panel
     });
+    
+    // Only show Visual Analysis label if visual analysis toggle is enabled
     if (multimodal.visualAnalysis) activeProcessing.push({ 
       name: 'Visual Analysis', 
       icon: Eye, 
       color: 'text-orange-500',
-      bgColor: 'bg-orange-50'
+      bgColor: 'bg-orange-50',
+      id: 'visual-analysis' // ID matching the toggle in the multimodal panel
     });
     
     return activeProcessing;
