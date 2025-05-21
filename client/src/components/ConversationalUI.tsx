@@ -250,6 +250,97 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       
       return; // Skip further processing
     }
+    
+    // Handle highlighting the finalization panel
+    if (action === 'highlight_finalize') {
+      console.log('Explicit request to highlight finalization panel', data);
+      
+      // Show a visual highlight for the finalization panel
+      if (window && window.document) {
+        // Create a visual highlight effect for the finalization area (5% from left, 40% from top)
+        const finalizeHighlight = document.createElement('div');
+        finalizeHighlight.style.cssText = `
+          position: fixed;
+          top: 40%;
+          left: 5%;
+          width: 80px;
+          height: 80px;
+          background: rgba(16, 185, 129, 0.4);
+          border-radius: 50%;
+          animation: pulse-finalize 1.5s infinite;
+          pointer-events: none;
+          z-index: 9999;
+        `;
+        
+        // Add keyframe animation
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes pulse-finalize {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+          }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(finalizeHighlight);
+        
+        // Remove after 4 seconds (longer duration for emphasis)
+        setTimeout(() => {
+          finalizeHighlight.remove();
+          style.remove();
+        }, 4000);
+      }
+      
+      // Handle the nextStep if provided - this will transition to step 12 (confirmation)
+      if (data && data.nextStep) {
+        console.log(`Finalization panel with nextStep: ${data.nextStep}`);
+        setTimeout(() => {
+          handleAction('next_step', { nextStep: data.nextStep });
+        }, 1500); // Short delay to allow the highlight to be visible
+      }
+      
+      return; // Skip further processing
+    }
+    // Direct path to recommendations step
+    else if (action === 'direct_to_recommendations') {
+      console.log('ConversationalUI: Direct path to recommendations step triggered');
+      
+      // First show user message selecting next steps
+      sendMessage("Tell me about next steps for financial analysis");
+      
+      // Then force the transition to recommendations step
+      setTimeout(() => {
+        // Use the next_step action but with explicit nextStep value
+        handleAction('next_step', { nextStep: 'recommendations' });
+        
+        // Also update the UI immediately with a temporary message
+        const tempMessage = {
+          id: `msg_${Date.now()}_temp`,
+          type: 'assistant',
+          content: 'Loading financial analysis recommendations...',
+          timestamp: new Date()
+        };
+        
+        // Force a state update to show the loading message while we transition
+        enhancedState.messages.push(tempMessage);
+        sendMessage('');
+      }, 500);
+      
+      return; // Skip standard handling - important!
+    }
+    // Handle next_step action to ensure proper transition between conversation steps
+    else if (action === 'next_step' && data?.nextStep) {
+      console.log(`ConversationalUI: Handling next_step action to ${data.nextStep}`, data);
+      
+      // Create a direct action message to bypass pattern matching issues
+      const actionMessage = `action:${JSON.stringify({ action, data })}`;
+      console.log(`ConversationalUI: Sending direct action message: ${actionMessage}`);
+      
+      // Send the action directly to the conversation manager
+      sendMessage(actionMessage);
+      
+      // Don't return here, let it fall through to also call handleAction directly
+    }
     // Handle select_processing similar to an immediate process_document action
     else if (action === 'select_processing' && onProcessingConfigured) {
       console.log('Intercepting select_processing to trigger immediate processing', data);
@@ -1080,6 +1171,23 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         }
       }
       
+      // Special case for finalization panel highlight
+      if (actionType === 'highlight_finalize') {
+        // Check for phrases indicating interest in finalization
+        const finalizePhrases = [
+          'yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'sounds good', 'show me', 'finalize',
+          'finalization', 'complete', 'finish', 'done', 'ready', 'show finalize', 'show panel',
+          'show me finalization', 'finalization panel', 'configuration panel', 'output', 'generate',
+          'create outputs', 'create results', 'process document', 'process', 'run analysis', 
+          'start processing', 'financial insights', 'financial analysis', 'insights'
+        ];
+        
+        if (finalizePhrases.some(phrase => text.toLowerCase().includes(phrase.toLowerCase()))) {
+          console.log(`Finalization panel interest detected: "${text}" contains phrases indicating interest in finalizing`);
+          return action;
+        }
+      }
+      
       // Check for multimodal preferences - Enhanced for financial images
       if (actionType === 'set_has_images') {
         // Enhanced pattern matching with better logging
@@ -1206,6 +1314,137 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
     if (!inputValue.trim()) return;
     
     const text = inputValue.trim().toLowerCase();
+    
+    // *** SPECIAL HANDLING FOR "TELL ME MORE ON NEXT STEPS" ***
+    // This needs to be first in the order to prevent other patterns from catching it
+    
+    // These are very specific patterns that should only match "Tell me more on next steps" requests
+    const exactNextStepsPatterns = [
+      'tell me more on next steps',
+      'what are the next steps',
+      'how do i finalize this',
+      'how do i complete the process',
+      'show me the finalization options',
+      'how to finalize this document',
+      'next steps'
+    ];
+    
+    // Exact match check (to prevent false positives with intro pattern)
+    const hasExactNextStepsMatch = exactNextStepsPatterns.some(pattern => 
+      text.toLowerCase() === pattern.toLowerCase() || 
+      text.toLowerCase().trim() === pattern.toLowerCase().trim()
+    );
+    
+    // More general pattern check - make sure these only match when the phrase is central to the message
+    const nextStepsPatterns = [
+      'tell me more on next steps',
+      'what next', 
+      'what should i do next',
+      'what now', 
+      'what\'s next', 
+      'how do i proceed', 
+      'finalization', 
+      'finalize process', 
+      'complete setup',
+      'how do i finalize',
+      'show finalization',
+      'finish process'
+    ];
+    
+    // Enhanced check to avoid false positives - check for substring containment
+    // Only match if the pattern is a significant part of the message
+    const includesNextStepsPattern = 
+      nextStepsPatterns.some(pattern => {
+        const idx = text.toLowerCase().indexOf(pattern.toLowerCase());
+        // Only match if the pattern is found AND it's not just a small part of a longer text
+        return idx >= 0 && 
+               (pattern.length >= 8 || // Short patterns must be standalone
+                pattern.length / text.length > 0.4); // Pattern must be a significant portion of message
+      });
+    
+    // Log current conversation step for debugging
+    console.log(`Next steps check: Exact match: ${hasExactNextStepsMatch}, Pattern includes: ${includesNextStepsPattern}, Text: "${text}"`);
+    
+    // Trigger the special handling if we have a next steps match
+    // This MUST come before other pattern handling
+    if (hasExactNextStepsMatch || includesNextStepsPattern) {
+      console.log(`Triggering "Tell me more on next steps" guidance`);
+      
+      // First show the user message
+      sendMessage(inputValue);
+      setInputValue('');
+      
+      // Then send a message about finalization with the configuration panel
+      setTimeout(() => {
+        const finalizationMessage = {
+          id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type: 'assistant',
+          content: 'You\'ve now configured financial intelligence extraction for your document. To generate financial insights, please visit the configuration panel on the left side. Click the "Finalize" button to process your document with the selected financial settings and generate actionable financial metrics, analysis, and insights that you can query and explore.',
+          timestamp: new Date(),
+          actions: [{
+            id: `action_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            label: 'Show me the finalization panel',
+            action: 'highlight_finalize',
+            data: { nextStep: 'confirmation' }
+          }]
+        };
+        
+        // Add the message to the state
+        state.messages.push(finalizationMessage);
+        
+        // Force a re-render
+        // Use empty flag to avoid processing the empty message
+        enhancedState.suppressProcessing = true;
+        sendMessage('');
+        enhancedState.suppressProcessing = false;
+        
+        // Show a highlight for the finalization panel
+        if (window && window.document) {
+          // Create a visual highlight effect for the finalization area (5% from left, 40% from top)
+          const finalizeHighlight = document.createElement('div');
+          finalizeHighlight.style.cssText = `
+            position: fixed;
+            top: 40%;
+            left: 5%;
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.4);
+            border-radius: 50%;
+            animation: pulse-finalize 1.5s infinite;
+            pointer-events: none;
+            z-index: 9999;
+          `;
+          
+          // Add keyframe animation
+          const style = document.createElement('style');
+          style.textContent = `
+            @keyframes pulse-finalize {
+              0% { transform: scale(0.8); opacity: 0.5; }
+              50% { transform: scale(1.2); opacity: 0.8; }
+              100% { transform: scale(0.8); opacity: 0.5; }
+            }
+          `;
+          document.head.appendChild(style);
+          document.body.appendChild(finalizeHighlight);
+          
+          // Remove after 4 seconds (longer duration for emphasis)
+          setTimeout(() => {
+            finalizeHighlight.remove();
+            style.remove();
+          }, 4000);
+          
+          // Also transition to the confirmation step after a delay
+          setTimeout(() => {
+            console.log('Transitioning to confirmation step from Tell me more on next steps');
+            handleAction('next_step', { nextStep: 'confirmation' });
+          }, 2500); // Longer delay to give time to read the message
+        }
+      }, 500);
+      
+      return;
+    }
+    
+    // *** STANDARD MESSAGE HANDLING GOES AFTER THE SPECIAL CASE ***
     const latestAssistantMessage = state.messages[state.messages.length - 1];
     
     // Only try to match text input with actions if the latest message is from the assistant and has actions
@@ -1215,18 +1454,26 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         latestAssistantMessage.actions.length > 0) {
       
       // First check for the contract document intro message specifically (for backward compatibility)
+      // Make this check more specific to prevent false matches with "Tell me more on next steps"
       if (latestAssistantMessage.content.includes("I've identified this as a contract document") &&
           latestAssistantMessage.actions.some(a => a.label.includes("Let's get started"))) {
         
-        // Check if the user's text input matches patterns for "start"
-        if (text.includes('start') || 
-            text.includes('let\'s begin') || 
-            text.includes('proceed') || 
-            text.includes('get started') ||
-            text.includes('continue') ||
-            text.includes('go ahead')) {
-          
-          console.log('Text input matched "start" pattern - triggering Let\'s get started button');
+        // Create a specific list of patterns that ONLY indicate "get started" intent
+        const startPatterns = [
+          'start', 'begin', 'let\'s start', 'let\'s begin', 
+          'get started', 'proceed', 'continue', 'go ahead'
+        ];
+        
+        // Check for exact matches to prevent false positives
+        const hasStartPattern = startPatterns.some(pattern => 
+          text === pattern || 
+          text.includes(` ${pattern} `) || 
+          text.startsWith(`${pattern} `) || 
+          text.endsWith(` ${pattern}`)
+        );
+        
+        if (hasStartPattern) {
+          console.log('Text input matched specific "start" pattern - triggering Let\'s get started button');
           
           // Find the "Let's get started" action
           const startAction = latestAssistantMessage.actions.find(a => 
