@@ -1102,40 +1102,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
             {renderContent(message.content)}
           </div>
           
-          {/* Add "Other" option for AI messages without action buttons */}
-          {!isUser && (!message.actions || message.actions.length === 0) && (
-            <div className="mt-4 space-y-2">
-              <div className="text-xs text-gray-500 font-medium mb-1">Other (manual input):</div>
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Enter your custom response..."
-                  className="text-sm"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      const target = e.target as HTMLInputElement;
-                      if (target.value.trim()) {
-                        sendMessage(target.value);
-                        target.value = '';
-                      }
-                    }
-                  }}
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={(e) => {
-                    const input = e.currentTarget.previousSibling as HTMLInputElement;
-                    if (input && input.value.trim()) {
-                      sendMessage(input.value);
-                      input.value = '';
-                    }
-                  }}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* "Other (manual input)" section has been hidden */}
           
           {/* Render action buttons if available */}
           {message.actions && message.actions.length > 0 && (
@@ -1154,40 +1121,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
                 </Button>
               ))}
               
-              {/* Add "Other" option with text input for AI responses */}
-              {!isUser && (
-                <div className="mt-2 space-y-2">
-                  <div className="text-xs text-gray-500 font-medium mb-1">Other (manual input):</div>
-                  <div className="flex gap-2">
-                    <Input 
-                      placeholder="Enter your custom response..."
-                      className="text-sm"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          const target = e.target as HTMLInputElement;
-                          if (target.value.trim()) {
-                            sendMessage(target.value);
-                            target.value = '';
-                          }
-                        }
-                      }}
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => {
-                        const input = e.currentTarget.previousSibling as HTMLInputElement;
-                        if (input && input.value.trim()) {
-                          sendMessage(input.value);
-                          input.value = '';
-                        }
-                      }}
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* "Other (manual input)" section has been hidden */}
             </div>
           )}
         </div>
