@@ -479,19 +479,14 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         ]
       },
       'audio': {
-        'hasAudio': [
-          'yes audio', 'has audio', 'with audio', 'contains audio', 'includes audio', 'recordings',
-          'yes', 'yeah', 'yep', 'yup', 'correct', 'affirmative', 'indeed', 'absolutely', 'sure',
-          'it does', 'it has', 'there are', 'there is', 'audio content', 'voice recordings',
-          'sound files', 'spoken content', 'speech', 'voice', 'audio clips', 'it includes audio',
-          'has recordings', 'with recordings', 'audio components', 'sound elements'
-        ],
-        'noAudio': [
-          'no audio', 'without audio', 'doesn\'t have audio', 'no recordings', 'silent', 'just text',
-          'no', 'nope', 'nah', 'negative', 'not at all', 'doesn\'t', 'does not', 'no sound',
-          'text-based', 'text based', 'only text', 'purely text', 'no sound', 'no recordings',
-          'no voice', 'no speech', 'not spoken', 'no audio clips', 'no audio content', 'nothing to hear',
-          'nothing to listen to', 'no audio files', 'text only', 'just written content'
+        // The audio step is now about exploring financial insights rather than audio content
+        'exploreFinancial': [
+          'yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'sounds good', 'proceed', 'continue',
+          'let\'s explore', 'explore insights', 'explore financial', 'financial insights',
+          'test search', 'analyze document', 'analyze structure', 'look at content',
+          'explore content', 'check it out', 'test functionality', 'i\'ll explore',
+          'proceed with analysis', 'continue to analysis', 'explore options', 'that sounds good',
+          'ready to explore', 'let\'s continue', 'ready to proceed', 'go ahead', 'move forward'
         ]
       },
       'visual': {
@@ -997,15 +992,21 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         }
       }
       
-      // Check for audio preferences
+      // Check for financial exploration confirmation (replaces audio check)
       if (actionType === 'set_has_audio') {
-        if (actionData.hasAudio && actionPatterns.audio.hasAudio.some(pattern => text.includes(pattern))) {
-          console.log(`Audio match found: "${text}" matched with "Has audio"`);
-          return action;
-        } else if (!actionData.hasAudio && actionPatterns.audio.noAudio.some(pattern => text.includes(pattern))) {
-          console.log(`No audio match found: "${text}" matched with "No audio"`);
+        // Since we no longer have audio content check, but just a confirmation to explore
+        const matchedExplorePattern = actionPatterns.audio.exploreFinancial.find(pattern => 
+          text.toLowerCase().includes(pattern.toLowerCase())
+        );
+        
+        if (matchedExplorePattern) {
+          console.log(`Financial exploration match found: "${text}" matched with pattern "${matchedExplorePattern}"`);
           return action;
         }
+        
+        // Default response for almost any input here since it's just a confirmation step
+        console.log(`Defaulting to exploration confirmation for input: "${text}"`);
+        return action;
       }
       
       // Check for visual analysis preferences

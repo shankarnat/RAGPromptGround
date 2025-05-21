@@ -271,18 +271,17 @@ export class ConversationManager {
     }),
     
     audio_check: () => ({
-      message: 'Are there any audio files or recordings that need transcription?',
+      message: 'Great! Once processing is complete, you can explore the financial content, test search functionality, and analyze the source document structure. Would you like to proceed with these analysis options?',
       actions: [
-        { label: 'Yes, audio transcription needed', action: 'set_has_audio', data: { hasAudio: true, nextStep: 'visual_analysis_check' } },
-        { label: 'No audio content', action: 'set_has_audio', data: { hasAudio: false, nextStep: 'visual_analysis_check' } }
+        { label: 'Yes, I\'ll explore the financial insights', action: 'set_has_audio', data: { hasAudio: false, nextStep: 'visual_analysis_check' } }
       ]
     }),
     
     visual_analysis_check: () => ({
-      message: 'Would you like AI to analyze and describe visual content (charts, diagrams, etc.)?',
+      message: 'Would you like AI to interpret financial charts, analyze trend graphs, and extract insights from visual elements in your document?',
       actions: [
-        { label: 'Yes, analyze visuals', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
-        { label: 'No visual analysis needed', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
+        { label: 'Yes, analyze financial visualizations', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
+        { label: 'No, focus on textual financial data', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
       ]
     }),
     
