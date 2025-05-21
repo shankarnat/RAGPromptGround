@@ -263,10 +263,10 @@ export class ConversationManager {
     },
     
     multimodal_check: () => ({
-      message: 'Does your document contain images that need to be indexed or analyzed?',
+      message: 'I\'ve detected that your financial document contains images with facts and figures. Would you like me to analyze these visual elements to extract additional financial insights?',
       actions: [
-        { label: 'Yes, it has images', action: 'set_has_images', data: { hasImages: true, nextStep: 'audio_check' } },
-        { label: 'No images', action: 'set_has_images', data: { hasImages: false, nextStep: 'audio_check' } }
+        { label: 'Yes, analyze images with financial data', action: 'set_has_images', data: { hasImages: true, nextStep: 'audio_check' } },
+        { label: 'No, process text content only', action: 'set_has_images', data: { hasImages: false, nextStep: 'audio_check' } }
       ]
     }),
     

@@ -447,18 +447,35 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       },
       'multimodal': {
         'hasImages': [
+          // Original image patterns
           'yes images', 'has images', 'with images', 'contains images', 'includes images', 'pictures',
           'yes', 'yeah', 'yep', 'yup', 'correct', 'affirmative', 'indeed', 'absolutely', 'sure',
           'it does', 'it has', 'there are', 'there is', 'contains pictures', 'has pictures',
           'has photos', 'contains photos', 'has diagrams', 'contains diagrams', 'has charts',
-          'contains charts', 'visual content', 'visual elements', 'graphical content', 'it includes images'
+          'contains charts', 'visual content', 'visual elements', 'graphical content', 'it includes images',
+          
+          // Financial image patterns
+          'analyze financial images', 'financial figures', 'charts and figures', 'analyze images',
+          'extract from images', 'process financial charts', 'include financial visuals', 
+          'analyze facts in images', 'extract data from figures', 'include image analysis',
+          'yes analyze', 'process charts', 'analyze figures', 'financial charts', 'financial diagrams',
+          'analyze visual elements', 'extract financial insights from images', 'include visuals',
+          'facts and figures', 'financial visualizations', 'analyze with images'
         ],
         'noImages': [
+          // Original no-image patterns
           'no images', 'without images', 'doesn\'t have images', 'no pictures', 'text only', 'just text',
           'no', 'nope', 'nah', 'negative', 'not at all', 'doesn\'t', 'does not', 'no pictures',
           'text-based', 'text based', 'only text', 'purely text', 'no visual', 'no visuals',
           'no photos', 'no diagrams', 'no charts', 'no graphical', 'no visual content', 'just words',
-          'only words', 'nothing visual', 'no image content'
+          'only words', 'nothing visual', 'no image content',
+          
+          // Financial text-only patterns
+          'text content only', 'skip financial images', 'ignore visual elements', 'skip images',
+          'text-based analysis only', 'no need for image analysis', 'process text only',
+          'analyze text only', 'skip charts', 'skip figures', 'ignore charts', 'text data only',
+          'no charts needed', 'no figures needed', 'skip visual elements', 'text analysis only',
+          'focus on text', 'only process text', 'only analyze text', 'text extraction only'
         ]
       },
       'audio': {
@@ -957,13 +974,25 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         }
       }
       
-      // Check for multimodal preferences
+      // Check for multimodal preferences - Enhanced for financial images
       if (actionType === 'set_has_images') {
-        if (actionData.hasImages && actionPatterns.multimodal.hasImages.some(pattern => text.includes(pattern))) {
-          console.log(`Image match found: "${text}" matched with "Has images"`);
+        // Enhanced pattern matching with better logging
+        const matchedImagePattern = actionPatterns.multimodal.hasImages.find(pattern => 
+          text.toLowerCase().includes(pattern.toLowerCase())
+        );
+        
+        const matchedNoImagePattern = actionPatterns.multimodal.noImages.find(pattern => 
+          text.toLowerCase().includes(pattern.toLowerCase())
+        );
+        
+        // Log additional info for debugging
+        console.log(`Checking image preferences for: "${text}"`);
+        
+        if (actionData.hasImages && matchedImagePattern) {
+          console.log(`Financial image match found: "${text}" matched with "Analyze financial images" via pattern "${matchedImagePattern}"`);
           return action;
-        } else if (!actionData.hasImages && actionPatterns.multimodal.noImages.some(pattern => text.includes(pattern))) {
-          console.log(`No image match found: "${text}" matched with "No images"`);
+        } else if (!actionData.hasImages && matchedNoImagePattern) {
+          console.log(`Text-only match found: "${text}" matched with "Process text content only" via pattern "${matchedNoImagePattern}"`);
           return action;
         }
       }
