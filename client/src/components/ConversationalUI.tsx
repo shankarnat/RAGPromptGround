@@ -239,15 +239,25 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
     const actionPatterns = {
       'processing': {
         'rag': [
+          // Original search terms
           'rag search', 'document search', 'search functionality', 'question answering', 
           'semantic search', 'information retrieval', 'search capability', 'find information', 
           'search document', 'query document', 'rag', 'search', 'retrieval', 'looking up',
           'vector search', 'text search', 'find answers', 'quick search', 'document qa',
           'question answer', 'return answers', 'document lookup', 'answer questions',
           'query answering', 'qa system', 'document querying', 'content search',
-          'content lookup', 'content querying', 'content questions', 'search content'
+          'content lookup', 'content querying', 'content questions', 'search content',
+          
+          // Financial search terms
+          'financial search', 'financial retrieval', 'financial data search', 'enable financial search',
+          'find financial information', 'financial intelligence search', 'search financial data',
+          'find financial answers', 'query financial data', 'financial document search',
+          'financial information retrieval', 'financial search capability', 'search financial content',
+          'financial question answering', 'financial insights search', 'financial document lookup',
+          'search financial metrics', 'search financial statements', 'search financial reports'
         ],
         'idp': [
+          // Original extraction terms
           'document processing', 'idp', 'intelligent document', 'data extraction',
           'extract data', 'form extraction', 'structured data', 'document extraction',
           'document analysis', 'document intelligence', 'document understanding',
@@ -255,9 +265,19 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           'automated extraction', 'metadata extraction', 'information extraction',
           'document parsing', 'document ai', 'structured extraction', 'form recognition',
           'table recognition', 'document recognition', 'data recognition', 'extract fields',
-          'extract tables', 'extract documents', 'extract content', 'document insights'
+          'extract tables', 'extract documents', 'extract content', 'document insights',
+          
+          // Financial extraction terms
+          'financial data extraction', 'extract financial data', 'financial extraction',
+          'financial tables extraction', 'financial metrics extraction', 'extract financial tables',
+          'extract financial metrics', 'financial document extraction', 'financial data capture',
+          'financial form extraction', 'financial table recognition', 'financial structured data',
+          'extract financial statements', 'extract financial reports', 'financial field extraction',
+          'financial information extraction', 'extract financial content', 'financial document processing',
+          'enable financial data extraction', 'enable financial extraction', 'financial data processing'
         ],
         'kg': [
+          // Original graph terms
           'knowledge graph', 'kg', 'graph analysis', 'entity extraction', 
           'relationship mapping', 'entity relationship', 'graph building',
           'semantic network', 'entity recognition', 'relation extraction',
@@ -265,16 +285,33 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           'graph database', 'knowledge network', 'entity graph', 'knowledge extraction',
           'relationship extraction', 'entity detection', 'graph relationships',
           'entity connections', 'relationship detection', 'concept connections',
-          'concept network', 'semantic mapping', 'topic mapping', 'entity map'
+          'concept network', 'semantic mapping', 'topic mapping', 'entity map',
+          
+          // Financial relationship terms
+          'financial relationship mapping', 'financial entity relationships', 'map financial relationships',
+          'financial entity mapping', 'financial connections', 'financial network analysis',
+          'map financial entities', 'financial relationship detection', 'financial knowledge graph',
+          'financial entity extraction', 'financial entity recognition', 'financial relationship extraction',
+          'map financial connections', 'financial entity network', 'enable financial relationship mapping',
+          'financial entity graph', 'enable financial mapping', 'financial network'
         ],
         'all': [
+          // Original comprehensive terms
           'all processing', 'all methods', 'everything', 'all of the above', 'comprehensive',
           'full processing', 'combined methods', 'all approaches', 'maximum processing',
           'complete analysis', 'all features', 'full suite', 'everything available',
           'every method', 'all options', 'full analysis', 'use everything', 'all tools',
           'all of them', 'do everything', 'use all', 'enable all', 'all capabilities',
           'full spectrum', 'maximum performance', 'all features', 'complete solution',
-          'total processing', 'all processing types', 'use all methods', 'complete package'
+          'total processing', 'all processing types', 'use all methods', 'complete package',
+          
+          // Comprehensive financial terms
+          'comprehensive financial analysis', 'complete financial intelligence', 'all financial analysis',
+          'full financial processing', 'enable comprehensive financial', 'financial intelligence suite',
+          'complete financial processing', 'all financial insights', 'full financial capabilities',
+          'total financial analysis', 'financial 360', 'enable comprehensive financial analysis',
+          'all financial processing methods', 'all financial approaches', 'maximum financial processing',
+          'complete financial solution', 'total financial intelligence', 'financial full spectrum'
         ]
       },
       'role': {
@@ -820,28 +857,28 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
             return action;
           }
           
-          // Added special case for matching by processing method label
-          if (actionLabel.toLowerCase().includes('rag') && 
-              (text.includes('rag') || text.includes('search'))) {
-            console.log(`Label match found: "${text}" matched with label containing "RAG"`);
+          // Added special case for matching by processing method label - updated for financial terms
+          if ((actionLabel.toLowerCase().includes('rag') || actionLabel.toLowerCase().includes('financial search') || actionLabel.toLowerCase().includes('financial retrieval')) && 
+              (text.includes('rag') || text.includes('search') || text.includes('financial') || text.includes('retrieval'))) {
+            console.log(`Label match found: "${text}" matched with Financial Search label: "${actionLabel}"`);
             return action;
           }
           
-          if (actionLabel.toLowerCase().includes('knowledge graph') && 
-              (text.includes('kg') || text.includes('knowledge') || text.includes('graph'))) {
-            console.log(`Label match found: "${text}" matched with label containing "Knowledge Graph"`);
+          if ((actionLabel.toLowerCase().includes('knowledge graph') || actionLabel.toLowerCase().includes('financial relationship') || actionLabel.toLowerCase().includes('financial entity')) && 
+              (text.includes('kg') || text.includes('knowledge') || text.includes('graph') || text.includes('relationship') || text.includes('financial') || text.includes('mapping'))) {
+            console.log(`Label match found: "${text}" matched with Financial Relationship label: "${actionLabel}"`);
             return action;
           }
           
-          if (actionLabel.toLowerCase().includes('document processing') && 
-              (text.includes('idp') || text.includes('document') || text.includes('processing'))) {
-            console.log(`Label match found: "${text}" matched with label containing "Document Processing"`);
+          if ((actionLabel.toLowerCase().includes('document processing') || actionLabel.toLowerCase().includes('financial data extraction') || actionLabel.toLowerCase().includes('financial extraction')) && 
+              (text.includes('idp') || text.includes('document') || text.includes('processing') || text.includes('extraction') || text.includes('financial data') || text.includes('financial'))) {
+            console.log(`Label match found: "${text}" matched with Financial Extraction label: "${actionLabel}"`);
             return action;
           }
           
-          if (actionLabel.toLowerCase().includes('all') && 
-              (text.includes('all') || text.includes('everything') || text.includes('all of them'))) {
-            console.log(`Label match found: "${text}" matched with label containing "All"`);
+          if ((actionLabel.toLowerCase().includes('all') || actionLabel.toLowerCase().includes('comprehensive financial') || actionLabel.toLowerCase().includes('financial intelligence')) && 
+              (text.includes('all') || text.includes('everything') || text.includes('all of them') || text.includes('comprehensive') || text.includes('complete') || text.includes('financial'))) {
+            console.log(`Label match found: "${text}" matched with Comprehensive Financial label: "${actionLabel}"`);
             return action;
           }
           

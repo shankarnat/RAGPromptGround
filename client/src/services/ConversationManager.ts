@@ -225,12 +225,12 @@ export class ConversationManager {
     // experience: () => ({ ... }),
     
     goals: () => ({
-      message: 'How do you want end users to interact with this content? There are multiple ways to do this. Some of the usual approaches are suggested below, please continue to provide your input.',
+      message: 'What financial insights do you need to extract from this document? Your selection will optimize how we process the financial data.',
       actions: [
-        { label: 'Search and find answers quickly', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
-        { label: 'Extract and export data tables/forms', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
-        { label: 'Map connections between entities', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
-        { label: 'Full analysis with all capabilities', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
+        { label: 'Financial Data Search & Analysis', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
+        { label: 'Extract Financial Tables & Metrics', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
+        { label: 'Map Financial Entity Relationships', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
+        { label: 'Comprehensive Financial Intelligence', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
       ]
     }),
     
@@ -240,10 +240,19 @@ export class ConversationManager {
     
     processing_selection: (state: ConversationState) => {
       const recommendations = this.getProcessingRecommendations(state);
+      
+      // Map the technical recommendation labels to more user-friendly financial terms
+      const userFriendlyLabels = {
+        'RAG Search': 'Enable Financial Search & Retrieval',
+        'Document Processing': 'Enable Financial Data Extraction',
+        'Knowledge Graph': 'Enable Financial Relationship Mapping',
+        'All Processing Methods': 'Enable Comprehensive Financial Analysis'
+      };
+      
       return {
-        message: 'Thank you for all your inputs. Based on your needs, I recommend the following processing methods. Does it look okay? Please let me know if I can go ahead. If okay, the search index will be created and users will be able to test it in the playground area.',
+        message: 'Based on your financial analysis requirements, I recommend these specialized processing methods. When you approve, I\'ll create a financial intelligence index that allows you to search, analyze, and extract insights from this document. Does this configuration look appropriate for your needs?',
         actions: recommendations.map(rec => ({
-          label: rec.label,
+          label: userFriendlyLabels[rec.label] || rec.label, // Use the user-friendly label if available
           action: 'select_processing',
           data: { 
             ...rec.data, 
