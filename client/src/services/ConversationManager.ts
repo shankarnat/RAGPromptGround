@@ -290,7 +290,7 @@ export class ConversationManager {
       actions: [
         /* Special case to enable KG checkbox first then proceed */
         { label: 'Yes, all entities', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: 'all', extractType: 'full' } },
-        { label: 'Yes, specific entities', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'specific', nextStep: 'kg_entity_selection' } },
+        { label: 'Document Summarization', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'specific', nextStep: 'kg_entity_selection' } },
         { label: 'No graph needed', action: 'process_directly', data: { idpEnabled: true, kgEnabled: false, extractType: 'full' } }
       ]
     }),
@@ -306,12 +306,12 @@ export class ConversationManager {
     }),
     
     idp_check: () => ({
-      message: 'What type of document data extraction do you need?',
+      message: 'Which type of financial data extraction do you need from this document?',
       actions: [
-        { label: 'Structured data', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'kg_check' } },
-        { label: 'Metadata', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'kg_check' } },
-        { label: 'Full processing', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'kg_check' } },
-        { label: 'No processing', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'kg_check' } }
+        { label: 'Financial Tables & Metrics', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'kg_check' } },
+        { label: 'Document Summarization', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'kg_check' } },
+        { label: 'Comprehensive Financial Extraction', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'kg_check' } },
+        { label: 'Skip Financial Data Extraction', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'kg_check' } }
       ]
     }),
     

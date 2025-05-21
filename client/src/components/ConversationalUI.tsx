@@ -533,32 +533,66 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       },
       'idp': {
         'structured': [
+          // Original patterns
           'structured data', 'structured', 'tables and forms', 'tables', 'forms',
           'table extraction', 'form extraction', 'structured fields', 'structured content',
           'form fields', 'tabular data', 'form data', 'table data', 'tables and charts',
           'structured format', 'data tables', 'extract tables', 'extract forms', 'form recognition',
-          'table recognition', 'tabular content', 'structured information', 'extract structured fields'
+          'table recognition', 'tabular content', 'structured information', 'extract structured fields',
+          
+          // Financial patterns
+          'financial tables', 'financial metrics', 'financial statements', 'balance sheets',
+          'income statements', 'cash flow statements', 'financial data tables',
+          'structured financial data', 'extract financial tables', 'extract financial metrics',
+          'financial figures', 'financial ratios', 'quarterly data', 'annual data',
+          'financial performance metrics', 'key financial indicators', 'financial calculations',
+          'extract financial statements', 'financial reporting data', 'earnings data'
         ],
         'metadata': [
+          // Original patterns
           'metadata', 'meta', 'document properties', 'properties', 'attributes',
           'document attributes', 'meta information', 'metadata only', 'document metadata',
           'meta extraction', 'properties extraction', 'attribute extraction', 'document info',
           'file properties', 'document details', 'basic metadata', 'essential properties',
-          'header information', 'document characteristics', 'document attributes'
+          'header information', 'document characteristics', 'document attributes',
+          
+          // Financial patterns
+          'document summary', 'financial metadata', 'document profile', 'financial summary',
+          'financial document properties', 'financial attributes', 'document classification',
+          'financial document metadata', 'report metadata', 'financial report attributes',
+          'document headers', 'financial report details', 'report properties', 
+          'financial document info', 'document overview', 'financial document summary'
         ],
         'full': [
+          // Original patterns
           'full processing', 'full', 'complete processing', 'everything', 'all processing',
           'comprehensive', 'complete', 'thorough', 'maximum processing', 'full extraction',
           'all features', 'all capabilities', 'complete package', 'comprehensive extraction',
           'extract everything', 'maximum extraction', 'full document processing', 'complete idp',
-          'all document features', 'thorough processing', 'process everything', 'extract all'
+          'all document features', 'thorough processing', 'process everything', 'extract all',
+          
+          // Financial patterns
+          'comprehensive financial', 'all financial data', 'complete financial extraction',
+          'extract all financial data', 'full financial analysis', 'maximum financial extraction',
+          'comprehensive financial intelligence', 'complete financial data extraction',
+          'extract all financial information', 'deep financial extraction', 'thorough financial analysis',
+          'full financial data processing', 'complete financial metrics', 'end-to-end financial extraction',
+          'comprehensive financial data', 'all financial metrics and data'
         ],
         'none': [
+          // Original patterns
           'no processing', 'none', 'skip processing', 'no idp', 'no extraction',
           'no', 'nope', 'nah', 'negative', 'not at all', 'not needed', 'unnecessary',
           'not required', 'skip it', 'don\'t need that', 'not important', 'pass', 'no thanks',
           'skip that part', 'unnecessary processing', 'not worth it', 'skip extraction',
-          'don\'t process', 'skip document processing', 'no document extraction'
+          'don\'t process', 'skip document processing', 'no document extraction',
+          
+          // Financial patterns
+          'skip financial extraction', 'no financial data', 'skip financial data',
+          'no financial extraction', 'exclude financial extraction', 'skip financial metrics',
+          'no financial tables', 'don\'t extract financial data', 'bypass financial extraction',
+          'ignore financial data', 'exclude financial metrics', 'no financial processing',
+          'skip financial tables', 'don\'t need financial extraction', 'skip financial information'
         ]
       },
       'intro': {
@@ -1042,9 +1076,46 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       // Check for IDP (Intelligent Document Processing) preferences
       if (actionType === 'set_idp_preferences' && actionData.extractType) {
         const extractType = actionData.extractType;
-        if (actionPatterns.idp[extractType] && 
-            actionPatterns.idp[extractType].some(pattern => text.includes(pattern))) {
-          console.log(`IDP match found: "${text}" matched with "${extractType} processing"`);
+        
+        // Enhanced logging
+        console.log(`Checking IDP preferences for extractType "${extractType}" with text: "${text}"`);
+        
+        // Find exact pattern match using case-insensitive comparison
+        const matchedPattern = actionPatterns.idp[extractType]?.find(pattern => 
+          text.toLowerCase().includes(pattern.toLowerCase())
+        );
+        
+        if (matchedPattern) {
+          console.log(`IDP match found: "${text}" matched with "${extractType} processing" via pattern "${matchedPattern}"`);
+          return action;
+        }
+        
+        // Special case handling for financial-specific terms
+        if (extractType === 'structured' && 
+            (text.includes('tables') || text.includes('metrics') || text.includes('figures') || text.includes('financial data')) &&
+            text.includes('financial')) {
+          console.log(`Financial structured data match found: "${text}" contains tables/metrics/figures and financial terms`);
+          return action;
+        }
+        
+        if (extractType === 'metadata' && 
+            (text.includes('summary') || text.includes('overview') || text.includes('document info')) &&
+            text.includes('financial')) {
+          console.log(`Financial metadata match found: "${text}" contains summary/overview and financial terms`);
+          return action;
+        }
+        
+        if (extractType === 'full' && 
+            (text.includes('all') || text.includes('comprehensive') || text.includes('complete') || text.includes('everything')) &&
+            text.includes('financial')) {
+          console.log(`Financial full processing match found: "${text}" contains comprehensive terms and financial reference`);
+          return action;
+        }
+        
+        if (extractType === 'none' && 
+            (text.includes('skip') || text.includes('no') || text.includes('don\'t') || text.includes('exclude')) &&
+            text.includes('financial')) {
+          console.log(`Skip financial extraction match found: "${text}" contains skip/no terms and financial reference`);
           return action;
         }
       }
@@ -1186,20 +1257,22 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       <div
         key={message.id}
         className={cn(
-          "flex gap-3 mb-4",
+          "flex gap-3 mb-4 w-full",
           isUser ? "justify-end" : "justify-start"
         )}
       >
         {!isUser && (
-          <Avatar className="h-9 w-9 ring-2 ring-gray-300">
-            <AvatarFallback className="bg-gradient-to-br from-gray-200 to-gray-300">
-              <Brain className="h-5 w-5 text-gray-600" />
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex-shrink-0">
+            <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+              <AvatarFallback className="bg-gradient-to-br from-gray-200 to-gray-300">
+                <Brain className="h-5 w-5 text-gray-600" />
+              </AvatarFallback>
+            </Avatar>
+          </div>
         )}
         
         <div className={cn(
-          "max-w-[80%] rounded-xl shadow-sm overflow-hidden",
+          "max-w-[75%] rounded-xl shadow-sm overflow-hidden",
           isUser 
             ? "bg-gradient-to-r from-gray-600 to-gray-700 text-white p-4" 
             : "bg-gray-50 border border-gray-300 p-4"
@@ -1212,32 +1285,36 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           
           {/* Render action buttons if available */}
           {message.actions && message.actions.length > 0 && (
-            <div className="mt-4 space-y-2 max-w-full">
-              {message.actions.map(action => (
-                <Button
-                  key={action.id}
-                  variant={isUser ? "secondary" : "outline"}
-                  size="sm"
-                  className="w-full justify-start gap-2 transition-all hover:scale-[1.02] overflow-hidden"
-                  onClick={() => handleActionWithConfig(action.action, action.data)}
-                  title={action.label} // Add title for tooltip on hover
-                >
-                  {getActionIcon(action.action)}
-                  <span className="truncate">{action.label}</span>
-                </Button>
-              ))}
-              
+            <div className="mt-4 w-full">
+              {/* Added max-h-60 and overflow-y-auto for scrollable container */}
+              <div className="max-h-60 overflow-y-auto pr-1">
+                {message.actions.map(action => (
+                  <Button
+                    key={action.id}
+                    variant={isUser ? "secondary" : "outline"}
+                    size="sm"
+                    className="w-full justify-start gap-2 transition-all hover:scale-[1.02] overflow-hidden mb-2"
+                    onClick={() => handleActionWithConfig(action.action, action.data)}
+                    title={action.label} // Add title for tooltip on hover
+                  >
+                    {getActionIcon(action.action)}
+                    <span className="truncate">{action.label}</span>
+                  </Button>
+                ))}
+              </div>
               {/* "Other (manual input)" section has been hidden */}
             </div>
           )}
         </div>
         
         {isUser && (
-          <Avatar className="h-9 w-9 ring-2 ring-gray-300">
-            <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400">
-              <User className="h-5 w-5 text-gray-600" />
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex-shrink-0">
+            <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+              <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400">
+                <User className="h-5 w-5 text-gray-600" />
+              </AvatarFallback>
+            </Avatar>
+          </div>
         )}
       </div>
     );
@@ -1325,17 +1402,19 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       
       <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
         <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-gray-100 to-gray-200">
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col w-full">
             {state.messages.map(renderMessage)}
             
             {isTyping && (
-              <div className="flex gap-3 justify-start">
-                <Avatar className="h-9 w-9 ring-2 ring-gray-300">
-                  <AvatarFallback className="bg-gradient-to-br from-gray-200 to-gray-300">
-                    <Brain className="h-5 w-5 text-gray-600" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <div className="flex gap-3 justify-start w-full">
+                <div className="flex-shrink-0">
+                  <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+                    <AvatarFallback className="bg-gradient-to-br from-gray-200 to-gray-300">
+                      <Brain className="h-5 w-5 text-gray-600" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="max-w-[75%] bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
                     <span className="text-sm text-gray-600">Processing your request...</span>
