@@ -1317,7 +1317,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Tell me what you'd like to do with this document..."
+              placeholder="Type your Prompt..."
               className="flex-1 bg-gray-100 border-gray-300"
               disabled={isTyping}
             />

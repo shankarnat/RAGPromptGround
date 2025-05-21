@@ -1769,7 +1769,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <BrainCircuit className="h-6 w-6 text-purple-500" />
-          <h2 className="text-2xl font-semibold">Content Understanding Results</h2>
+          <h2 className="text-2xl font-semibold">Content Understanding</h2>
         </div>
         {onClearResults && (
           <Button 
