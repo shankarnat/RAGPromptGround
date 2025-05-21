@@ -742,7 +742,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <CardHeader>
             <div className="flex items-center space-x-2">
               <BrainCircuit className="h-5 w-5 text-purple-500" />
-              <CardTitle>Agentic Query/Prompt</CardTitle>
+              <CardTitle>Evaluate and Test</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -1198,7 +1198,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Bot className="h-5 w-5 text-blue-500" />
-                    <CardTitle>Agentic Results</CardTitle>
+                    <CardTitle>Evaluation Results</CardTitle>
                   </div>
                   <Badge variant="secondary">Powered by LLM</Badge>
                 </div>
@@ -1778,7 +1778,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </TabsTrigger>
           <TabsTrigger value="agentic" className="flex items-center gap-2 bg-indigo-100">
             <BrainCircuit className="h-4 w-4" />
-            Agentic Results
+            Evaluate and Test
           </TabsTrigger>
           <TabsTrigger value="rag" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
