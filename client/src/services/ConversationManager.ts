@@ -200,7 +200,7 @@ export class ConversationManager {
     }),
     
     user_profile: () => ({
-      message: "What's your role? This helps us tailor how the content will be presented to end users.",
+      message: "What is the end user role you are tailoring this content for? Here are a few suggested roles. Please type your prompt below.",
       actions: [
         { label: 'Sales Representative', action: 'set_role', data: { role: 'sales_rep', nextStep: 'department' } },
         { label: 'Sales Manager', action: 'set_role', data: { role: 'sales_manager', nextStep: 'department' } },
