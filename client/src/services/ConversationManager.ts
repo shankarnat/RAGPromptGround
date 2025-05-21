@@ -193,7 +193,7 @@ export class ConversationManager {
 
   private conversationSteps = {
     intro: (docType: string) => ({
-      message: `I've identified this as a ${docType} document. Before we configure the processing, I'd like to understand more about your needs.`,
+      message: `I've identified this as a ${docType} document. Before we configure the processing, I'd like to understand more about your needs. Please type your input in the Prompt input box below and I will guide you through the setup experience.`,
       actions: [
         { label: 'Let\'s get started', action: 'next_step', data: { nextStep: 'user_profile' } }
       ]
@@ -211,7 +211,7 @@ export class ConversationManager {
     }),
     
     department: () => ({
-      message: 'Who will be consuming this content? Select the primary department or team:',
+      message: 'Call out which department will be using this content. This can be useful in understanding domain-specific results for me to tailor. Here are a few suggested departments, please provide your input below:',
       actions: [
         { label: 'Sales/Business Development', action: 'set_department', data: { department: 'sales', nextStep: 'goals' } },
         { label: 'Customer Service/Support', action: 'set_department', data: { department: 'service', nextStep: 'goals' } },
@@ -224,7 +224,7 @@ export class ConversationManager {
     // experience: () => ({ ... }),
     
     goals: () => ({
-      message: 'How do you want end users to interact with this content?',
+      message: 'How do you want end users to interact with this content? There are multiple ways to do this. Some of the usual approaches are suggested below, please continue to provide your input.',
       actions: [
         { label: 'Search and find answers quickly', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
         { label: 'Extract and export data tables/forms', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
@@ -240,7 +240,7 @@ export class ConversationManager {
     processing_selection: (state: ConversationState) => {
       const recommendations = this.getProcessingRecommendations(state);
       return {
-        message: 'Based on your needs, I recommend the following processing methods:',
+        message: 'Thank you for all your inputs. Based on your needs, I recommend the following processing methods. Does it look okay? Please let me know if I can go ahead. If okay, the search index will be created and users will be able to test it in the playground area.',
         actions: recommendations.map(rec => ({
           label: rec.label,
           action: 'select_processing',
