@@ -807,14 +807,25 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       
       // Check for processing method selection patterns
       if (actionType === 'select_processing' && actionData.processingTypes) {
-        // First check if this is the processing recommendation question
+        // First check if this is the processing recommendation question - updated for financial terms
         const processingRecommendationPhrases = [
+          // Original phrases
           "recommend the following", 
           "following processing methods",
           "based on your needs",
           "recommend these processing",
           "suggested processing",
-          "recommended methods"
+          "recommended methods",
+          
+          // New financial phrases
+          "financial analysis requirements",
+          "specialized processing methods", 
+          "financial intelligence index",
+          "configuration look appropriate",
+          "when you approve",
+          "allows you to search",
+          "extract insights",
+          "based on your financial"
         ];
         
         const isProcessingQuestion = processingRecommendationPhrases.some(phrase => {
@@ -823,37 +834,65 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           if (latestAssistantMessages.length === 0) return false;
           
           const latestMessage = latestAssistantMessages[latestAssistantMessages.length - 1];
-          return latestMessage.content.toLowerCase().includes(phrase);
+          const found = latestMessage.content.toLowerCase().includes(phrase);
+          
+          if (found) {
+            console.log(`Processing question detected via phrase: "${phrase}" in message: "${latestMessage.content.substring(0, 50)}..."`);
+          }
+          
+          return found;
         });
         
+        // Enhanced logging
+        if (!isProcessingQuestion) {
+          console.log("Did not detect processing question in latest message. This might prevent matching financial terms.");
+          console.log("Latest message:", state.messages[state.messages.length - 1]?.content?.substring(0, 100) + "...");
+        }
+        
         if (isProcessingQuestion) {
-          // Check for RAG search
-          if (actionData.processingTypes.includes('rag') && 
-              actionPatterns.processing.rag.some(pattern => text.includes(pattern))) {
-            console.log(`Processing match found: "${text}" matched with "RAG Search"`);
+          // Enhanced logging
+          console.log("Processing action matching for text:", text);
+          
+          // Check for RAG search - with improved pattern matching and logging
+          const matchedRagPattern = actionPatterns.processing.rag.find(pattern => 
+            text.toLowerCase().includes(pattern.toLowerCase())
+          );
+          
+          if (actionData.processingTypes.includes('rag') && matchedRagPattern) {
+            console.log(`Processing match found: "${text}" matched with "Financial Search & Retrieval" via pattern "${matchedRagPattern}"`);
             return action;
           }
           
-          // Check for Knowledge Graph
-          if (actionData.processingTypes.includes('kg') && 
-              actionPatterns.processing.kg.some(pattern => text.includes(pattern))) {
-            console.log(`Processing match found: "${text}" matched with "Knowledge Graph"`);
+          // Check for Knowledge Graph - with improved pattern matching and logging
+          const matchedKgPattern = actionPatterns.processing.kg.find(pattern => 
+            text.toLowerCase().includes(pattern.toLowerCase())
+          );
+          
+          if (actionData.processingTypes.includes('kg') && matchedKgPattern) {
+            console.log(`Processing match found: "${text}" matched with "Financial Relationship Mapping" via pattern "${matchedKgPattern}"`);
             return action;
           }
           
-          // Check for Document Processing
-          if (actionData.processingTypes.includes('idp') && 
-              actionPatterns.processing.idp.some(pattern => text.includes(pattern))) {
-            console.log(`Processing match found: "${text}" matched with "Document Processing"`);
+          // Check for Document Processing - with improved pattern matching and logging
+          const matchedIdpPattern = actionPatterns.processing.idp.find(pattern => 
+            text.toLowerCase().includes(pattern.toLowerCase())
+          );
+          
+          if (actionData.processingTypes.includes('idp') && matchedIdpPattern) {
+            console.log(`Processing match found: "${text}" matched with "Financial Data Extraction" via pattern "${matchedIdpPattern}"`);
             return action;
           }
           
-          // Check for All Processing Methods
+          // Check for All Processing Methods - with improved pattern matching and logging
+          const matchedAllPattern = actionPatterns.processing.all.find(pattern => 
+            text.toLowerCase().includes(pattern.toLowerCase())
+          );
+          
           if (actionData.processingTypes.includes('rag') && 
               actionData.processingTypes.includes('kg') && 
               actionData.processingTypes.includes('idp') && 
-              actionPatterns.processing.all.some(pattern => text.includes(pattern))) {
-            console.log(`Processing match found: "${text}" matched with "All Processing Methods"`);
+              matchedAllPattern) {
+            console.log(`Processing match found: "${text}" matched with "Comprehensive Financial Analysis" via pattern "${matchedAllPattern}"`);
             return action;
           }
           
