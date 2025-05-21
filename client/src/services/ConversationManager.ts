@@ -211,12 +211,13 @@ export class ConversationManager {
     }),
     
     department: () => ({
-      message: 'Call out which department will be using this content. This can be useful in understanding domain-specific results for me to tailor. Here are a few suggested departments, please provide your input below:',
+      message: 'Which financial function or department will be leveraging this analysis? Different financial teams have specialized needs for document processing and intelligence extraction.',
       actions: [
-        { label: 'Sales/Business Development', action: 'set_department', data: { department: 'sales', nextStep: 'goals' } },
-        { label: 'Customer Service/Support', action: 'set_department', data: { department: 'service', nextStep: 'goals' } },
-        { label: 'Marketing/Communications', action: 'set_department', data: { department: 'marketing', nextStep: 'goals' } },
-        { label: 'Operations/Analytics', action: 'set_department', data: { department: 'operations', nextStep: 'goals' } }
+        { label: 'Investment Management', action: 'set_department', data: { department: 'investment', nextStep: 'goals' } },
+        { label: 'Financial Planning & Analysis', action: 'set_department', data: { department: 'financial_planning', nextStep: 'goals' } },
+        { label: 'Treasury & Cash Management', action: 'set_department', data: { department: 'treasury', nextStep: 'goals' } },
+        { label: 'Risk & Compliance', action: 'set_department', data: { department: 'risk_compliance', nextStep: 'goals' } },
+        { label: 'Financial Reporting', action: 'set_department', data: { department: 'financial_reporting', nextStep: 'goals' } }
       ]
     }),
     
