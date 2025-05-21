@@ -172,7 +172,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           leftPanelHighlight.style.cssText = `
             position: fixed;
             top: 10%;
-            left: 5%;
+            left: 1%;
             width: 80px;
             height: 80px;
             background: rgba(59, 130, 246, 0.3);
