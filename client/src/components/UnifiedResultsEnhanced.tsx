@@ -248,38 +248,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
     return (
       <div className="space-y-4">
-        {/* Show multimodal processing info if available */}
-        {multimodalProcessing.length > 0 && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <Layers className="h-5 w-5 text-indigo-500" />
-                <CardTitle>Multimodal Processing Applied</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3">
-                {multimodalProcessing.map((process, idx) => {
-                  const Icon = process.icon;
-                  return (
-                    <div
-                      key={idx}
-                      className={cn(
-                        "flex items-center space-x-2 px-3 py-2 rounded-lg",
-                        process.bgColor
-                      )}
-                    >
-                      <Icon className={cn("h-5 w-5", process.color)} />
-                      <span className="font-medium text-sm text-gray-700">
-                        {process.name}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Multimodal Processing Applied card has been removed */}
         
         <Card className="mb-2 border-blue-200 bg-blue-50">
           <CardContent className="py-3">
@@ -458,7 +427,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Document Metadata
+              Document Info
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -475,31 +444,15 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </CardContent>
         </Card>
 
-        {/* Classification */}
-        {idpResults?.classification?.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Document Classification</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {idpResults?.classification?.map((cls, idx) => (
-                  <Badge key={idx} variant="secondary">
-                    {cls}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Classification section removed */}
 
         {/* Extracted Tables */}
-        {idpResults?.extractedData?.tables?.map((table) => (
+        {idpResults?.extractedData?.tables?.map((table, tableIndex) => (
           <Card key={table.id}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TableIcon className="h-5 w-5" />
-                {table.name}
+                Table {tableIndex + 1}: {table.name}
               </CardTitle>
               <CardDescription>
                 Confidence: {(table.confidence * 100).toFixed(1)}%
