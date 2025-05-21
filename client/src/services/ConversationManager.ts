@@ -273,7 +273,7 @@ export class ConversationManager {
     audio_check: () => ({
       message: 'Great! Have you tried our playground to evaluate and test financial content understanding, search functionality, and document structure analysis? It provides hands-on experience with your configured financial intelligence.',
       actions: [
-        { label: 'Yes, I\'ll explore the financial insights', action: 'set_has_audio', data: { hasAudio: false, nextStep: 'visual_analysis_check' } }
+        { label: 'Yes, I\'ll explore the financial insights', action: 'highlight_playground', data: { nextStep: 'visual_analysis_check' } }
       ]
     }),
     
@@ -286,12 +286,11 @@ export class ConversationManager {
     }),
     
     kg_check: () => ({
-      message: 'Would you like to extract entities and relationships to build a knowledge graph?',
+      message: 'You can explore additional configuration options in the left panel for index and document extraction settings. Would you like to check those options now?',
       actions: [
-        /* Special case to enable KG checkbox first then proceed */
-        { label: 'Yes, all entities', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: 'all', extractType: 'full' } },
-        { label: 'Document Summarization', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'specific', nextStep: 'kg_entity_selection' } },
-        { label: 'No graph needed', action: 'process_directly', data: { idpEnabled: true, kgEnabled: false, extractType: 'full' } }
+        { label: 'Yes, show me the configuration panel', action: 'highlight_process_button', data: {} },
+        { label: 'Sounds good, I\'ll check it out', action: 'highlight_process_button', data: {} },
+        { label: 'No thanks, continue with current settings', action: 'process_directly', data: { idpEnabled: true, kgEnabled: false, extractType: 'full' } }
       ]
     }),
     

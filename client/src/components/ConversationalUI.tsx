@@ -171,9 +171,8 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           const leftPanelHighlight = document.createElement('div');
           leftPanelHighlight.style.cssText = `
             position: fixed;
-            top: 50%;
-            left: 30%;
-            transform: translateY(-50%);
+            top: 10%;
+            left: 5%;
             width: 80px;
             height: 80px;
             background: rgba(59, 130, 246, 0.3);
@@ -187,9 +186,9 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           const style = document.createElement('style');
           style.textContent = `
             @keyframes pulse-left {
-              0% { transform: translateY(-50%) scale(0.8); opacity: 0.5; }
-              50% { transform: translateY(-50%) scale(1.2); opacity: 0.8; }
-              100% { transform: translateY(-50%) scale(0.8); opacity: 0.5; }
+              0% { transform: scale(0.8); opacity: 0.5; }
+              50% { transform: scale(1.2); opacity: 0.8; }
+              100% { transform: scale(0.8); opacity: 0.5; }
             }
           `;
           document.head.appendChild(style);
@@ -204,6 +203,52 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       }
       
       return; // Skip standard handling
+    }
+    
+    // Handle highlighting the playground
+    if (action === 'highlight_playground') {
+      console.log('Explicit request to highlight playground area');
+      
+      // We'll also handle next step progression for the audio_check message
+      handleAction('set_has_audio', { hasAudio: false, nextStep: data.nextStep });
+      
+      // Show a visual highlight for the playground
+      if (window && window.document) {
+        // Create a visual highlight effect for the playground area (30% from left, 20% from top)
+        const playgroundHighlight = document.createElement('div');
+        playgroundHighlight.style.cssText = `
+          position: fixed;
+          top: 20%;
+          left: 30%;
+          width: 80px;
+          height: 80px;
+          background: rgba(79, 70, 229, 0.4);
+          border-radius: 50%;
+          animation: pulse-playground 1.5s infinite;
+          pointer-events: none;
+          z-index: 9999;
+        `;
+        
+        // Add keyframe animation
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes pulse-playground {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+          }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(playgroundHighlight);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+          playgroundHighlight.remove();
+          style.remove();
+        }, 3000);
+      }
+      
+      return; // Skip further processing
     }
     // Handle select_processing similar to an immediate process_document action
     else if (action === 'select_processing' && onProcessingConfigured) {
@@ -999,6 +1044,38 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         const startPatterns = actionPatterns.intro.start;
         if (startPatterns.some(pattern => text.includes(pattern))) {
           console.log(`Start match found: "${text}" matched with "Let's get started"`);
+          return action;
+        }
+      }
+      
+      // Special case for configuration panel directions
+      if (actionType === 'highlight_process_button') {
+        // Check for phrases indicating interest in configuration panel
+        const configPhrases = [
+          'yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'sounds good', 'show me', 'i\'ll check',
+          'configuration', 'panel', 'settings', 'options', 'left panel', 'check it out', 'show configuration',
+          'explore options', 'see settings', 'check settings', 'check options', 'i want to see', 'proceed',
+          'continue', 'go ahead', 'that works', 'that\'s fine', 'agreed', 'left side', 'config panel'
+        ];
+        
+        if (configPhrases.some(phrase => text.toLowerCase().includes(phrase.toLowerCase()))) {
+          console.log(`Configuration panel interest detected: "${text}" contains phrases indicating interest in options`);
+          return action;
+        }
+      }
+      
+      // Special case for playground highlight
+      if (actionType === 'highlight_playground') {
+        // Check for phrases indicating interest in playground exploration
+        const playgroundPhrases = [
+          'yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'sounds good', 'show me', 'i\'ll explore',
+          'playground', 'try it', 'test', 'explore', 'let me see', 'check it out', 'show playground',
+          'financial insights', 'content understanding', 'search functionality', 'document structure',
+          'hands-on', 'experience', 'i want to try', 'proceed', 'continue', 'go ahead', 'try out'
+        ];
+        
+        if (playgroundPhrases.some(phrase => text.toLowerCase().includes(phrase.toLowerCase()))) {
+          console.log(`Playground interest detected: "${text}" contains phrases indicating interest in exploring playground`);
           return action;
         }
       }
