@@ -271,7 +271,7 @@ export class ConversationManager {
     }),
     
     audio_check: () => ({
-      message: 'Great! Once processing is complete, you can explore the financial content, test search functionality, and analyze the source document structure. Would you like to proceed with these analysis options?',
+      message: 'Great! Have you tried our playground to evaluate and test financial content understanding, search functionality, and document structure analysis? It provides hands-on experience with your configured financial intelligence.',
       actions: [
         { label: 'Yes, I\'ll explore the financial insights', action: 'set_has_audio', data: { hasAudio: false, nextStep: 'visual_analysis_check' } }
       ]
