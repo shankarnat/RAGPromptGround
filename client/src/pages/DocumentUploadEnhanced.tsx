@@ -132,7 +132,7 @@ const DocumentUploadEnhanced: FC = () => {
       description: "Contracts, agreements, legal briefs",
       icon: FileText,
       recommendedProcessing: { rag: true, kg: false, idp: true },
-      examples: ["contract_agreement.pdf", "legal_brief.pdf", "terms_of_service.pdf"]
+      examples: ["Financial Statement.PDF", "legal_brief.pdf", "terms_of_service.pdf"]
     },
     {
       id: "technical",

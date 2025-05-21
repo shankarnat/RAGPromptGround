@@ -1414,7 +1414,7 @@ const UnifiedDashboard: FC = () => {
             
           <ResizableHandle withHandle />
             
-          {/* Right Panel - Intelligent Content Agent */}
+          {/* Right Panel - DC Agent */}
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
             <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
               <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
@@ -1424,7 +1424,7 @@ const UnifiedDashboard: FC = () => {
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                      Intelligent Content Agent
+                      DC Agent
                       <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
                     </h2>
                     <p className="text-sm text-gray-600 mt-0.5">AI-powered document configuration</p>
@@ -1496,7 +1496,7 @@ const UnifiedDashboard: FC = () => {
             
             <ResizableHandle withHandle />
             
-            {/* Right Panel - Intelligent Content Agent (same as upload) */}
+            {/* Right Panel - DC Agent (same as upload) */}
             <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
               <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
                 <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
@@ -1506,7 +1506,7 @@ const UnifiedDashboard: FC = () => {
                     </div>
                     <div>
                       <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                        Intelligent Content Agent
+                        DC Agent
                         <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
                       </h2>
                       <p className="text-sm text-gray-600 mt-0.5">Monitor processing progress</p>
@@ -1586,7 +1586,7 @@ const UnifiedDashboard: FC = () => {
             
             <ResizableHandle withHandle />
             
-            {/* Right Panel - Intelligent Content Agent */}
+            {/* Right Panel - DC Agent */}
             <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
               <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
                 <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
@@ -1596,7 +1596,7 @@ const UnifiedDashboard: FC = () => {
                     </div>
                     <div>
                       <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                        Intelligent Content Agent
+                        DC Agent
                         <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
                       </h2>
                       <p className="text-sm text-gray-600 mt-0.5">Explore results with AI assistance</p>

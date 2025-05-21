@@ -82,7 +82,7 @@ const ConversationPanel: FC<ConversationPanelProps> = ({
           setTimeout(() => onProcessingRequest('kg'), 1000);
         }
       } else if (lowerInput.includes('summarize') || lowerInput.includes('summary')) {
-        responseContent = `"${documentName}" appears to be a legal document (contract/agreement). Here's what I can help you with:\n\n1. Extract key terms and parties\n2. Set up semantic search for specific clauses\n3. Create a knowledge graph of relationships\n\nWhat would you like to explore first?`;
+        responseContent = `"${documentName}" appears to be a financial document. Here's what I can help you with:\n\n1. Extract key financial terms and figures\n2. Set up semantic search for specific data points\n3. Create a knowledge graph of financial relationships\n\nWhat would you like to explore first?`;
       } else {
         responseContent = `I understand you want to: "${input}". Based on "${documentName}", I can help you with:\n\n• Form field extraction (IDP)\n• Semantic search setup (RAG)\n• Knowledge graph creation (KG)\n\nWhich would be most helpful for your use case?`;
       }

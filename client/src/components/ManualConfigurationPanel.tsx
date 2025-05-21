@@ -346,62 +346,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
         )}
       </Accordion>
       
-      {/* Spacer to ensure content isn't hidden behind sticky button */}
-      {onProcessDocument && !disabled && (
-        <div className="h-20"></div>
-      )}
-      
-      {/* Process Document Button */}
-      {onProcessDocument && !disabled && (
-        <div className={`
-          sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 shadow-lg z-10 -mx-4 
-          ${highlightProcessButton ? 'ring-2 ring-blue-500 rounded-md' : ''}
-          ${pulseEffect ? 'animate-[pulse_1s_infinite]' : highlightProcessButton ? 'animate-[pulse_2s_infinite]' : ''}
-        `}>
-          {/* Add an arrow pointing to the button when highlighted with pulse effect */}
-          {pulseEffect && (
-            <div className="absolute -left-10 top-1/2 transform -translate-y-1/2 animate-bounce">
-              <div className="text-blue-500 font-bold text-lg">→</div>
-            </div>
-          )}
-          
-          {(Object.values(processingConfig).some((config: any) => config.enabled) || highlightProcessButton) && (
-            <div className="mb-3 text-center">
-              <p className={`
-                font-medium
-                ${pulseEffect ? 'text-blue-700 text-lg animate-[pulse_0.5s_infinite]' : 
-                  highlightProcessButton ? 'text-blue-600 text-base animate-pulse' : 'text-blue-500 text-sm animate-pulse'}
-              `}>
-                {pulseEffect 
-                  ? "👉 Click this button to process your document! 👈"
-                  : highlightProcessButton 
-                    ? "Configuration complete! Click here to process your document."
-                    : "Ready to process! Click the button below to start."
-                }
-              </p>
-            </div>
-          )}
-          
-          <Button
-            className={`
-              w-full 
-              ${pulseEffect 
-                ? 'ring-4 ring-blue-500 shadow-xl transform scale-110 transition-all bg-blue-500 hover:bg-blue-600 text-white'
-                : highlightProcessButton 
-                  ? 'ring-2 ring-blue-500 shadow-lg transform scale-105 transition-all' 
-                  : ''
-              }
-            `}
-            size="lg"
-            onClick={onProcessDocument}
-            disabled={!Object.values(processingConfig).some((config: any) => config.enabled)}
-            title={highlightProcessButton ? "Click to process the document with the configuration from the AI assistant" : "Process the document with the current configuration"}
-          >
-            <PlayCircle className={`w-5 h-5 mr-2 ${pulseEffect || highlightProcessButton ? 'text-white' : ''}`} />
-            Process Document
-          </Button>
-        </div>
-      )}
+      {/* Process Document button has been hidden */}
           </div>
         )}
       </div>

@@ -2,8 +2,15 @@ import { UploadedDocument, DataModel } from "@shared/schema";
 
 export const recentDocuments: UploadedDocument[] = [
   {
+    id: 5,
+    name: "financial_report.pdf",
+    type: "application/pdf",
+    size: 4200000,
+    uploadDate: "2023-05-20T11:05:00Z"
+  },
+  {
     id: 1,
-    name: "contract_agreement.pdf",
+    name: "Financial Statement.PDF",
     type: "application/pdf",
     size: 1250000,
     uploadDate: "2023-04-20T14:30:00Z"
@@ -28,13 +35,6 @@ export const recentDocuments: UploadedDocument[] = [
     type: "text/plain",
     size: 500000,
     uploadDate: "2023-04-17T16:20:00Z"
-  },
-  {
-    id: 5,
-    name: "financial_report.pdf",
-    type: "application/pdf",
-    size: 4200000,
-    uploadDate: "2023-04-16T11:05:00Z"
   }
 ];
 
