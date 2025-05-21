@@ -193,20 +193,20 @@ export class ConversationManager {
 
   private conversationSteps = {
     intro: (docType: string) => ({
-      message: `I've identified this as a ${docType} document. Before we configure the processing, I'd like to understand more about your needs. Please type your input in the Prompt input box below and I will guide you through the setup experience.`,
+      message: `I've analyzed this ${docType} and detected key content elements including tables, structured data, and important financial metrics. I'm optimized to understand financial documents like earnings reports, balance sheets, and market analyses. Type "analyze financial data" or just click below to configure the optimal financial intelligence extraction.`,
       actions: [
         { label: 'Let\'s get started', action: 'next_step', data: { nextStep: 'user_profile' } }
       ]
     }),
     
     user_profile: () => ({
-      message: "What is the end user role you are tailoring this content for? Here are a few suggested roles. Please type your prompt below.",
+      message: "Which financial stakeholder role will be using this analysis? Financial document processing can be tailored to different financial roles and their specific needs.",
       actions: [
-        { label: 'Sales Representative', action: 'set_role', data: { role: 'sales_rep', nextStep: 'department' } },
-        { label: 'Sales Manager', action: 'set_role', data: { role: 'sales_manager', nextStep: 'department' } },
-        { label: 'Customer Service Agent', action: 'set_role', data: { role: 'service_agent', nextStep: 'department' } },
-        { label: 'Marketing Specialist', action: 'set_role', data: { role: 'marketing_specialist', nextStep: 'department' } },
-        { label: 'Business Analyst', action: 'set_role', data: { role: 'business_analyst', nextStep: 'department' } }
+        { label: 'Financial Analyst', action: 'set_role', data: { role: 'financial_analyst', nextStep: 'department' } },
+        { label: 'Investment Manager', action: 'set_role', data: { role: 'investment_manager', nextStep: 'department' } },
+        { label: 'Risk & Compliance Officer', action: 'set_role', data: { role: 'risk_officer', nextStep: 'department' } },
+        { label: 'Financial Controller', action: 'set_role', data: { role: 'financial_controller', nextStep: 'department' } },
+        { label: 'CFO/Finance Executive', action: 'set_role', data: { role: 'finance_executive', nextStep: 'department' } }
       ]
     }),
     
