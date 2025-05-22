@@ -324,8 +324,8 @@ export class ConversationManager {
           { 
             label: 'Yes, tell me about next steps', 
             // Changed to a direct message that can be more easily handled
-            action: 'direct_to_recommendations', 
-            data: { config }
+            action: 'next_step', 
+            data: { nextStep: 'recommendations', config }
           },
           { 
             label: 'Wait', 
@@ -535,10 +535,27 @@ export class ConversationManager {
     }
 
     // Check for direct intent
-    const intent = this.detectIntent(message);
+    const intent = this.detectIntent(message, state);
     
     if (intent && state.conversationStep !== 'intro') {
-      // User has expressed a clear intent
+      // Handle confirmation step intents specially
+      if ((intent as any).intent === 'confirmation_proceed') {
+        // User typed "yes" in confirmation step - trigger next_step action
+        return this.handleAction('next_step', { 
+          nextStep: 'recommendations', 
+          config: (intent as any).config 
+        }, state);
+      } else if ((intent as any).intent === 'confirmation_wait') {
+        // User typed "no" in confirmation step - stay in current step
+        const nextMessage = this.getNextStepMessage(state);
+        return {
+          ...state,
+          messages: [...newMessages, nextMessage],
+          currentQuestion: nextMessage.content
+        };
+      }
+      
+      // User has expressed a clear business intent
       const processingConfig = this.mapIntentToConfiguration(intent);
       const confirmationMessage: ConversationMessage = {
         id: this.generateId(),
@@ -578,8 +595,44 @@ export class ConversationManager {
   }
 
 
-  private detectIntent(message: string): ProcessingIntent | null {
+  private detectIntent(message: string, state?: ConversationState): ProcessingIntent | null {
     const lowerMessage = message.toLowerCase();
+
+    // Handle confirmation step responses
+    if (state?.conversationStep === 'confirmation') {
+      if (lowerMessage.includes('yes') || 
+          lowerMessage.includes('next') || 
+          lowerMessage.includes('proceed') || 
+          lowerMessage.includes('continue') ||
+          lowerMessage.includes('recommend') ||
+          lowerMessage.includes('step')) {
+        
+        // Return a special intent that will trigger the same action as the button
+        return {
+          intent: 'confirmation_proceed',
+          processingTypes: [],
+          configuration: {},
+          confidence: 1.0,
+          action: 'next_step',
+          nextStep: 'recommendations',
+          config: state.configuration
+        } as any;
+      }
+      
+      if (lowerMessage.includes('no') || 
+          lowerMessage.includes('wait') || 
+          lowerMessage.includes('hold') ||
+          lowerMessage.includes('stop')) {
+        
+        return {
+          intent: 'confirmation_wait',
+          processingTypes: [],
+          configuration: {},
+          confidence: 1.0,
+          action: 'stay_current_step'
+        } as any;
+      }
+    }
 
     // Sales intents
     if ((lowerMessage.includes('proposal') || lowerMessage.includes('opportunity')) && 
@@ -820,6 +873,14 @@ export class ConversationManager {
           console.log('ConversationManager: IMPORTANT - Moving to recommendations step!');
         }
         newState.conversationStep = data.nextStep;
+        // If config is provided in the data, update the state configuration
+        if (data.config) {
+          console.log('ConversationManager: Setting configuration from data.config:', data.config);
+          newState.configuration = data.config;
+          console.log('ConversationManager: newState.configuration after setting:', newState.configuration);
+        } else {
+          console.log('ConversationManager: No data.config provided in next_step action');
+        }
         break;
         
       case 'set_role':
@@ -968,7 +1029,7 @@ export class ConversationManager {
       // Check if it needs specific arguments
       if (stepName === 'intro') {
         step = (stepFunction as any)(state.documentAnalysis?.documentType || 'document');
-      } else if (stepName === 'processing_selection' || stepName === 'confirmation') {
+      } else if (stepName === 'processing_selection' || stepName === 'confirmation' || stepName === 'recommendations') {
         step = (stepFunction as any)(state);
       } else {
         step = (stepFunction as any)();
@@ -1107,6 +1168,8 @@ export class ConversationManager {
   }
 
   private buildFinalConfiguration(state: ConversationState): any {
+    console.log('buildFinalConfiguration: Full state received:', state);
+    console.log('buildFinalConfiguration: state.configuration:', state.configuration);
     const baseConfig = state.configuration || {};
     const multimodal = state.multimodalPreferences || {};
     const kg = state.kgPreferences || {};
@@ -1117,7 +1180,7 @@ export class ConversationManager {
     
     // Build RAG configuration with multimodal preferences
     const ragConfig = {
-      ...baseConfig.rag,
+      ...(baseConfig.rag || {}),
       enabled: state.selectedProcessingTypes.includes('rag') || baseConfig.rag?.enabled || false,
       multimodal: {
         transcription: multimodal.hasAudio || false,
@@ -1130,7 +1193,7 @@ export class ConversationManager {
     
     // Build KG configuration
     const kgConfig = {
-      ...baseConfig.kg,
+      ...(baseConfig.kg || {}),
       enabled: state.selectedProcessingTypes.includes('kg') || kg.enabled || baseConfig.kg?.enabled || false,
       entityExtraction: kg.enabled || baseConfig.kg?.entityExtraction || false,
       relationMapping: kg.enabled || baseConfig.kg?.relationMapping || false,
@@ -1139,7 +1202,7 @@ export class ConversationManager {
     
     // Build IDP configuration
     const idpConfig = {
-      ...baseConfig.idp,
+      ...(baseConfig.idp || {}),
       enabled: state.selectedProcessingTypes.includes('idp') || idp.enabled || baseConfig.idp?.enabled || false,
       textExtraction: idp.enabled || baseConfig.idp?.textExtraction || false,
       classification: idp.extractType === 'metadata' || idp.extractType === 'full' || baseConfig.idp?.classification || false,
