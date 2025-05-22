@@ -39,7 +39,9 @@ import {
   Bot,
   Loader2,
   Info,
-  BarChart3
+  BarChart3,
+  ThumbsUp,
+  ThumbsDown
 } from 'lucide-react';
 
 interface RAGResults {
@@ -174,6 +176,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     }
   }, [activeTab, processingConfig?.kg?.enabled, processingConfig?.idp?.enabled]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null);
   const [searchFilters, setSearchFilters] = useState<any>({ types: ['rag', 'kg', 'idp'] });
   const [filteredChunks, setFilteredChunks] = useState<any[]>([]);
   const [filteredEntities, setFilteredEntities] = useState<any[]>([]);
@@ -234,6 +237,14 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     setFilteredChunks(ragResults?.chunks || []);
     setFilteredEntities(kgResults?.entities || []);
   }, [ragResults, kgResults]);
+
+  // Handle feedback for evaluation results
+  const handleFeedback = useCallback((feedbackType: 'positive' | 'negative') => {
+    setFeedback(feedbackType);
+    console.log(`User feedback for evaluation: ${feedbackType}`);
+    // Here you could send feedback to an analytics service or API
+    // For now, we'll just log it and update the local state
+  }, []);
 
   const renderRAGResults = () => {
     const multimodalProcessing = getMultimodalProcessingInfo();
@@ -1199,6 +1210,36 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   <div className="flex items-center space-x-2">
                     <Bot className="h-5 w-5 text-blue-500" />
                     <CardTitle>Evaluation Results</CardTitle>
+                    <div className="flex items-center space-x-1 ml-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "h-8 w-8 p-0 transition-colors",
+                          feedback === 'positive'
+                            ? "bg-green-100 text-green-700 hover:bg-green-100"
+                            : "hover:bg-green-50 hover:text-green-600"
+                        )}
+                        onClick={() => handleFeedback('positive')}
+                        title="This evaluation was helpful"
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "h-8 w-8 p-0 transition-colors",
+                          feedback === 'negative'
+                            ? "bg-red-100 text-red-700 hover:bg-red-100"
+                            : "hover:bg-red-50 hover:text-red-600"
+                        )}
+                        onClick={() => handleFeedback('negative')}
+                        title="This evaluation needs improvement"
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <Badge variant="secondary">Powered by LLM</Badge>
                 </div>
