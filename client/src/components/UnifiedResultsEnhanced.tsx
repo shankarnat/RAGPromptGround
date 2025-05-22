@@ -4,8 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import UnifiedSearchEnhanced from '@/components/UnifiedSearchEnhanced';
 import { cn } from '@/lib/utils';
 import { 
@@ -41,7 +43,9 @@ import {
   Info,
   BarChart3,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
+  Wand2,
+  Settings
 } from 'lucide-react';
 
 interface RAGResults {
@@ -177,6 +181,12 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   }, [activeTab, processingConfig?.kg?.enabled, processingConfig?.idp?.enabled]);
   const [searchQuery, setSearchQuery] = useState('');
   const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null);
+  const [showPromptBox, setShowPromptBox] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [isReprocessing, setIsReprocessing] = useState(false);
+  const [showIdpPromptBox, setShowIdpPromptBox] = useState(false);
+  const [customIdpPrompt, setCustomIdpPrompt] = useState('');
+  const [isIdpReprocessing, setIsIdpReprocessing] = useState(false);
   const [searchFilters, setSearchFilters] = useState<any>({ types: ['rag', 'kg', 'idp'] });
   const [filteredChunks, setFilteredChunks] = useState<any[]>([]);
   const [filteredEntities, setFilteredEntities] = useState<any[]>([]);
@@ -245,6 +255,93 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     // Here you could send feedback to an analytics service or API
     // For now, we'll just log it and update the local state
   }, []);
+
+  // Handle prompt-based document re-processing
+  const handlePromptApplication = useCallback(async (prompt: string) => {
+    setIsReprocessing(true);
+    setShowPromptBox(false);
+    console.log(`Applying prompt for document re-processing: ${prompt}`);
+    
+    try {
+      // Here you would integrate with your document processing API
+      // For now, we'll simulate the process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In a real implementation, you would:
+      // 1. Send the prompt and document to your processing API
+      // 2. Wait for the updated extraction results
+      // 3. Update the evaluation results with the new data
+      
+      console.log('Document re-processing completed');
+    } catch (error) {
+      console.error('Error during document re-processing:', error);
+    } finally {
+      setIsReprocessing(false);
+      setCustomPrompt('');
+    }
+  }, []);
+
+  const handleQuickPrompt = useCallback((template: string) => {
+    handlePromptApplication(template);
+  }, [handlePromptApplication]);
+
+  const handleCustomPrompt = useCallback(() => {
+    if (customPrompt.trim()) {
+      handlePromptApplication(customPrompt);
+    }
+  }, [customPrompt, handlePromptApplication]);
+
+  // Handle IDP-specific prompt application
+  const handleIdpPromptApplication = useCallback(async (prompt: string) => {
+    setIsIdpReprocessing(true);
+    setShowIdpPromptBox(false);
+    console.log(`Applying IDP-specific prompt for document re-processing: ${prompt}`);
+    
+    try {
+      // Here you would integrate with your document processing API for IDP
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In a real implementation, you would:
+      // 1. Send the prompt and document to your IDP processing API
+      // 2. Wait for the updated extraction results
+      // 3. Update the IDP results with the new data
+      
+      console.log('IDP document re-processing completed');
+    } catch (error) {
+      console.error('Error during IDP document re-processing:', error);
+    } finally {
+      setIsIdpReprocessing(false);
+      setCustomIdpPrompt('');
+    }
+  }, []);
+
+  const handleIdpQuickPrompt = useCallback((template: string) => {
+    handleIdpPromptApplication(template);
+  }, [handleIdpPromptApplication]);
+
+  const handleIdpCustomPrompt = useCallback(() => {
+    if (customIdpPrompt.trim()) {
+      handleIdpPromptApplication(customIdpPrompt);
+    }
+  }, [customIdpPrompt, handleIdpPromptApplication]);
+
+  // Predefined prompt templates for evaluation results
+  const promptTemplates = [
+    "Extract all tables with better accuracy and preserve formatting",
+    "Re-analyze this document focusing on financial data and numbers",
+    "Focus on contract terms, dates, and key legal clauses",
+    "Improve form field detection and data validation",
+    "Extract signatures, stamps, and document authenticity markers",
+    "Re-process with enhanced OCR settings for better text recognition"
+  ];
+
+  // Predefined prompt templates specifically for IDP
+  const idpPromptTemplates = [
+    "Improve table extraction accuracy and preserve cell relationships",
+    "Focus on form field detection and improve label matching",
+    "Extract all signatures, stamps, and handwritten annotations",
+    "Enhance OCR accuracy for challenging text regions"
+  ];
 
   const renderRAGResults = () => {
     const multimodalProcessing = getMultimodalProcessingInfo();
@@ -433,6 +530,119 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
     return (
       <div className="space-y-6">
+        {/* Document Intelligence Header with Enhancement */}
+        <Card className="border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-blue-500" />
+                <CardTitle>Document Intelligence Results</CardTitle>
+                <div className="flex items-center space-x-1 ml-3">
+                  <Popover open={showIdpPromptBox} onOpenChange={setShowIdpPromptBox}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "h-8 px-3 transition-colors border border-transparent",
+                          isIdpReprocessing
+                            ? "bg-purple-100 text-purple-700 border-purple-200"
+                            : "hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200"
+                        )}
+                        disabled={isIdpReprocessing}
+                        title="Use AI to improve document intelligence extraction"
+                      >
+                        {isIdpReprocessing ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                            <span className="text-xs">Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="h-4 w-4 mr-1" />
+                            <span className="text-xs">Enhance</span>
+                          </>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[420px] p-0" align="start">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 border-b">
+                        <div className="flex items-center gap-2 mb-1">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          <h3 className="font-semibold text-blue-900">Document Intelligence Enhancement</h3>
+                        </div>
+                        <p className="text-sm text-blue-700">Improve table, form, and text extraction accuracy</p>
+                      </div>
+                      <div className="p-4 space-y-4">
+                        <div>
+                          <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-amber-500" />
+                            Specialized IDP Enhancements
+                          </h4>
+                          <div className="grid gap-2">
+                            {idpPromptTemplates.map((template, index) => (
+                              <Button
+                                key={index}
+                                variant="outline"
+                                size="sm"
+                                className="justify-start text-left h-auto p-3 text-xs hover:bg-blue-50 hover:border-blue-200 min-h-[44px]"
+                                onClick={() => handleIdpQuickPrompt(template)}
+                              >
+                                <div className="flex items-start gap-2 w-full">
+                                  <Settings className="h-3 w-3 mt-0.5 text-blue-500 flex-shrink-0" />
+                                  <span className="text-xs leading-relaxed break-words whitespace-normal">{template}</span>
+                                </div>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4 text-blue-500" />
+                            Custom IDP Instructions
+                          </h4>
+                          <Textarea
+                            placeholder="Describe how to improve table extraction, form fields, or document structure analysis..."
+                            value={customIdpPrompt}
+                            onChange={(e) => setCustomIdpPrompt(e.target.value)}
+                            className="min-h-[90px] text-sm border-blue-200 focus:border-blue-400"
+                          />
+                          <div className="flex justify-between mt-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setShowIdpPromptBox(false);
+                                setCustomIdpPrompt('');
+                              }}
+                              className="text-gray-600"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={handleIdpCustomPrompt}
+                              disabled={!customIdpPrompt.trim()}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              <Wand2 className="h-4 w-4 mr-1" />
+                              Enhance IDP
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700">Document AI</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-blue-700">Extracted {Object.keys(idpResults?.metadata || {}).length} metadata fields, {idpResults?.extractedData?.tables?.length || 0} tables, and {Object.keys(idpResults?.extractedData?.formFields || {}).length} form fields from the document.</p>
+          </CardContent>
+        </Card>
+
         {/* Metadata Section */}
         <Card>
           <CardHeader>
