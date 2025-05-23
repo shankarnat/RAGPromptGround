@@ -171,9 +171,8 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           const leftPanelHighlight = document.createElement('div');
           leftPanelHighlight.style.cssText = `
             position: fixed;
-            top: 50%;
-            left: 30%;
-            transform: translateY(-50%);
+            top: 10%;
+            left: 1%;
             width: 80px;
             height: 80px;
             background: rgba(59, 130, 246, 0.3);
@@ -187,9 +186,9 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           const style = document.createElement('style');
           style.textContent = `
             @keyframes pulse-left {
-              0% { transform: translateY(-50%) scale(0.8); opacity: 0.5; }
-              50% { transform: translateY(-50%) scale(1.2); opacity: 0.8; }
-              100% { transform: translateY(-50%) scale(0.8); opacity: 0.5; }
+              0% { transform: scale(0.8); opacity: 0.5; }
+              50% { transform: scale(1.2); opacity: 0.8; }
+              100% { transform: scale(0.8); opacity: 0.5; }
             }
           `;
           document.head.appendChild(style);
@@ -204,6 +203,143 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       }
       
       return; // Skip standard handling
+    }
+    
+    // Handle highlighting the playground
+    if (action === 'highlight_playground') {
+      console.log('Explicit request to highlight playground area');
+      
+      // We'll also handle next step progression for the audio_check message
+      handleAction('set_has_audio', { hasAudio: false, nextStep: data.nextStep });
+      
+      // Show a visual highlight for the playground
+      if (window && window.document) {
+        // Create a visual highlight effect for the playground area (30% from left, 20% from top)
+        const playgroundHighlight = document.createElement('div');
+        playgroundHighlight.style.cssText = `
+          position: fixed;
+          top: 20%;
+          left: 30%;
+          width: 80px;
+          height: 80px;
+          background: rgba(79, 70, 229, 0.4);
+          border-radius: 50%;
+          animation: pulse-playground 1.5s infinite;
+          pointer-events: none;
+          z-index: 9999;
+        `;
+        
+        // Add keyframe animation
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes pulse-playground {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+          }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(playgroundHighlight);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+          playgroundHighlight.remove();
+          style.remove();
+        }, 3000);
+      }
+      
+      return; // Skip further processing
+    }
+    
+    // Handle highlighting the finalization panel
+    if (action === 'highlight_finalize') {
+      console.log('Explicit request to highlight finalization panel', data);
+      
+      // Show a visual highlight for the finalization panel
+      if (window && window.document) {
+        // Create a visual highlight effect for the finalization area (5% from left, 40% from top)
+        const finalizeHighlight = document.createElement('div');
+        finalizeHighlight.style.cssText = `
+          position: fixed;
+          top: 40%;
+          left: 5%;
+          width: 80px;
+          height: 80px;
+          background: rgba(16, 185, 129, 0.4);
+          border-radius: 50%;
+          animation: pulse-finalize 1.5s infinite;
+          pointer-events: none;
+          z-index: 9999;
+        `;
+        
+        // Add keyframe animation
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes pulse-finalize {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+          }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(finalizeHighlight);
+        
+        // Remove after 4 seconds (longer duration for emphasis)
+        setTimeout(() => {
+          finalizeHighlight.remove();
+          style.remove();
+        }, 4000);
+      }
+      
+      // Handle the nextStep if provided - this will transition to step 12 (confirmation)
+      if (data && data.nextStep) {
+        console.log(`Finalization panel with nextStep: ${data.nextStep}`);
+        setTimeout(() => {
+          handleAction('next_step', { nextStep: data.nextStep });
+        }, 1500); // Short delay to allow the highlight to be visible
+      }
+      
+      return; // Skip further processing
+    }
+    // Direct path to recommendations step
+    else if (action === 'direct_to_recommendations') {
+      console.log('ConversationalUI: Direct path to recommendations step triggered');
+      
+      // First show user message selecting next steps
+      sendMessage("Tell me about next steps for financial analysis");
+      
+      // Then force the transition to recommendations step
+      setTimeout(() => {
+        // Use the next_step action but with explicit nextStep value
+        handleAction('next_step', { nextStep: 'recommendations' });
+        
+        // Also update the UI immediately with a temporary message
+        const tempMessage = {
+          id: `msg_${Date.now()}_temp`,
+          type: 'assistant',
+          content: 'Loading financial analysis recommendations...',
+          timestamp: new Date()
+        };
+        
+        // Force a state update to show the loading message while we transition
+        enhancedState.messages.push(tempMessage);
+        sendMessage('');
+      }, 500);
+      
+      return; // Skip standard handling - important!
+    }
+    // Handle next_step action to ensure proper transition between conversation steps
+    else if (action === 'next_step' && data?.nextStep) {
+      console.log(`ConversationalUI: Handling next_step action to ${data.nextStep}`, data);
+      
+      // Create a direct action message to bypass pattern matching issues
+      const actionMessage = `action:${JSON.stringify({ action, data })}`;
+      console.log(`ConversationalUI: Sending direct action message: ${actionMessage}`);
+      
+      // Send the action directly to the conversation manager
+      sendMessage(actionMessage);
+      
+      // Don't return here, let it fall through to also call handleAction directly
     }
     // Handle select_processing similar to an immediate process_document action
     else if (action === 'select_processing' && onProcessingConfigured) {
@@ -239,30 +375,79 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
     const actionPatterns = {
       'processing': {
         'rag': [
+          // Original search terms
           'rag search', 'document search', 'search functionality', 'question answering', 
           'semantic search', 'information retrieval', 'search capability', 'find information', 
           'search document', 'query document', 'rag', 'search', 'retrieval', 'looking up',
-          'vector search', 'text search', 'find answers', 'quick search', 'document qa'
+          'vector search', 'text search', 'find answers', 'quick search', 'document qa',
+          'question answer', 'return answers', 'document lookup', 'answer questions',
+          'query answering', 'qa system', 'document querying', 'content search',
+          'content lookup', 'content querying', 'content questions', 'search content',
+          
+          // Financial search terms
+          'financial search', 'financial retrieval', 'financial data search', 'enable financial search',
+          'find financial information', 'financial intelligence search', 'search financial data',
+          'find financial answers', 'query financial data', 'financial document search',
+          'financial information retrieval', 'financial search capability', 'search financial content',
+          'financial question answering', 'financial insights search', 'financial document lookup',
+          'search financial metrics', 'search financial statements', 'search financial reports'
         ],
         'idp': [
+          // Original extraction terms
           'document processing', 'idp', 'intelligent document', 'data extraction',
           'extract data', 'form extraction', 'structured data', 'document extraction',
           'document analysis', 'document intelligence', 'document understanding',
           'form processing', 'field extraction', 'table extraction', 'data capture',
-          'automated extraction', 'metadata extraction', 'information extraction'
+          'automated extraction', 'metadata extraction', 'information extraction',
+          'document parsing', 'document ai', 'structured extraction', 'form recognition',
+          'table recognition', 'document recognition', 'data recognition', 'extract fields',
+          'extract tables', 'extract documents', 'extract content', 'document insights',
+          
+          // Financial extraction terms
+          'financial data extraction', 'extract financial data', 'financial extraction',
+          'financial tables extraction', 'financial metrics extraction', 'extract financial tables',
+          'extract financial metrics', 'financial document extraction', 'financial data capture',
+          'financial form extraction', 'financial table recognition', 'financial structured data',
+          'extract financial statements', 'extract financial reports', 'financial field extraction',
+          'financial information extraction', 'extract financial content', 'financial document processing',
+          'enable financial data extraction', 'enable financial extraction', 'financial data processing'
         ],
         'kg': [
+          // Original graph terms
           'knowledge graph', 'kg', 'graph analysis', 'entity extraction', 
           'relationship mapping', 'entity relationship', 'graph building',
           'semantic network', 'entity recognition', 'relation extraction',
           'network analysis', 'concept mapping', 'ontology', 'entity linking',
-          'graph database', 'knowledge network', 'entity graph', 'knowledge extraction'
+          'graph database', 'knowledge network', 'entity graph', 'knowledge extraction',
+          'relationship extraction', 'entity detection', 'graph relationships',
+          'entity connections', 'relationship detection', 'concept connections',
+          'concept network', 'semantic mapping', 'topic mapping', 'entity map',
+          
+          // Financial relationship terms
+          'financial relationship mapping', 'financial entity relationships', 'map financial relationships',
+          'financial entity mapping', 'financial connections', 'financial network analysis',
+          'map financial entities', 'financial relationship detection', 'financial knowledge graph',
+          'financial entity extraction', 'financial entity recognition', 'financial relationship extraction',
+          'map financial connections', 'financial entity network', 'enable financial relationship mapping',
+          'financial entity graph', 'enable financial mapping', 'financial network'
         ],
         'all': [
+          // Original comprehensive terms
           'all processing', 'all methods', 'everything', 'all of the above', 'comprehensive',
           'full processing', 'combined methods', 'all approaches', 'maximum processing',
           'complete analysis', 'all features', 'full suite', 'everything available',
-          'every method', 'all options', 'full analysis', 'use everything', 'all tools'
+          'every method', 'all options', 'full analysis', 'use everything', 'all tools',
+          'all of them', 'do everything', 'use all', 'enable all', 'all capabilities',
+          'full spectrum', 'maximum performance', 'all features', 'complete solution',
+          'total processing', 'all processing types', 'use all methods', 'complete package',
+          
+          // Comprehensive financial terms
+          'comprehensive financial analysis', 'complete financial intelligence', 'all financial analysis',
+          'full financial processing', 'enable comprehensive financial', 'financial intelligence suite',
+          'complete financial processing', 'all financial insights', 'full financial capabilities',
+          'total financial analysis', 'financial 360', 'enable comprehensive financial analysis',
+          'all financial processing methods', 'all financial approaches', 'maximum financial processing',
+          'complete financial solution', 'total financial intelligence', 'financial full spectrum'
         ]
       },
       'role': {
@@ -270,34 +455,54 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           'sales rep', 'sales representative', 'seller', 'sales person', 'salesperson', 
           'sales associate', 'sales consultant', 'account executive', 'account rep', 
           'sales executive', 'sales agent', 'i sell', 'i am in sales', 'work in sales', 
-          'sales team member', 'sales professional', 'business development rep', 'bdr'
+          'sales team member', 'sales professional', 'business development rep', 'bdr',
+          'client manager', 'account manager', 'client advisor', 'customer advisor',
+          'relationship manager', 'business consultant', 'sales consultant', 'sales advisor',
+          'client executive', 'sales', 'sales role', 'client facing', 'client representative',
+          'territory manager', 'field sales', 'inside sales', 'selling', 'pipeline management'
         ],
         'sales_manager': [
           'sales manager', 'sales lead', 'sales director', 'sales boss', 'head of sales', 
           'sales supervisor', 'sales team lead', 'regional sales manager', 'district manager',
           'vp of sales', 'sales vp', 'senior sales', 'sales leadership', 'manage sales team',
-          'sales management', 'director of sales', 'chief sales officer', 'cso', 'sales executive'
+          'sales management', 'director of sales', 'chief sales officer', 'cso', 'sales executive',
+          'business unit manager', 'business development director', 'bd manager',
+          'business development manager', 'commercial director', 'revenue manager',
+          'revenue director', 'sales operations director', 'national sales manager',
+          'channel manager', 'partner manager', 'head of business development'
         ],
         'service_agent': [
           'service agent', 'customer service', 'support agent', 'cs agent', 'help desk',
           'customer support', 'customer care', 'support rep', 'support representative',
           'customer success', 'client services', 'technical support', 'service desk',
           'service rep', 'customer advocate', 'service specialist', 'support specialist',
-          'customer experience', 'cx', 'service professional', 'customer happiness'
+          'customer experience', 'cx', 'service professional', 'customer happiness',
+          'helpdesk agent', 'client support', 'customer relations', 'client relations',
+          'customer service representative', 'support technician', 'service consultant',
+          'client advocate', 'cx specialist', 'account support', 'product support',
+          'customer advisor', 'service delivery', 'client success manager'
         ],
         'marketing_specialist': [
           'marketing specialist', 'marketing expert', 'marketer', 'marketing professional',
           'digital marketer', 'content marketer', 'marketing coordinator', 'marketing associate',
           'brand specialist', 'communications specialist', 'marketing analyst', 'growth marketer',
           'marketing strategist', 'product marketer', 'marketing manager', 'marketing team',
-          'pr specialist', 'marketing communications', 'marcom', 'social media specialist'
+          'pr specialist', 'marketing communications', 'marcom', 'social media specialist',
+          'content creator', 'seo specialist', 'marketing technologist', 'marketing ops',
+          'growth hacker', 'brand manager', 'digital marketing specialist', 'campaign manager',
+          'demand generation', 'social media manager', 'community manager', 'content strategist',
+          'email marketer', 'marketing automation', 'marketing', 'comms', 'creative'
         ],
         'business_analyst': [
           'business analyst', 'analyst', 'ba', 'business intelligence', 'data analyst',
           'financial analyst', 'operations analyst', 'research analyst', 'systems analyst',
           'business systems analyst', 'process analyst', 'requirements analyst', 'analytics',
           'intelligence specialist', 'insights specialist', 'data scientist', 'market research',
-          'analytics professional', 'bi analyst', 'business analytics'
+          'analytics professional', 'bi analyst', 'business analytics', 'data engineer',
+          'reporting analyst', 'dashboard developer', 'performance analyst', 'metrics analyst',
+          'product analyst', 'operations research', 'statistical analyst', 'data modeler',
+          'insights manager', 'strategy analyst', 'competitive analyst', 'quantitative analyst',
+          'management consultant', 'research', 'analysis', 'trends analyst', 'forecasting'
         ]
       },
       'department': {
@@ -305,27 +510,47 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           'sales', 'business development', 'biz dev', 'selling', 'revenue', 'accounts',
           'business development', 'business growth', 'sales ops', 'sales operations',
           'commercial', 'revenue generation', 'deal team', 'deal desk', 'sales enablement',
-          'enterprise sales', 'inside sales', 'field sales', 'direct sales', 'channel sales'
+          'enterprise sales', 'inside sales', 'field sales', 'direct sales', 'channel sales',
+          'client acquisition', 'account management', 'solution selling', 'business expansion',
+          'client relations', 'revenue operations', 'pipeline management', 'prospecting team',
+          'new business', 'customer acquisition', 'relationship management', 'client management',
+          'business development team', 'renewal team', 'commercial team', 'quota carriers',
+          'potential buyers', 'potential customers', 'prospects', 'buyers', 'end buyers', 'clients'
         ],
         'service': [
           'service', 'support', 'customer service', 'help desk', 'customer support',
           'technical support', 'customer success', 'client services', 'service desk',
           'service operations', 'support operations', 'customer care', 'client care',
-          'customer experience', 'cx team', 'customer happiness', 'customer advocacy'
+          'customer experience', 'cx team', 'customer happiness', 'customer advocacy',
+          'support team', 'help center', 'customer relations', 'customer assistance',
+          'client support', 'user support', 'account support', 'customer help',
+          'service center', 'customer engagement', 'client engagement', 'implementation team',
+          'onboarding team', 'client success team', 'technical assistance', 'customer helpdesk',
+          'support agents', 'service specialists', 'assistance team', 'support staff', 'consumers'
         ],
         'marketing': [
           'marketing', 'communications', 'marcom', 'brand', 'advertising', 'pr',
           'digital marketing', 'content marketing', 'product marketing', 'growth',
           'demand generation', 'lead generation', 'social media', 'creative',
           'market research', 'marketing ops', 'marketing analytics', 'events',
-          'communications', 'branding', 'promotion', 'public relations'
+          'communications', 'branding', 'promotion', 'public relations',
+          'content strategy', 'content creation', 'community management', 'email marketing',
+          'campaigns', 'brand strategy', 'digital presence', 'market awareness',
+          'audience engagement', 'media relations', 'market positioning', 'customer acquisition',
+          'customer communication', 'growth marketing', 'field marketing', 'marketing technology',
+          'user acquisition', 'audience development', 'outreach', 'promotional teams', 'messaging team'
         ],
         'operations': [
           'operations', 'analytics', 'ops', 'data analysis', 'reporting', 'finance',
           'business operations', 'business intelligence', 'data science', 'bi',
           'strategy', 'planning', 'business strategy', 'strategic planning',
           'process improvement', 'operational excellence', 'performance analysis', 
-          'systems', 'logistics', 'supply chain', 'procurement', 'administration'
+          'systems', 'logistics', 'supply chain', 'procurement', 'administration',
+          'research', 'quality assurance', 'qa', 'data operations', 'efficiency team',
+          'continuous improvement', 'data insights', 'metrics', 'kpis', 'dashboard',
+          'business efficiency', 'process optimization', 'analysis team', 'decision science',
+          'operations research', 'workflow team', 'technical operations', 'internal team',
+          'stakeholders', 'leadership', 'executive team', 'management', 'internal departments'
         ]
       },
       'goal': {
@@ -358,34 +583,46 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       },
       'multimodal': {
         'hasImages': [
+          // Original image patterns
           'yes images', 'has images', 'with images', 'contains images', 'includes images', 'pictures',
           'yes', 'yeah', 'yep', 'yup', 'correct', 'affirmative', 'indeed', 'absolutely', 'sure',
           'it does', 'it has', 'there are', 'there is', 'contains pictures', 'has pictures',
           'has photos', 'contains photos', 'has diagrams', 'contains diagrams', 'has charts',
-          'contains charts', 'visual content', 'visual elements', 'graphical content', 'it includes images'
+          'contains charts', 'visual content', 'visual elements', 'graphical content', 'it includes images',
+          
+          // Financial image patterns
+          'analyze financial images', 'financial figures', 'charts and figures', 'analyze images',
+          'extract from images', 'process financial charts', 'include financial visuals', 
+          'analyze facts in images', 'extract data from figures', 'include image analysis',
+          'yes analyze', 'process charts', 'analyze figures', 'financial charts', 'financial diagrams',
+          'analyze visual elements', 'extract financial insights from images', 'include visuals',
+          'facts and figures', 'financial visualizations', 'analyze with images'
         ],
         'noImages': [
+          // Original no-image patterns
           'no images', 'without images', 'doesn\'t have images', 'no pictures', 'text only', 'just text',
           'no', 'nope', 'nah', 'negative', 'not at all', 'doesn\'t', 'does not', 'no pictures',
           'text-based', 'text based', 'only text', 'purely text', 'no visual', 'no visuals',
           'no photos', 'no diagrams', 'no charts', 'no graphical', 'no visual content', 'just words',
-          'only words', 'nothing visual', 'no image content'
+          'only words', 'nothing visual', 'no image content',
+          
+          // Financial text-only patterns
+          'text content only', 'skip financial images', 'ignore visual elements', 'skip images',
+          'text-based analysis only', 'no need for image analysis', 'process text only',
+          'analyze text only', 'skip charts', 'skip figures', 'ignore charts', 'text data only',
+          'no charts needed', 'no figures needed', 'skip visual elements', 'text analysis only',
+          'focus on text', 'only process text', 'only analyze text', 'text extraction only'
         ]
       },
       'audio': {
-        'hasAudio': [
-          'yes audio', 'has audio', 'with audio', 'contains audio', 'includes audio', 'recordings',
-          'yes', 'yeah', 'yep', 'yup', 'correct', 'affirmative', 'indeed', 'absolutely', 'sure',
-          'it does', 'it has', 'there are', 'there is', 'audio content', 'voice recordings',
-          'sound files', 'spoken content', 'speech', 'voice', 'audio clips', 'it includes audio',
-          'has recordings', 'with recordings', 'audio components', 'sound elements'
-        ],
-        'noAudio': [
-          'no audio', 'without audio', 'doesn\'t have audio', 'no recordings', 'silent', 'just text',
-          'no', 'nope', 'nah', 'negative', 'not at all', 'doesn\'t', 'does not', 'no sound',
-          'text-based', 'text based', 'only text', 'purely text', 'no sound', 'no recordings',
-          'no voice', 'no speech', 'not spoken', 'no audio clips', 'no audio content', 'nothing to hear',
-          'nothing to listen to', 'no audio files', 'text only', 'just written content'
+        // The audio step is now about exploring financial insights rather than audio content
+        'exploreFinancial': [
+          'yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'sounds good', 'proceed', 'continue',
+          'let\'s explore', 'explore insights', 'explore financial', 'financial insights',
+          'test search', 'analyze document', 'analyze structure', 'look at content',
+          'explore content', 'check it out', 'test functionality', 'i\'ll explore',
+          'proceed with analysis', 'continue to analysis', 'explore options', 'that sounds good',
+          'ready to explore', 'let\'s continue', 'ready to proceed', 'go ahead', 'move forward'
         ]
       },
       'visual': {
@@ -432,32 +669,66 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       },
       'idp': {
         'structured': [
+          // Original patterns
           'structured data', 'structured', 'tables and forms', 'tables', 'forms',
           'table extraction', 'form extraction', 'structured fields', 'structured content',
           'form fields', 'tabular data', 'form data', 'table data', 'tables and charts',
           'structured format', 'data tables', 'extract tables', 'extract forms', 'form recognition',
-          'table recognition', 'tabular content', 'structured information', 'extract structured fields'
+          'table recognition', 'tabular content', 'structured information', 'extract structured fields',
+          
+          // Financial patterns
+          'financial tables', 'financial metrics', 'financial statements', 'balance sheets',
+          'income statements', 'cash flow statements', 'financial data tables',
+          'structured financial data', 'extract financial tables', 'extract financial metrics',
+          'financial figures', 'financial ratios', 'quarterly data', 'annual data',
+          'financial performance metrics', 'key financial indicators', 'financial calculations',
+          'extract financial statements', 'financial reporting data', 'earnings data'
         ],
         'metadata': [
+          // Original patterns
           'metadata', 'meta', 'document properties', 'properties', 'attributes',
           'document attributes', 'meta information', 'metadata only', 'document metadata',
           'meta extraction', 'properties extraction', 'attribute extraction', 'document info',
           'file properties', 'document details', 'basic metadata', 'essential properties',
-          'header information', 'document characteristics', 'document attributes'
+          'header information', 'document characteristics', 'document attributes',
+          
+          // Financial patterns
+          'document summary', 'financial metadata', 'document profile', 'financial summary',
+          'financial document properties', 'financial attributes', 'document classification',
+          'financial document metadata', 'report metadata', 'financial report attributes',
+          'document headers', 'financial report details', 'report properties', 
+          'financial document info', 'document overview', 'financial document summary'
         ],
         'full': [
+          // Original patterns
           'full processing', 'full', 'complete processing', 'everything', 'all processing',
           'comprehensive', 'complete', 'thorough', 'maximum processing', 'full extraction',
           'all features', 'all capabilities', 'complete package', 'comprehensive extraction',
           'extract everything', 'maximum extraction', 'full document processing', 'complete idp',
-          'all document features', 'thorough processing', 'process everything', 'extract all'
+          'all document features', 'thorough processing', 'process everything', 'extract all',
+          
+          // Financial patterns
+          'comprehensive financial', 'all financial data', 'complete financial extraction',
+          'extract all financial data', 'full financial analysis', 'maximum financial extraction',
+          'comprehensive financial intelligence', 'complete financial data extraction',
+          'extract all financial information', 'deep financial extraction', 'thorough financial analysis',
+          'full financial data processing', 'complete financial metrics', 'end-to-end financial extraction',
+          'comprehensive financial data', 'all financial metrics and data'
         ],
         'none': [
+          // Original patterns
           'no processing', 'none', 'skip processing', 'no idp', 'no extraction',
           'no', 'nope', 'nah', 'negative', 'not at all', 'not needed', 'unnecessary',
           'not required', 'skip it', 'don\'t need that', 'not important', 'pass', 'no thanks',
           'skip that part', 'unnecessary processing', 'not worth it', 'skip extraction',
-          'don\'t process', 'skip document processing', 'no document extraction'
+          'don\'t process', 'skip document processing', 'no document extraction',
+          
+          // Financial patterns
+          'skip financial extraction', 'no financial data', 'skip financial data',
+          'no financial extraction', 'exclude financial extraction', 'skip financial metrics',
+          'no financial tables', 'don\'t extract financial data', 'bypass financial extraction',
+          'ignore financial data', 'exclude financial metrics', 'no financial processing',
+          'skip financial tables', 'don\'t need financial extraction', 'skip financial information'
         ]
       },
       'intro': {
@@ -718,14 +989,25 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       
       // Check for processing method selection patterns
       if (actionType === 'select_processing' && actionData.processingTypes) {
-        // First check if this is the processing recommendation question
+        // First check if this is the processing recommendation question - updated for financial terms
         const processingRecommendationPhrases = [
+          // Original phrases
           "recommend the following", 
           "following processing methods",
           "based on your needs",
           "recommend these processing",
           "suggested processing",
-          "recommended methods"
+          "recommended methods",
+          
+          // New financial phrases
+          "financial analysis requirements",
+          "specialized processing methods", 
+          "financial intelligence index",
+          "configuration look appropriate",
+          "when you approve",
+          "allows you to search",
+          "extract insights",
+          "based on your financial"
         ];
         
         const isProcessingQuestion = processingRecommendationPhrases.some(phrase => {
@@ -734,62 +1016,90 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           if (latestAssistantMessages.length === 0) return false;
           
           const latestMessage = latestAssistantMessages[latestAssistantMessages.length - 1];
-          return latestMessage.content.toLowerCase().includes(phrase);
+          const found = latestMessage.content.toLowerCase().includes(phrase);
+          
+          if (found) {
+            console.log(`Processing question detected via phrase: "${phrase}" in message: "${latestMessage.content.substring(0, 50)}..."`);
+          }
+          
+          return found;
         });
         
+        // Enhanced logging
+        if (!isProcessingQuestion) {
+          console.log("Did not detect processing question in latest message. This might prevent matching financial terms.");
+          console.log("Latest message:", state.messages[state.messages.length - 1]?.content?.substring(0, 100) + "...");
+        }
+        
         if (isProcessingQuestion) {
-          // Check for RAG search
-          if (actionData.processingTypes.includes('rag') && 
-              actionPatterns.processing.rag.some(pattern => text.includes(pattern))) {
-            console.log(`Processing match found: "${text}" matched with "RAG Search"`);
+          // Enhanced logging
+          console.log("Processing action matching for text:", text);
+          
+          // Check for RAG search - with improved pattern matching and logging
+          const matchedRagPattern = actionPatterns.processing.rag.find(pattern => 
+            text.toLowerCase().includes(pattern.toLowerCase())
+          );
+          
+          if (actionData.processingTypes.includes('rag') && matchedRagPattern) {
+            console.log(`Processing match found: "${text}" matched with "Financial Search & Retrieval" via pattern "${matchedRagPattern}"`);
             return action;
           }
           
-          // Check for Knowledge Graph
-          if (actionData.processingTypes.includes('kg') && 
-              actionPatterns.processing.kg.some(pattern => text.includes(pattern))) {
-            console.log(`Processing match found: "${text}" matched with "Knowledge Graph"`);
+          // Check for Knowledge Graph - with improved pattern matching and logging
+          const matchedKgPattern = actionPatterns.processing.kg.find(pattern => 
+            text.toLowerCase().includes(pattern.toLowerCase())
+          );
+          
+          if (actionData.processingTypes.includes('kg') && matchedKgPattern) {
+            console.log(`Processing match found: "${text}" matched with "Financial Relationship Mapping" via pattern "${matchedKgPattern}"`);
             return action;
           }
           
-          // Check for Document Processing
-          if (actionData.processingTypes.includes('idp') && 
-              actionPatterns.processing.idp.some(pattern => text.includes(pattern))) {
-            console.log(`Processing match found: "${text}" matched with "Document Processing"`);
+          // Check for Document Processing - with improved pattern matching and logging
+          const matchedIdpPattern = actionPatterns.processing.idp.find(pattern => 
+            text.toLowerCase().includes(pattern.toLowerCase())
+          );
+          
+          if (actionData.processingTypes.includes('idp') && matchedIdpPattern) {
+            console.log(`Processing match found: "${text}" matched with "Financial Data Extraction" via pattern "${matchedIdpPattern}"`);
             return action;
           }
           
-          // Check for All Processing Methods
+          // Check for All Processing Methods - with improved pattern matching and logging
+          const matchedAllPattern = actionPatterns.processing.all.find(pattern => 
+            text.toLowerCase().includes(pattern.toLowerCase())
+          );
+          
           if (actionData.processingTypes.includes('rag') && 
               actionData.processingTypes.includes('kg') && 
               actionData.processingTypes.includes('idp') && 
-              actionPatterns.processing.all.some(pattern => text.includes(pattern))) {
-            console.log(`Processing match found: "${text}" matched with "All Processing Methods"`);
+              matchedAllPattern) {
+            console.log(`Processing match found: "${text}" matched with "Comprehensive Financial Analysis" via pattern "${matchedAllPattern}"`);
             return action;
           }
           
-          // Added special case for matching by processing method label
-          if (actionLabel.toLowerCase().includes('rag') && 
-              (text.includes('rag') || text.includes('search'))) {
-            console.log(`Label match found: "${text}" matched with label containing "RAG"`);
+          // Added special case for matching by processing method label - updated for financial terms
+          if ((actionLabel.toLowerCase().includes('rag') || actionLabel.toLowerCase().includes('financial search') || actionLabel.toLowerCase().includes('financial retrieval')) && 
+              (text.includes('rag') || text.includes('search') || text.includes('financial') || text.includes('retrieval'))) {
+            console.log(`Label match found: "${text}" matched with Financial Search label: "${actionLabel}"`);
             return action;
           }
           
-          if (actionLabel.toLowerCase().includes('knowledge graph') && 
-              (text.includes('kg') || text.includes('knowledge') || text.includes('graph'))) {
-            console.log(`Label match found: "${text}" matched with label containing "Knowledge Graph"`);
+          if ((actionLabel.toLowerCase().includes('knowledge graph') || actionLabel.toLowerCase().includes('financial relationship') || actionLabel.toLowerCase().includes('financial entity')) && 
+              (text.includes('kg') || text.includes('knowledge') || text.includes('graph') || text.includes('relationship') || text.includes('financial') || text.includes('mapping'))) {
+            console.log(`Label match found: "${text}" matched with Financial Relationship label: "${actionLabel}"`);
             return action;
           }
           
-          if (actionLabel.toLowerCase().includes('document processing') && 
-              (text.includes('idp') || text.includes('document') || text.includes('processing'))) {
-            console.log(`Label match found: "${text}" matched with label containing "Document Processing"`);
+          if ((actionLabel.toLowerCase().includes('document processing') || actionLabel.toLowerCase().includes('financial data extraction') || actionLabel.toLowerCase().includes('financial extraction')) && 
+              (text.includes('idp') || text.includes('document') || text.includes('processing') || text.includes('extraction') || text.includes('financial data') || text.includes('financial'))) {
+            console.log(`Label match found: "${text}" matched with Financial Extraction label: "${actionLabel}"`);
             return action;
           }
           
-          if (actionLabel.toLowerCase().includes('all') && 
-              (text.includes('all') || text.includes('everything') || text.includes('all of them'))) {
-            console.log(`Label match found: "${text}" matched with label containing "All"`);
+          if ((actionLabel.toLowerCase().includes('all') || actionLabel.toLowerCase().includes('comprehensive financial') || actionLabel.toLowerCase().includes('financial intelligence')) && 
+              (text.includes('all') || text.includes('everything') || text.includes('all of them') || text.includes('comprehensive') || text.includes('complete') || text.includes('financial'))) {
+            console.log(`Label match found: "${text}" matched with Comprehensive Financial label: "${actionLabel}"`);
             return action;
           }
           
@@ -829,26 +1139,93 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         }
       }
       
-      // Check for multimodal preferences
-      if (actionType === 'set_has_images') {
-        if (actionData.hasImages && actionPatterns.multimodal.hasImages.some(pattern => text.includes(pattern))) {
-          console.log(`Image match found: "${text}" matched with "Has images"`);
-          return action;
-        } else if (!actionData.hasImages && actionPatterns.multimodal.noImages.some(pattern => text.includes(pattern))) {
-          console.log(`No image match found: "${text}" matched with "No images"`);
+      // Special case for configuration panel directions
+      if (actionType === 'highlight_process_button') {
+        // Check for phrases indicating interest in configuration panel
+        const configPhrases = [
+          'yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'sounds good', 'show me', 'i\'ll check',
+          'configuration', 'panel', 'settings', 'options', 'left panel', 'check it out', 'show configuration',
+          'explore options', 'see settings', 'check settings', 'check options', 'i want to see', 'proceed',
+          'continue', 'go ahead', 'that works', 'that\'s fine', 'agreed', 'left side', 'config panel'
+        ];
+        
+        if (configPhrases.some(phrase => text.toLowerCase().includes(phrase.toLowerCase()))) {
+          console.log(`Configuration panel interest detected: "${text}" contains phrases indicating interest in options`);
           return action;
         }
       }
       
-      // Check for audio preferences
-      if (actionType === 'set_has_audio') {
-        if (actionData.hasAudio && actionPatterns.audio.hasAudio.some(pattern => text.includes(pattern))) {
-          console.log(`Audio match found: "${text}" matched with "Has audio"`);
-          return action;
-        } else if (!actionData.hasAudio && actionPatterns.audio.noAudio.some(pattern => text.includes(pattern))) {
-          console.log(`No audio match found: "${text}" matched with "No audio"`);
+      // Special case for playground highlight
+      if (actionType === 'highlight_playground') {
+        // Check for phrases indicating interest in playground exploration
+        const playgroundPhrases = [
+          'yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'sounds good', 'show me', 'i\'ll explore',
+          'playground', 'try it', 'test', 'explore', 'let me see', 'check it out', 'show playground',
+          'financial insights', 'content understanding', 'search functionality', 'document structure',
+          'hands-on', 'experience', 'i want to try', 'proceed', 'continue', 'go ahead', 'try out'
+        ];
+        
+        if (playgroundPhrases.some(phrase => text.toLowerCase().includes(phrase.toLowerCase()))) {
+          console.log(`Playground interest detected: "${text}" contains phrases indicating interest in exploring playground`);
           return action;
         }
+      }
+      
+      // Special case for finalization panel highlight
+      if (actionType === 'highlight_finalize') {
+        // Check for phrases indicating interest in finalization
+        const finalizePhrases = [
+          'yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'sounds good', 'show me', 'finalize',
+          'finalization', 'complete', 'finish', 'done', 'ready', 'show finalize', 'show panel',
+          'show me finalization', 'finalization panel', 'configuration panel', 'output', 'generate',
+          'create outputs', 'create results', 'process document', 'process', 'run analysis', 
+          'start processing', 'financial insights', 'financial analysis', 'insights'
+        ];
+        
+        if (finalizePhrases.some(phrase => text.toLowerCase().includes(phrase.toLowerCase()))) {
+          console.log(`Finalization panel interest detected: "${text}" contains phrases indicating interest in finalizing`);
+          return action;
+        }
+      }
+      
+      // Check for multimodal preferences - Enhanced for financial images
+      if (actionType === 'set_has_images') {
+        // Enhanced pattern matching with better logging
+        const matchedImagePattern = actionPatterns.multimodal.hasImages.find(pattern => 
+          text.toLowerCase().includes(pattern.toLowerCase())
+        );
+        
+        const matchedNoImagePattern = actionPatterns.multimodal.noImages.find(pattern => 
+          text.toLowerCase().includes(pattern.toLowerCase())
+        );
+        
+        // Log additional info for debugging
+        console.log(`Checking image preferences for: "${text}"`);
+        
+        if (actionData.hasImages && matchedImagePattern) {
+          console.log(`Financial image match found: "${text}" matched with "Analyze financial images" via pattern "${matchedImagePattern}"`);
+          return action;
+        } else if (!actionData.hasImages && matchedNoImagePattern) {
+          console.log(`Text-only match found: "${text}" matched with "Process text content only" via pattern "${matchedNoImagePattern}"`);
+          return action;
+        }
+      }
+      
+      // Check for financial exploration confirmation (replaces audio check)
+      if (actionType === 'set_has_audio') {
+        // Since we no longer have audio content check, but just a confirmation to explore
+        const matchedExplorePattern = actionPatterns.audio.exploreFinancial.find(pattern => 
+          text.toLowerCase().includes(pattern.toLowerCase())
+        );
+        
+        if (matchedExplorePattern) {
+          console.log(`Financial exploration match found: "${text}" matched with pattern "${matchedExplorePattern}"`);
+          return action;
+        }
+        
+        // Default response for almost any input here since it's just a confirmation step
+        console.log(`Defaulting to exploration confirmation for input: "${text}"`);
+        return action;
       }
       
       // Check for visual analysis preferences
@@ -884,9 +1261,46 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       // Check for IDP (Intelligent Document Processing) preferences
       if (actionType === 'set_idp_preferences' && actionData.extractType) {
         const extractType = actionData.extractType;
-        if (actionPatterns.idp[extractType] && 
-            actionPatterns.idp[extractType].some(pattern => text.includes(pattern))) {
-          console.log(`IDP match found: "${text}" matched with "${extractType} processing"`);
+        
+        // Enhanced logging
+        console.log(`Checking IDP preferences for extractType "${extractType}" with text: "${text}"`);
+        
+        // Find exact pattern match using case-insensitive comparison
+        const matchedPattern = actionPatterns.idp[extractType]?.find(pattern => 
+          text.toLowerCase().includes(pattern.toLowerCase())
+        );
+        
+        if (matchedPattern) {
+          console.log(`IDP match found: "${text}" matched with "${extractType} processing" via pattern "${matchedPattern}"`);
+          return action;
+        }
+        
+        // Special case handling for financial-specific terms
+        if (extractType === 'structured' && 
+            (text.includes('tables') || text.includes('metrics') || text.includes('figures') || text.includes('financial data')) &&
+            text.includes('financial')) {
+          console.log(`Financial structured data match found: "${text}" contains tables/metrics/figures and financial terms`);
+          return action;
+        }
+        
+        if (extractType === 'metadata' && 
+            (text.includes('summary') || text.includes('overview') || text.includes('document info')) &&
+            text.includes('financial')) {
+          console.log(`Financial metadata match found: "${text}" contains summary/overview and financial terms`);
+          return action;
+        }
+        
+        if (extractType === 'full' && 
+            (text.includes('all') || text.includes('comprehensive') || text.includes('complete') || text.includes('everything')) &&
+            text.includes('financial')) {
+          console.log(`Financial full processing match found: "${text}" contains comprehensive terms and financial reference`);
+          return action;
+        }
+        
+        if (extractType === 'none' && 
+            (text.includes('skip') || text.includes('no') || text.includes('don\'t') || text.includes('exclude')) &&
+            text.includes('financial')) {
+          console.log(`Skip financial extraction match found: "${text}" contains skip/no terms and financial reference`);
           return action;
         }
       }
@@ -900,6 +1314,137 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
     if (!inputValue.trim()) return;
     
     const text = inputValue.trim().toLowerCase();
+    
+    // *** SPECIAL HANDLING FOR "TELL ME MORE ON NEXT STEPS" ***
+    // This needs to be first in the order to prevent other patterns from catching it
+    
+    // These are very specific patterns that should only match "Tell me more on next steps" requests
+    const exactNextStepsPatterns = [
+      'tell me more on next steps',
+      'what are the next steps',
+      'how do i finalize this',
+      'how do i complete the process',
+      'show me the finalization options',
+      'how to finalize this document',
+      'next steps'
+    ];
+    
+    // Exact match check (to prevent false positives with intro pattern)
+    const hasExactNextStepsMatch = exactNextStepsPatterns.some(pattern => 
+      text.toLowerCase() === pattern.toLowerCase() || 
+      text.toLowerCase().trim() === pattern.toLowerCase().trim()
+    );
+    
+    // More general pattern check - make sure these only match when the phrase is central to the message
+    const nextStepsPatterns = [
+      'tell me more on next steps',
+      'what next', 
+      'what should i do next',
+      'what now', 
+      'what\'s next', 
+      'how do i proceed', 
+      'finalization', 
+      'finalize process', 
+      'complete setup',
+      'how do i finalize',
+      'show finalization',
+      'finish process'
+    ];
+    
+    // Enhanced check to avoid false positives - check for substring containment
+    // Only match if the pattern is a significant part of the message
+    const includesNextStepsPattern = 
+      nextStepsPatterns.some(pattern => {
+        const idx = text.toLowerCase().indexOf(pattern.toLowerCase());
+        // Only match if the pattern is found AND it's not just a small part of a longer text
+        return idx >= 0 && 
+               (pattern.length >= 8 || // Short patterns must be standalone
+                pattern.length / text.length > 0.4); // Pattern must be a significant portion of message
+      });
+    
+    // Log current conversation step for debugging
+    console.log(`Next steps check: Exact match: ${hasExactNextStepsMatch}, Pattern includes: ${includesNextStepsPattern}, Text: "${text}"`);
+    
+    // Trigger the special handling if we have a next steps match
+    // This MUST come before other pattern handling
+    if (hasExactNextStepsMatch || includesNextStepsPattern) {
+      console.log(`Triggering "Tell me more on next steps" guidance`);
+      
+      // First show the user message
+      sendMessage(inputValue);
+      setInputValue('');
+      
+      // Then send a message about finalization with the configuration panel
+      setTimeout(() => {
+        const finalizationMessage = {
+          id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type: 'assistant',
+          content: 'You\'ve now configured financial intelligence extraction for your document. To generate financial insights, please visit the configuration panel on the left side. Click the "Finalize" button to process your document with the selected financial settings and generate actionable financial metrics, analysis, and insights that you can query and explore.',
+          timestamp: new Date(),
+          actions: [{
+            id: `action_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            label: 'Show me the finalization panel',
+            action: 'highlight_finalize',
+            data: { nextStep: 'confirmation' }
+          }]
+        };
+        
+        // Add the message to the state
+        state.messages.push(finalizationMessage);
+        
+        // Force a re-render
+        // Use empty flag to avoid processing the empty message
+        enhancedState.suppressProcessing = true;
+        sendMessage('');
+        enhancedState.suppressProcessing = false;
+        
+        // Show a highlight for the finalization panel
+        if (window && window.document) {
+          // Create a visual highlight effect for the finalization area (5% from left, 40% from top)
+          const finalizeHighlight = document.createElement('div');
+          finalizeHighlight.style.cssText = `
+            position: fixed;
+            top: 40%;
+            left: 5%;
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.4);
+            border-radius: 50%;
+            animation: pulse-finalize 1.5s infinite;
+            pointer-events: none;
+            z-index: 9999;
+          `;
+          
+          // Add keyframe animation
+          const style = document.createElement('style');
+          style.textContent = `
+            @keyframes pulse-finalize {
+              0% { transform: scale(0.8); opacity: 0.5; }
+              50% { transform: scale(1.2); opacity: 0.8; }
+              100% { transform: scale(0.8); opacity: 0.5; }
+            }
+          `;
+          document.head.appendChild(style);
+          document.body.appendChild(finalizeHighlight);
+          
+          // Remove after 4 seconds (longer duration for emphasis)
+          setTimeout(() => {
+            finalizeHighlight.remove();
+            style.remove();
+          }, 4000);
+          
+          // Also transition to the confirmation step after a delay
+          setTimeout(() => {
+            console.log('Transitioning to confirmation step from Tell me more on next steps');
+            handleAction('next_step', { nextStep: 'confirmation' });
+          }, 2500); // Longer delay to give time to read the message
+        }
+      }, 500);
+      
+      return;
+    }
+    
+    // *** STANDARD MESSAGE HANDLING GOES AFTER THE SPECIAL CASE ***
     const latestAssistantMessage = state.messages[state.messages.length - 1];
     
     // Only try to match text input with actions if the latest message is from the assistant and has actions
@@ -909,18 +1454,26 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         latestAssistantMessage.actions.length > 0) {
       
       // First check for the contract document intro message specifically (for backward compatibility)
+      // Make this check more specific to prevent false matches with "Tell me more on next steps"
       if (latestAssistantMessage.content.includes("I've identified this as a contract document") &&
           latestAssistantMessage.actions.some(a => a.label.includes("Let's get started"))) {
         
-        // Check if the user's text input matches patterns for "start"
-        if (text.includes('start') || 
-            text.includes('let\'s begin') || 
-            text.includes('proceed') || 
-            text.includes('get started') ||
-            text.includes('continue') ||
-            text.includes('go ahead')) {
-          
-          console.log('Text input matched "start" pattern - triggering Let\'s get started button');
+        // Create a specific list of patterns that ONLY indicate "get started" intent
+        const startPatterns = [
+          'start', 'begin', 'let\'s start', 'let\'s begin', 
+          'get started', 'proceed', 'continue', 'go ahead'
+        ];
+        
+        // Check for exact matches to prevent false positives
+        const hasStartPattern = startPatterns.some(pattern => 
+          text === pattern || 
+          text.includes(` ${pattern} `) || 
+          text.startsWith(`${pattern} `) || 
+          text.endsWith(` ${pattern}`)
+        );
+        
+        if (hasStartPattern) {
+          console.log('Text input matched specific "start" pattern - triggering Let\'s get started button');
           
           // Find the "Let's get started" action
           const startAction = latestAssistantMessage.actions.find(a => 
@@ -1028,124 +1581,64 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       <div
         key={message.id}
         className={cn(
-          "flex gap-3 mb-4",
+          "flex gap-3 mb-4 w-full",
           isUser ? "justify-end" : "justify-start"
         )}
       >
         {!isUser && (
-          <Avatar className="h-9 w-9 ring-2 ring-purple-100">
-            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
-              <Brain className="h-5 w-5 text-purple-600" />
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex-shrink-0">
+            <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+              <AvatarFallback className="bg-gradient-to-br from-gray-200 to-gray-300">
+                <Brain className="h-5 w-5 text-gray-600" />
+              </AvatarFallback>
+            </Avatar>
+          </div>
         )}
         
         <div className={cn(
-          "max-w-[80%] rounded-xl shadow-sm overflow-hidden",
+          "max-w-[75%] rounded-xl shadow-sm overflow-hidden",
           isUser 
-            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4" 
-            : "bg-white border border-gray-200 p-4"
+            ? "bg-gradient-to-r from-gray-600 to-gray-700 text-white p-4" 
+            : "bg-gray-50 border border-gray-300 p-4"
         )}>
           <div className="text-sm leading-relaxed whitespace-pre-wrap">
             {renderContent(message.content)}
           </div>
           
-          {/* Add "Other" option for AI messages without action buttons */}
-          {!isUser && (!message.actions || message.actions.length === 0) && (
-            <div className="mt-4 space-y-2">
-              <div className="text-xs text-gray-500 font-medium mb-1">Other (manual input):</div>
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Enter your custom response..."
-                  className="text-sm"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      const target = e.target as HTMLInputElement;
-                      if (target.value.trim()) {
-                        sendMessage(target.value);
-                        target.value = '';
-                      }
-                    }
-                  }}
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={(e) => {
-                    const input = e.currentTarget.previousSibling as HTMLInputElement;
-                    if (input && input.value.trim()) {
-                      sendMessage(input.value);
-                      input.value = '';
-                    }
-                  }}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* "Other (manual input)" section has been hidden */}
           
           {/* Render action buttons if available */}
           {message.actions && message.actions.length > 0 && (
-            <div className="mt-4 space-y-2 max-w-full">
-              {message.actions.map(action => (
-                <Button
-                  key={action.id}
-                  variant={isUser ? "secondary" : "outline"}
-                  size="sm"
-                  className="w-full justify-start gap-2 transition-all hover:scale-[1.02] overflow-hidden"
-                  onClick={() => handleActionWithConfig(action.action, action.data)}
-                  title={action.label} // Add title for tooltip on hover
-                >
-                  {getActionIcon(action.action)}
-                  <span className="truncate">{action.label}</span>
-                </Button>
-              ))}
-              
-              {/* Add "Other" option with text input for AI responses */}
-              {!isUser && (
-                <div className="mt-2 space-y-2">
-                  <div className="text-xs text-gray-500 font-medium mb-1">Other (manual input):</div>
-                  <div className="flex gap-2">
-                    <Input 
-                      placeholder="Enter your custom response..."
-                      className="text-sm"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          const target = e.target as HTMLInputElement;
-                          if (target.value.trim()) {
-                            sendMessage(target.value);
-                            target.value = '';
-                          }
-                        }
-                      }}
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => {
-                        const input = e.currentTarget.previousSibling as HTMLInputElement;
-                        if (input && input.value.trim()) {
-                          sendMessage(input.value);
-                          input.value = '';
-                        }
-                      }}
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+            <div className="mt-4 w-full">
+              {/* Added max-h-60 and overflow-y-auto for scrollable container */}
+              <div className="max-h-60 overflow-y-auto pr-1">
+                {message.actions.map(action => (
+                  <Button
+                    key={action.id}
+                    variant={isUser ? "secondary" : "outline"}
+                    size="sm"
+                    className="w-full justify-start gap-2 transition-all hover:scale-[1.02] overflow-hidden mb-2"
+                    onClick={() => handleActionWithConfig(action.action, action.data)}
+                    title={action.label} // Add title for tooltip on hover
+                  >
+                    {getActionIcon(action.action)}
+                    <span className="truncate">{action.label}</span>
+                  </Button>
+                ))}
+              </div>
+              {/* "Other (manual input)" section has been hidden */}
             </div>
           )}
         </div>
         
         {isUser && (
-          <Avatar className="h-9 w-9 ring-2 ring-blue-100">
-            <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
-              <User className="h-5 w-5 text-blue-600" />
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex-shrink-0">
+            <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+              <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400">
+                <User className="h-5 w-5 text-gray-600" />
+              </AvatarFallback>
+            </Avatar>
+          </div>
         )}
       </div>
     );
@@ -1153,10 +1646,10 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
 
   if (!documentAnalysis) {
     return (
-      <Card className={cn("bg-gradient-to-br from-gray-50 to-gray-100", className)}>
+      <Card className={cn("bg-gradient-to-br from-gray-200 to-gray-300", className)}>
         <CardContent className="p-8 text-center">
-          <div className="bg-white rounded-full p-4 w-16 h-16 mx-auto mb-4 shadow-md">
-            <MessageSquare className="h-8 w-8 text-gray-400" />
+          <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 shadow-md">
+            <MessageSquare className="h-8 w-8 text-gray-500" />
           </div>
           <h3 className="text-lg font-semibold text-gray-800 mb-2">No Document Selected</h3>
           <p className="text-gray-600">Upload a document to start the conversation</p>
@@ -1218,12 +1711,12 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
   return (
     <Card className={cn("flex flex-col h-full overflow-hidden", className)}>
       {documentAnalysis && (
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 px-4 py-2 border-b">
+        <div className="bg-gradient-to-r from-gray-200 to-gray-300 px-4 py-2 border-b">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-700 font-medium">
               Document Type: <Badge variant="secondary" className="ml-2">{documentAnalysis.documentType}</Badge>
             </p>
-            <Badge variant="outline" className="bg-white">
+            <Badge variant="outline" className="bg-gray-100">
               <Activity className="h-3 w-3 mr-1" />
               Active
             </Badge>
@@ -1232,18 +1725,20 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       )}
       
       <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
-        <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-white to-gray-50">
-          <div className="space-y-4">
+        <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-gray-100 to-gray-200">
+          <div className="space-y-4 flex flex-col w-full">
             {state.messages.map(renderMessage)}
             
             {isTyping && (
-              <div className="flex gap-3 justify-start">
-                <Avatar className="h-9 w-9 ring-2 ring-purple-100">
-                  <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100">
-                    <Brain className="h-5 w-5 text-purple-600" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <div className="flex gap-3 justify-start w-full">
+                <div className="flex-shrink-0">
+                  <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+                    <AvatarFallback className="bg-gradient-to-br from-gray-200 to-gray-300">
+                      <Brain className="h-5 w-5 text-gray-600" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="max-w-[75%] bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
                     <span className="text-sm text-gray-600">Processing your request...</span>
@@ -1257,7 +1752,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         </ScrollArea>
       </CardContent>
       
-      <div className="border-t bg-white px-4 py-3">
+      <div className="border-t bg-gray-200 px-4 py-3">
         {!state.isComplete ? (
           <div className="flex gap-2">
             <Input
@@ -1265,8 +1760,8 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Tell me what you'd like to do with this document..."
-              className="flex-1 bg-gray-50 border-gray-200"
+              placeholder="Type your Prompt..."
+              className="flex-1 bg-gray-100 border-gray-300"
               disabled={isTyping}
             />
             <Button 

@@ -362,6 +362,20 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
   const sendMessage = useCallback((message: string) => {
     if (!message.trim()) return;
 
+    // Add debugging for action messages
+    if (message.startsWith('action:')) {
+      console.log('useConversation: Received action message:', message);
+      try {
+        const actionData = JSON.parse(message.substring(7));
+        console.log('useConversation: Parsed action data:', actionData);
+        if (actionData.action === 'next_step' && actionData.data.nextStep === 'recommendations') {
+          console.log('useConversation: IMPORTANT - Processing next_step to recommendations!');
+        }
+      } catch (e) {
+        console.error('useConversation: Error parsing action message:', e);
+      }
+    }
+
     // Convert EnhancedConversationState to ConversationState for the manager
     const baseState: ConversationState = {
       messages: state.messages,
@@ -371,30 +385,52 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
       documentAnalysis: state.documentAnalysis || undefined,
       userGoal: state.userGoal,
       useCase: state.useCase,
-      configuration: state.configuration
+      configuration: state.configuration,
+      conversationStep: state.conversationStep // Make sure to include the current step!
     };
     
+    console.log('useConversation: Current conversationStep before sending message:', state.conversationStep);
     const newState = conversationManager.processUserMessage(message, baseState);
     
+    // Log state changes
+    console.log('useConversation: State returned from conversationManager:', {
+      currentStep: state.conversationStep,
+      newStep: newState.conversationStep,
+      messageCount: newState.messages.length
+    });
+
+    // Special handling for confirmation -> recommendations transition
+    if (state.conversationStep === 'confirmation' && 
+        message.includes('next_step') && 
+        message.includes('recommendations')) {
+      console.log('useConversation: FORCE SETTING recommendations step!');
+      newState.conversationStep = 'recommendations';
+    }
+
     // Merge the returned state with our enhanced state, preserving required fields
-    setState(prev => ({
-      ...prev,
-      messages: newState.messages,
-      selectedProcessingTypes: newState.selectedProcessingTypes,
-      isComplete: newState.isComplete,
-      currentQuestion: newState.currentQuestion,
-      documentAnalysis: newState.documentAnalysis || prev.documentAnalysis,
-      userGoal: newState.userGoal,
-      useCase: newState.useCase,
-      configuration: newState.configuration || prev.configuration,
-      conversationStep: newState.conversationStep,
-      userProfile: {
-        ...prev.userProfile,
-        ...(newState.userProfile || {})
-      },
-      processingPreferences: newState.processingPreferences || prev.processingPreferences,
-      multimodalPreferences: newState.multimodalPreferences || prev.multimodalPreferences
-    }));
+    setState(prev => {
+      // Log the state change
+      console.log('useConversation: Updating state from', prev.conversationStep, 'to', newState.conversationStep);
+      
+      return {
+        ...prev,
+        messages: newState.messages,
+        selectedProcessingTypes: newState.selectedProcessingTypes,
+        isComplete: newState.isComplete,
+        currentQuestion: newState.currentQuestion,
+        documentAnalysis: newState.documentAnalysis || prev.documentAnalysis,
+        userGoal: newState.userGoal,
+        useCase: newState.useCase,
+        configuration: newState.configuration || prev.configuration,
+        conversationStep: newState.conversationStep,
+        userProfile: {
+          ...prev.userProfile,
+          ...(newState.userProfile || {})
+        },
+        processingPreferences: newState.processingPreferences || prev.processingPreferences,
+        multimodalPreferences: newState.multimodalPreferences || prev.multimodalPreferences
+      };
+    });
   }, [state]);
 
   const handleAction = useCallback((action: string, data?: any) => {
@@ -404,7 +440,7 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
     if (['next_step', 'set_role', 'set_department', 'set_experience', 'set_goal', 
         'set_urgency', 'set_detail', 'select_processing', 'set_has_images', 
         'set_has_audio', 'set_needs_ocr', 'set_visual_analysis', 'set_image_processing',
-        'set_kg_preferences', 'set_kg_entities', 'set_idp_preferences'].includes(action)) {
+        'set_kg_preferences', 'set_kg_entities', 'set_idp_preferences', 'apply_recommendation'].includes(action)) {
       
       // Handle immediate updates for specific actions
       if (action === 'select_processing') {

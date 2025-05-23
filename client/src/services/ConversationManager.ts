@@ -24,7 +24,7 @@ export interface ConversationState {
   isComplete: boolean;
   useCase?: string;
   configuration?: Record<string, any>;
-  conversationStep?: 'intro' | 'user_profile' | 'goals' | 'processing_selection' | 'multimodal_check' | 'audio_check' | 'visual_analysis_check' | 'kg_check' | 'confirmation';
+  conversationStep?: 'intro' | 'user_profile' | 'goals' | 'processing_selection' | 'multimodal_check' | 'audio_check' | 'visual_analysis_check' | 'kg_check' | 'confirmation' | 'recommendations' | 'recommendation_applied';
   userProfile?: {
     role?: string;
     department?: string;
@@ -51,6 +51,8 @@ export interface ConversationState {
     extractType?: 'structured' | 'metadata' | 'full';
   };
   highlightProcessButton?: boolean; // Flag to highlight the Process Document button
+  recommendationType?: string; // Type of recommendation applied
+  recommendationDescription?: string; // Description of the applied recommendation
 }
 
 export interface ProcessingIntent {
@@ -193,30 +195,31 @@ export class ConversationManager {
 
   private conversationSteps = {
     intro: (docType: string) => ({
-      message: `I've identified this as a ${docType} document. Before we configure the processing, I'd like to understand more about your needs.`,
+      message: `I've analyzed this ${docType} and detected key content elements including tables, structured data, and important financial metrics. I'm optimized to understand financial documents like earnings reports, balance sheets, and market analyses. Type "analyze financial data" or just click below to configure the optimal financial intelligence extraction.`,
       actions: [
         { label: 'Let\'s get started', action: 'next_step', data: { nextStep: 'user_profile' } }
       ]
     }),
     
     user_profile: () => ({
-      message: 'First, could you tell me about your role in the organization?',
+      message: "Which financial stakeholder role will be using this analysis? Financial document processing can be tailored to different financial roles and their specific needs.",
       actions: [
-        { label: 'Sales Representative', action: 'set_role', data: { role: 'sales_rep', nextStep: 'department' } },
-        { label: 'Sales Manager', action: 'set_role', data: { role: 'sales_manager', nextStep: 'department' } },
-        { label: 'Customer Service Agent', action: 'set_role', data: { role: 'service_agent', nextStep: 'department' } },
-        { label: 'Marketing Specialist', action: 'set_role', data: { role: 'marketing_specialist', nextStep: 'department' } },
-        { label: 'Business Analyst', action: 'set_role', data: { role: 'business_analyst', nextStep: 'department' } }
+        { label: 'Financial Analyst', action: 'set_role', data: { role: 'financial_analyst', nextStep: 'department' } },
+        { label: 'Investment Manager', action: 'set_role', data: { role: 'investment_manager', nextStep: 'department' } },
+        { label: 'Risk & Compliance Officer', action: 'set_role', data: { role: 'risk_officer', nextStep: 'department' } },
+        { label: 'Financial Controller', action: 'set_role', data: { role: 'financial_controller', nextStep: 'department' } },
+        { label: 'CFO/Finance Executive', action: 'set_role', data: { role: 'finance_executive', nextStep: 'department' } }
       ]
     }),
     
     department: () => ({
-      message: 'Which department are you working with?',
+      message: 'Which financial function or department will be leveraging this analysis? Different financial teams have specialized needs for document processing and intelligence extraction.',
       actions: [
-        { label: 'Sales/Business Development', action: 'set_department', data: { department: 'sales', nextStep: 'goals' } },
-        { label: 'Customer Service/Support', action: 'set_department', data: { department: 'service', nextStep: 'goals' } },
-        { label: 'Marketing/Communications', action: 'set_department', data: { department: 'marketing', nextStep: 'goals' } },
-        { label: 'Operations/Analytics', action: 'set_department', data: { department: 'operations', nextStep: 'goals' } }
+        { label: 'Investment Management', action: 'set_department', data: { department: 'investment', nextStep: 'goals' } },
+        { label: 'Financial Planning & Analysis', action: 'set_department', data: { department: 'financial_planning', nextStep: 'goals' } },
+        { label: 'Treasury & Cash Management', action: 'set_department', data: { department: 'treasury', nextStep: 'goals' } },
+        { label: 'Risk & Compliance', action: 'set_department', data: { department: 'risk_compliance', nextStep: 'goals' } },
+        { label: 'Financial Reporting', action: 'set_department', data: { department: 'financial_reporting', nextStep: 'goals' } }
       ]
     }),
     
@@ -224,12 +227,12 @@ export class ConversationManager {
     // experience: () => ({ ... }),
     
     goals: () => ({
-      message: 'What\'s your primary goal with this document?',
+      message: 'What financial insights do you need to extract from this document? Your selection will optimize how we process the financial data.',
       actions: [
-        { label: 'Quick information retrieval', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
-        { label: 'Extract structured data', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
-        { label: 'Understand relationships', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
-        { label: 'Comprehensive analysis', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
+        { label: 'Financial Data Search & Analysis', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
+        { label: 'Extract Financial Tables & Metrics', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
+        { label: 'Map Financial Entity Relationships', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
+        { label: 'Comprehensive Financial Intelligence', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
       ]
     }),
     
@@ -239,10 +242,19 @@ export class ConversationManager {
     
     processing_selection: (state: ConversationState) => {
       const recommendations = this.getProcessingRecommendations(state);
+      
+      // Map the technical recommendation labels to more user-friendly financial terms
+      const userFriendlyLabels = {
+        'RAG Search': 'Enable Financial Search & Retrieval',
+        'Document Processing': 'Enable Financial Data Extraction',
+        'Knowledge Graph': 'Enable Financial Relationship Mapping',
+        'All Processing Methods': 'Enable Comprehensive Financial Analysis'
+      };
+      
       return {
-        message: 'Based on your needs, I recommend the following processing methods:',
+        message: 'Based on your financial analysis requirements, I recommend these specialized processing methods. When you approve, I\'ll create a financial intelligence index that allows you to search, analyze, and extract insights from this document. Does this configuration look appropriate for your needs?',
         actions: recommendations.map(rec => ({
-          label: rec.label,
+          label: userFriendlyLabels[rec.label] || rec.label, // Use the user-friendly label if available
           action: 'select_processing',
           data: { 
             ...rec.data, 
@@ -253,36 +265,34 @@ export class ConversationManager {
     },
     
     multimodal_check: () => ({
-      message: 'Does your document contain images that need to be indexed or analyzed?',
+      message: 'I\'ve detected that your financial document contains images with facts and figures. Would you like me to analyze these visual elements to extract additional financial insights?',
       actions: [
-        { label: 'Yes, it has images', action: 'set_has_images', data: { hasImages: true, nextStep: 'audio_check' } },
-        { label: 'No images', action: 'set_has_images', data: { hasImages: false, nextStep: 'audio_check' } }
+        { label: 'Yes, analyze images with financial data', action: 'set_has_images', data: { hasImages: true, nextStep: 'visual_analysis_check' } },
+        { label: 'No, process text content only', action: 'set_has_images', data: { hasImages: false, nextStep: 'visual_analysis_check' } }
       ]
     }),
     
     audio_check: () => ({
-      message: 'Are there any audio files or recordings that need transcription?',
+      message: 'Great! Have you tried our playground to evaluate and test financial content understanding, search functionality, and document structure analysis? It provides hands-on experience with your configured financial intelligence.',
       actions: [
-        { label: 'Yes, audio transcription needed', action: 'set_has_audio', data: { hasAudio: true, nextStep: 'visual_analysis_check' } },
-        { label: 'No audio content', action: 'set_has_audio', data: { hasAudio: false, nextStep: 'visual_analysis_check' } }
+        { label: 'Yes, I\'ll explore the financial insights', action: 'highlight_playground', data: { nextStep: 'confirmation' } }
       ]
     }),
     
     visual_analysis_check: () => ({
-      message: 'Would you like AI to analyze and describe visual content (charts, diagrams, etc.)?',
+      message: 'Would you like AI to interpret financial charts, analyze trend graphs, and extract insights from visual elements in your document?',
       actions: [
-        { label: 'Yes, analyze visuals', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
-        { label: 'No visual analysis needed', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
+        { label: 'Yes, analyze financial visualizations', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
+        { label: 'No, focus on textual financial data', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
       ]
     }),
     
     kg_check: () => ({
-      message: 'Would you like to extract entities and relationships to build a knowledge graph?',
+      message: 'You can explore additional configuration options in the left panel for index and document extraction settings. Would you like to check those options now?',
       actions: [
-        /* Special case to enable KG checkbox first then proceed */
-        { label: 'Yes, all entities', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: 'all', extractType: 'full' } },
-        { label: 'Yes, specific entities', action: 'set_kg_preferences', data: { kgEnabled: true, entityTypes: 'specific', nextStep: 'kg_entity_selection' } },
-        { label: 'No graph needed', action: 'process_directly', data: { idpEnabled: true, kgEnabled: false, extractType: 'full' } }
+        { label: 'Yes, show me the configuration panel', action: 'highlight_process_button', data: { nextStep: 'confirmation' } },
+        { label: 'Sounds good, I\'ll check it out', action: 'highlight_process_button', data: { nextStep: 'confirmation' } },
+        { label: 'No thanks, continue with current settings', action: 'process_directly', data: { idpEnabled: true, kgEnabled: false, extractType: 'full', nextStep: 'confirmation' } }
       ]
     }),
     
@@ -297,29 +307,93 @@ export class ConversationManager {
     }),
     
     idp_check: () => ({
-      message: 'What type of document data extraction do you need?',
+      message: 'Which type of financial data extraction do you need from this document?',
       actions: [
-        { label: 'Structured data', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'kg_check' } },
-        { label: 'Metadata', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'kg_check' } },
-        { label: 'Full processing', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'kg_check' } },
-        { label: 'No processing', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'kg_check' } }
+        { label: 'Financial Tables & Metrics', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'audio_check' } },
+        { label: 'Document Summarization', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'audio_check' } },
+        { label: 'Comprehensive Financial Extraction', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'audio_check' } },
+        { label: 'Skip Financial Data Extraction', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'audio_check' } }
       ]
     }),
     
     confirmation: (state: ConversationState) => {
       const config = this.buildFinalConfiguration(state);
       return {
-        message: 'Your document is ready to be processed with the selected settings.',
+        message: 'Explore the results and let me know once you have evaluated the findings. We can discuss next steps for deeper financial analysis.',
         actions: [
           { 
-            label: 'Process Document', 
-            action: 'confirm_processing', 
-            data: config 
+            label: 'Yes, tell me about next steps', 
+            // Changed to a direct message that can be more easily handled
+            action: 'next_step', 
+            data: { nextStep: 'recommendations', config }
           },
           { 
-            label: 'Modify Configuration', 
+            label: 'Wait', 
             action: 'modify_processing', 
             data: config 
+          }
+        ]
+      };
+    },
+    
+    recommendations: (state: ConversationState) => {
+      const config = this.buildFinalConfiguration(state);
+      return {
+        message: 'Based on your evaluation, I want to recommend the following actions for your financial document analysis:',
+        actions: [
+          { 
+            label: 'Summarize', 
+            action: 'apply_recommendation', 
+            data: { 
+              recommendationType: 'summarize',
+              description: 'Generate a comprehensive summary of the financial document including key metrics, trends, and insights.',
+              config
+            } 
+          },
+          { 
+            label: 'Content Generation', 
+            action: 'apply_recommendation', 
+            data: { 
+              recommendationType: 'content_generation',
+              description: 'Create new financial content based on the document analysis, such as reports, presentations, or executive briefs.',
+              config
+            } 
+          },
+          { 
+            label: 'QnA', 
+            action: 'apply_recommendation', 
+            data: { 
+              recommendationType: 'qna',
+              description: 'Ask specific questions about the financial data and receive accurate, contextual answers.',
+              config
+            } 
+          },
+          { 
+            label: 'Financial Data Extraction', 
+            action: 'apply_recommendation', 
+            data: { 
+              recommendationType: 'financial_extraction',
+              description: 'Extract structured financial data like metrics, tables, and key figures for further analysis.',
+              config
+            } 
+          }
+        ]
+      };
+    },
+    
+    recommendation_applied: (state: ConversationState) => {
+      return {
+        message: 'Your selected financial analysis action has been initiated. The results will be available shortly. Would you like to try another approach or continue with this analysis?',
+        actions: [
+          { 
+            label: 'Continue with current analysis', 
+            action: 'process_directly', 
+            data: { idpEnabled: true, kgEnabled: true, extractType: 'full', entityTypes: 'all' } 
+          },
+          { 
+            label: 'Try another approach', 
+            action: 'next_step', 
+            data: { nextStep: 'recommendations' } 
           }
         ]
       };
@@ -461,10 +535,27 @@ export class ConversationManager {
     }
 
     // Check for direct intent
-    const intent = this.detectIntent(message);
+    const intent = this.detectIntent(message, state);
     
     if (intent && state.conversationStep !== 'intro') {
-      // User has expressed a clear intent
+      // Handle confirmation step intents specially
+      if ((intent as any).intent === 'confirmation_proceed') {
+        // User typed "yes" in confirmation step - trigger next_step action
+        return this.handleAction('next_step', { 
+          nextStep: 'recommendations', 
+          config: (intent as any).config 
+        }, state);
+      } else if ((intent as any).intent === 'confirmation_wait') {
+        // User typed "no" in confirmation step - stay in current step
+        const nextMessage = this.getNextStepMessage(state);
+        return {
+          ...state,
+          messages: [...newMessages, nextMessage],
+          currentQuestion: nextMessage.content
+        };
+      }
+      
+      // User has expressed a clear business intent
       const processingConfig = this.mapIntentToConfiguration(intent);
       const confirmationMessage: ConversationMessage = {
         id: this.generateId(),
@@ -504,8 +595,44 @@ export class ConversationManager {
   }
 
 
-  private detectIntent(message: string): ProcessingIntent | null {
+  private detectIntent(message: string, state?: ConversationState): ProcessingIntent | null {
     const lowerMessage = message.toLowerCase();
+
+    // Handle confirmation step responses
+    if (state?.conversationStep === 'confirmation') {
+      if (lowerMessage.includes('yes') || 
+          lowerMessage.includes('next') || 
+          lowerMessage.includes('proceed') || 
+          lowerMessage.includes('continue') ||
+          lowerMessage.includes('recommend') ||
+          lowerMessage.includes('step')) {
+        
+        // Return a special intent that will trigger the same action as the button
+        return {
+          intent: 'confirmation_proceed',
+          processingTypes: [],
+          configuration: {},
+          confidence: 1.0,
+          action: 'next_step',
+          nextStep: 'recommendations',
+          config: state.configuration
+        } as any;
+      }
+      
+      if (lowerMessage.includes('no') || 
+          lowerMessage.includes('wait') || 
+          lowerMessage.includes('hold') ||
+          lowerMessage.includes('stop')) {
+        
+        return {
+          intent: 'confirmation_wait',
+          processingTypes: [],
+          configuration: {},
+          confidence: 1.0,
+          action: 'stay_current_step'
+        } as any;
+      }
+    }
 
     // Sales intents
     if ((lowerMessage.includes('proposal') || lowerMessage.includes('opportunity')) && 
@@ -728,9 +855,32 @@ export class ConversationManager {
     console.log('ConversationManager: Handling action', action, 'with data', data, 'current step:', state.conversationStep);
     
     switch (action) {
+      case 'apply_recommendation':
+        console.log('ConversationManager: Applying recommendation', data.recommendationType);
+        // Process the recommendation based on type
+        newState.recommendationType = data.recommendationType;
+        newState.recommendationDescription = data.description;
+        
+        // Set the next step to show the recommendation applied message
+        newState.conversationStep = 'recommendation_applied';
+        break;
+        
       case 'next_step':
         console.log('ConversationManager: Moving from', state.conversationStep, 'to', data.nextStep);
+        console.log('ConversationManager: Full next_step data:', JSON.stringify(data));
+        // Add extra debugging for recommendation step
+        if (data.nextStep === 'recommendations') {
+          console.log('ConversationManager: IMPORTANT - Moving to recommendations step!');
+        }
         newState.conversationStep = data.nextStep;
+        // If config is provided in the data, update the state configuration
+        if (data.config) {
+          console.log('ConversationManager: Setting configuration from data.config:', data.config);
+          newState.configuration = data.config;
+          console.log('ConversationManager: newState.configuration after setting:', newState.configuration);
+        } else {
+          console.log('ConversationManager: No data.config provided in next_step action');
+        }
         break;
         
       case 'set_role':
@@ -800,6 +950,12 @@ export class ConversationManager {
       case 'set_kg_entities':
         newState.kgPreferences = { ...newState.kgPreferences, entityTypes: data.entities };
         newState.conversationStep = data.nextStep;
+        break;
+        
+      case 'direct_to_recommendations':
+        console.log('ConversationManager: Direct path to recommendations step');
+        // Force transition to recommendations step
+        newState.conversationStep = 'recommendations';
         break;
         
       case 'set_idp_preferences':
@@ -873,7 +1029,7 @@ export class ConversationManager {
       // Check if it needs specific arguments
       if (stepName === 'intro') {
         step = (stepFunction as any)(state.documentAnalysis?.documentType || 'document');
-      } else if (stepName === 'processing_selection' || stepName === 'confirmation') {
+      } else if (stepName === 'processing_selection' || stepName === 'confirmation' || stepName === 'recommendations') {
         step = (stepFunction as any)(state);
       } else {
         step = (stepFunction as any)();
@@ -1012,6 +1168,8 @@ export class ConversationManager {
   }
 
   private buildFinalConfiguration(state: ConversationState): any {
+    console.log('buildFinalConfiguration: Full state received:', state);
+    console.log('buildFinalConfiguration: state.configuration:', state.configuration);
     const baseConfig = state.configuration || {};
     const multimodal = state.multimodalPreferences || {};
     const kg = state.kgPreferences || {};
@@ -1022,7 +1180,7 @@ export class ConversationManager {
     
     // Build RAG configuration with multimodal preferences
     const ragConfig = {
-      ...baseConfig.rag,
+      ...(baseConfig.rag || {}),
       enabled: state.selectedProcessingTypes.includes('rag') || baseConfig.rag?.enabled || false,
       multimodal: {
         transcription: multimodal.hasAudio || false,
@@ -1035,7 +1193,7 @@ export class ConversationManager {
     
     // Build KG configuration
     const kgConfig = {
-      ...baseConfig.kg,
+      ...(baseConfig.kg || {}),
       enabled: state.selectedProcessingTypes.includes('kg') || kg.enabled || baseConfig.kg?.enabled || false,
       entityExtraction: kg.enabled || baseConfig.kg?.entityExtraction || false,
       relationMapping: kg.enabled || baseConfig.kg?.relationMapping || false,
@@ -1044,7 +1202,7 @@ export class ConversationManager {
     
     // Build IDP configuration
     const idpConfig = {
-      ...baseConfig.idp,
+      ...(baseConfig.idp || {}),
       enabled: state.selectedProcessingTypes.includes('idp') || idp.enabled || baseConfig.idp?.enabled || false,
       textExtraction: idp.enabled || baseConfig.idp?.textExtraction || false,
       classification: idp.extractType === 'metadata' || idp.extractType === 'full' || baseConfig.idp?.classification || false,

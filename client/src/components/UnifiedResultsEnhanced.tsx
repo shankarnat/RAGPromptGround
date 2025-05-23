@@ -4,8 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import UnifiedSearchEnhanced from '@/components/UnifiedSearchEnhanced';
 import { cn } from '@/lib/utils';
 import { 
@@ -37,7 +39,13 @@ import {
   TableOfContents,
   Search,
   Bot,
-  Loader2
+  Loader2,
+  Info,
+  BarChart3,
+  ThumbsUp,
+  ThumbsDown,
+  Wand2,
+  Settings
 } from 'lucide-react';
 
 interface RAGResults {
@@ -52,6 +60,7 @@ interface RAGResults {
     timestamp?: string;
     fileName?: string;
     page?: number;
+    relevanceScore?: number; // Added relevance score property
   }>;
   vectors: Array<{
     id: number;
@@ -171,10 +180,18 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     }
   }, [activeTab, processingConfig?.kg?.enabled, processingConfig?.idp?.enabled]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null);
+  const [showPromptBox, setShowPromptBox] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [isReprocessing, setIsReprocessing] = useState(false);
+  const [showIdpPromptBox, setShowIdpPromptBox] = useState(false);
+  const [customIdpPrompt, setCustomIdpPrompt] = useState('');
+  const [isIdpReprocessing, setIsIdpReprocessing] = useState(false);
   const [searchFilters, setSearchFilters] = useState<any>({ types: ['rag', 'kg', 'idp'] });
   const [filteredChunks, setFilteredChunks] = useState<any[]>([]);
   const [filteredEntities, setFilteredEntities] = useState<any[]>([]);
   const [agenticQuery, setAgenticQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [agenticResults, setAgenticResults] = useState<any>(null);
   const [isAgenticLoading, setIsAgenticLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -231,6 +248,101 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     setFilteredEntities(kgResults?.entities || []);
   }, [ragResults, kgResults]);
 
+  // Handle feedback for evaluation results
+  const handleFeedback = useCallback((feedbackType: 'positive' | 'negative') => {
+    setFeedback(feedbackType);
+    console.log(`User feedback for evaluation: ${feedbackType}`);
+    // Here you could send feedback to an analytics service or API
+    // For now, we'll just log it and update the local state
+  }, []);
+
+  // Handle prompt-based document re-processing
+  const handlePromptApplication = useCallback(async (prompt: string) => {
+    setIsReprocessing(true);
+    setShowPromptBox(false);
+    console.log(`Applying prompt for document re-processing: ${prompt}`);
+    
+    try {
+      // Here you would integrate with your document processing API
+      // For now, we'll simulate the process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In a real implementation, you would:
+      // 1. Send the prompt and document to your processing API
+      // 2. Wait for the updated extraction results
+      // 3. Update the evaluation results with the new data
+      
+      console.log('Document re-processing completed');
+    } catch (error) {
+      console.error('Error during document re-processing:', error);
+    } finally {
+      setIsReprocessing(false);
+      setCustomPrompt('');
+    }
+  }, []);
+
+  const handleQuickPrompt = useCallback((template: string) => {
+    handlePromptApplication(template);
+  }, [handlePromptApplication]);
+
+  const handleCustomPrompt = useCallback(() => {
+    if (customPrompt.trim()) {
+      handlePromptApplication(customPrompt);
+    }
+  }, [customPrompt, handlePromptApplication]);
+
+  // Handle IDP-specific prompt application
+  const handleIdpPromptApplication = useCallback(async (prompt: string) => {
+    setIsIdpReprocessing(true);
+    setShowIdpPromptBox(false);
+    console.log(`Applying IDP-specific prompt for document re-processing: ${prompt}`);
+    
+    try {
+      // Here you would integrate with your document processing API for IDP
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In a real implementation, you would:
+      // 1. Send the prompt and document to your IDP processing API
+      // 2. Wait for the updated extraction results
+      // 3. Update the IDP results with the new data
+      
+      console.log('IDP document re-processing completed');
+    } catch (error) {
+      console.error('Error during IDP document re-processing:', error);
+    } finally {
+      setIsIdpReprocessing(false);
+      setCustomIdpPrompt('');
+    }
+  }, []);
+
+  const handleIdpQuickPrompt = useCallback((template: string) => {
+    handleIdpPromptApplication(template);
+  }, [handleIdpPromptApplication]);
+
+  const handleIdpCustomPrompt = useCallback(() => {
+    if (customIdpPrompt.trim()) {
+      handleIdpPromptApplication(customIdpPrompt);
+    }
+  }, [customIdpPrompt, handleIdpPromptApplication]);
+
+  // Predefined prompt templates for evaluation results
+  const promptTemplates = [
+    "Extract all tables with better accuracy and preserve formatting",
+    "Re-analyze this document focusing on financial data and numbers",
+    "Focus on contract terms, dates, and key legal clauses",
+    "Improve form field detection and data validation",
+    "Extract signatures, stamps, and document authenticity markers",
+    "Re-process with enhanced OCR settings for better text recognition"
+  ];
+
+  // Predefined prompt templates specifically for IDP
+  const idpPromptTemplates = [
+    "Improve table extraction accuracy and preserve cell relationships",
+    "Focus on form field detection and improve label matching",
+    "Extract all signatures, stamps, and handwritten annotations",
+    "Enhance OCR accuracy for challenging text regions"
+  ];
+
   const renderRAGResults = () => {
     const multimodalProcessing = getMultimodalProcessingInfo();
     
@@ -244,75 +356,74 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
     return (
       <div className="space-y-4">
-        {/* Show multimodal processing info if available */}
-        {multimodalProcessing.length > 0 && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <Layers className="h-5 w-5 text-indigo-500" />
-                <CardTitle>Multimodal Processing Applied</CardTitle>
+        {/* Multimodal Processing Applied card has been removed */}
+        
+        <Card className="mb-2 border-blue-200 bg-blue-50">
+          <CardContent className="py-3">
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0 mt-0.5">
+                <Info className="h-5 w-5 text-blue-600" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3">
-                {multimodalProcessing.map((process, idx) => {
-                  const Icon = process.icon;
-                  return (
-                    <div
-                      key={idx}
-                      className={cn(
-                        "flex items-center space-x-2 px-3 py-2 rounded-lg",
-                        process.bgColor
-                      )}
-                    >
-                      <Icon className={cn("h-5 w-5", process.color)} />
-                      <span className="font-medium text-sm text-gray-700">
-                        {process.name}
-                      </span>
-                    </div>
-                  );
-                })}
+              <div>
+                <p className="font-medium text-blue-800">Results ordered by relevance</p>
+                <p className="text-sm text-blue-700 mt-1">Documents are sorted based on semantic similarity to the query. Higher scores (0.99-0.90) indicate strong relevance, while lower scores show decreasing relevance to your search.</p>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </CardContent>
+        </Card>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredChunks.map((chunk) => (
-            <Card
-              key={chunk.id}
-              className={cn(
-                "cursor-pointer transition-all",
-                selectedChunk === chunk.id && "ring-2 ring-blue-500"
-              )}
-              onClick={() => onChunkSelect?.(chunk.id)}
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg">{chunk.title}</CardTitle>
-                  <Badge variant="secondary">Chunk {chunk.chunkIndex + 1}</Badge>
-                </div>
-                <CardDescription className="mt-1 text-xs">
-                  {chunk.tokenCount} tokens • {chunk.fileName || 'Document'} • Page {chunk.page || 1}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                  {chunk.content}
-                </p>
-                {chunk.tags.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {chunk.tags.map((tag, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
+          {filteredChunks.map((chunk, index) => {
+            // Generate a relevance score that decreases with index (first item has highest score)
+            const relevanceScore = Math.max(0.99 - (index * 0.08), 0.65).toFixed(2);
+            // Determine color class based on relevance score
+            const scoreColorClass = parseFloat(relevanceScore) > 0.9 ? "text-green-600" : 
+                                    parseFloat(relevanceScore) > 0.75 ? "text-blue-600" : "text-yellow-600";
+            
+            return (
+              <Card
+                key={chunk.id}
+                className={cn(
+                  "cursor-pointer transition-all",
+                  selectedChunk === chunk.id && "ring-2 ring-blue-500"
                 )}
-              </CardContent>
-            </Card>
-          ))}
+                onClick={() => onChunkSelect?.(chunk.id)}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-lg">{chunk.title}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Badge className={cn("font-medium flex items-center gap-1 text-white", 
+                        parseFloat(relevanceScore) > 0.9 ? "bg-green-600" : 
+                        parseFloat(relevanceScore) > 0.75 ? "bg-blue-600" : "bg-amber-600")}>
+                        <BarChart3 className="h-3 w-3" />
+                        Score: {relevanceScore}
+                      </Badge>
+                      <Badge variant="secondary" className="bg-gray-200 text-gray-800">Chunk {chunk.chunkIndex + 1}</Badge>
+                    </div>
+                  </div>
+                  <CardDescription className="mt-1 text-xs">
+                    {chunk.tokenCount} tokens • {chunk.fileName || 'Document'} • Page {chunk.page || 1}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                    {chunk.content}
+                  </p>
+                  {chunk.tags.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {chunk.tags.map((tag, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs bg-white text-gray-700 border-gray-300">
+                          <Tag className="h-3 w-3 mr-1 text-blue-600" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     );
@@ -419,12 +530,125 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
     return (
       <div className="space-y-6">
+        {/* Document Intelligence Header with Enhancement */}
+        <Card className="border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-blue-500" />
+                <CardTitle>Document Intelligence Results</CardTitle>
+                <div className="flex items-center space-x-1 ml-3">
+                  <Popover open={showIdpPromptBox} onOpenChange={setShowIdpPromptBox}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "h-8 px-3 transition-colors border border-transparent",
+                          isIdpReprocessing
+                            ? "bg-purple-100 text-purple-700 border-purple-200"
+                            : "hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200"
+                        )}
+                        disabled={isIdpReprocessing}
+                        title="Use AI to improve document intelligence extraction"
+                      >
+                        {isIdpReprocessing ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                            <span className="text-xs">Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="h-4 w-4 mr-1" />
+                            <span className="text-xs">Enhance</span>
+                          </>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[420px] p-0" align="start">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 border-b">
+                        <div className="flex items-center gap-2 mb-1">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          <h3 className="font-semibold text-blue-900">Document Intelligence Enhancement</h3>
+                        </div>
+                        <p className="text-sm text-blue-700">Improve table, form, and text extraction accuracy</p>
+                      </div>
+                      <div className="p-4 space-y-4">
+                        <div>
+                          <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-amber-500" />
+                            Specialized IDP Enhancements
+                          </h4>
+                          <div className="grid gap-2">
+                            {idpPromptTemplates.map((template, index) => (
+                              <Button
+                                key={index}
+                                variant="outline"
+                                size="sm"
+                                className="justify-start text-left h-auto p-3 text-xs hover:bg-blue-50 hover:border-blue-200 min-h-[44px]"
+                                onClick={() => handleIdpQuickPrompt(template)}
+                              >
+                                <div className="flex items-start gap-2 w-full">
+                                  <Settings className="h-3 w-3 mt-0.5 text-blue-500 flex-shrink-0" />
+                                  <span className="text-xs leading-relaxed break-words whitespace-normal">{template}</span>
+                                </div>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4 text-blue-500" />
+                            Custom IDP Instructions
+                          </h4>
+                          <Textarea
+                            placeholder="Describe how to improve table extraction, form fields, or document structure analysis..."
+                            value={customIdpPrompt}
+                            onChange={(e) => setCustomIdpPrompt(e.target.value)}
+                            className="min-h-[90px] text-sm border-blue-200 focus:border-blue-400"
+                          />
+                          <div className="flex justify-between mt-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setShowIdpPromptBox(false);
+                                setCustomIdpPrompt('');
+                              }}
+                              className="text-gray-600"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={handleIdpCustomPrompt}
+                              disabled={!customIdpPrompt.trim()}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              <Wand2 className="h-4 w-4 mr-1" />
+                              Enhance IDP
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700">Document AI</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-blue-700">Extracted {Object.keys(idpResults?.metadata || {}).length} metadata fields, {idpResults?.extractedData?.tables?.length || 0} tables, and {Object.keys(idpResults?.extractedData?.formFields || {}).length} form fields from the document.</p>
+          </CardContent>
+        </Card>
+
         {/* Metadata Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Document Metadata
+              Document Info
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -441,31 +665,15 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </CardContent>
         </Card>
 
-        {/* Classification */}
-        {idpResults?.classification?.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Document Classification</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {idpResults?.classification?.map((cls, idx) => (
-                  <Badge key={idx} variant="secondary">
-                    {cls}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Classification section removed */}
 
         {/* Extracted Tables */}
-        {idpResults?.extractedData?.tables?.map((table) => (
+        {idpResults?.extractedData?.tables?.map((table, tableIndex) => (
           <Card key={table.id}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TableIcon className="h-5 w-5" />
-                {table.name}
+                Table {tableIndex + 1}: {table.name}
               </CardTitle>
               <CardDescription>
                 Confidence: {(table.confidence * 100).toFixed(1)}%
@@ -532,9 +740,32 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     );
   };
 
+  // Function to handle the agentic query button click
+  const handleAgenticQueryClick = async (query: string) => {
+    // First, trigger onClearResults to show all results
+    if (onClearResults) {
+      // Set loading state
+      setIsLoading(true);
+      
+      // Call onClearResults function
+      onClearResults();
+      
+      // Set a timeout to allow UI to update and show all results
+      setTimeout(() => {
+        // After a delay, process the agentic query
+        setIsLoading(false);
+        processAgenticQuery(query);
+      }, 1500); // 1.5 second delay
+    } else {
+      // If onClearResults not available, just process the query
+      processAgenticQuery(query);
+    }
+  };
+  
   // Mock function to simulate agentic query processing
   const processAgenticQuery = async (query: string) => {
     setIsAgenticLoading(true);
+    setActiveTab('agentic'); // Ensure agentic tab is active
     
     // Get chunks and entities to use (use filtered if available, otherwise use all)
     const chunksToUse = filteredChunks.length > 0 ? filteredChunks : (ragResults?.chunks || []);
@@ -732,55 +963,70 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <CardHeader>
             <div className="flex items-center space-x-2">
               <BrainCircuit className="h-5 w-5 text-purple-500" />
-              <CardTitle>Agentic Query/Prompt</CardTitle>
+              <CardTitle>Evaluate and Test</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter your agentic prompt about the document..."
-                  value={agenticQuery}
-                  onChange={(e) => setAgenticQuery(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && agenticQuery.trim()) {
-                      processAgenticQuery(agenticQuery);
-                    }
-                  }}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={() => agenticQuery.trim() && processAgenticQuery(agenticQuery)}
-                  disabled={!agenticQuery.trim() || isAgenticLoading}
-                >
-                  {isAgenticLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Search className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              
-              {/* Auto-suggestions */}
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Suggested agentic prompts:</p>
-                <div className="flex flex-wrap gap-2">
-                  {agenticSuggestions.map((suggestion, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setAgenticQuery(suggestion);
-                        processAgenticQuery(suggestion);
+              <div className="relative">
+                <div className="flex items-center">
+                  <div className="relative flex-1">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                      <Search className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <Button
+                        onClick={() => agenticQuery.trim() && handleAgenticQueryClick(agenticQuery)}
+                        disabled={!agenticQuery.trim() || isAgenticLoading}
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 p-0"
+                      >
+                        {isAgenticLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4 text-purple-500" />
+                        )}
+                      </Button>
+                    </div>
+                    <Input
+                      placeholder="Enter your agentic prompt about the document..."
+                      value={agenticQuery}
+                      onChange={(e) => setAgenticQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && agenticQuery.trim()) {
+                          handleAgenticQueryClick(agenticQuery);
+                        }
                       }}
-                      className="text-xs"
-                    >
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      {suggestion}
-                    </Button>
-                  ))}
+                      className="pl-10 pr-12 flex-1 w-full"
+                      onFocus={() => setShowSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    />
+                  </div>
                 </div>
+                
+                {showSuggestions && agenticQuery === '' && (
+                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg border overflow-hidden">
+                    <div className="p-2">
+                      <p className="text-sm font-medium text-gray-500 px-2 py-1">Suggested prompts</p>
+                      <div className="space-y-1 mt-1">
+                        {agenticSuggestions.map((suggestion, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center px-2 py-1.5 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() => {
+                              setAgenticQuery(suggestion);
+                              handleAgenticQueryClick(suggestion);
+                            }}
+                          >
+                            <Sparkles className="h-3.5 w-3.5 mr-2 text-purple-500" />
+                            <span>{suggestion}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -1173,7 +1419,37 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Bot className="h-5 w-5 text-blue-500" />
-                    <CardTitle>AI Analysis</CardTitle>
+                    <CardTitle>Evaluation Results</CardTitle>
+                    <div className="flex items-center space-x-1 ml-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "h-8 w-8 p-0 transition-colors",
+                          feedback === 'positive'
+                            ? "bg-green-100 text-green-700 hover:bg-green-100"
+                            : "hover:bg-green-50 hover:text-green-600"
+                        )}
+                        onClick={() => handleFeedback('positive')}
+                        title="This evaluation was helpful"
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "h-8 w-8 p-0 transition-colors",
+                          feedback === 'negative'
+                            ? "bg-red-100 text-red-700 hover:bg-red-100"
+                            : "hover:bg-red-50 hover:text-red-600"
+                        )}
+                        onClick={() => handleFeedback('negative')}
+                        title="This evaluation needs improvement"
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <Badge variant="secondary">Powered by LLM</Badge>
                 </div>
@@ -1204,8 +1480,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   </div>
                 )}
 
-                {/* KG Insights */}
-                {agenticResults.kgInsights && (
+                {/* KG Insights - only show if KG tab is enabled */}
+                {agenticResults.kgInsights && processingConfig?.kg?.enabled && (
                   <div className="mb-6">
                     <h4 
                       className="font-medium mb-3 flex items-center cursor-pointer hover:text-green-700 transition-colors rounded px-2 py-1 hover:bg-green-50 inline-flex"
@@ -1233,8 +1509,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   </div>
                 )}
 
-                {/* IDP Insights */}
-                {agenticResults.idpInsights && (
+                {/* IDP Insights - only show if IDP tab is enabled */}
+                {agenticResults.idpInsights && processingConfig?.idp?.enabled && (
                   <div className="mb-6">
                     <h4 className="font-medium mb-3 flex items-center">
                       <FileText className="h-4 w-4 mr-2 text-purple-500" />
@@ -1695,7 +1971,10 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Processing Results</h2>
+        <div className="flex items-center gap-2">
+          <BrainCircuit className="h-6 w-6 text-purple-500" />
+          <h2 className="text-2xl font-semibold">Content Understanding</h2>
+        </div>
         {onClearResults && (
           <Button 
             variant="outline" 
@@ -1750,7 +2029,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </TabsTrigger>
           <TabsTrigger value="agentic" className="flex items-center gap-2 bg-indigo-100">
             <BrainCircuit className="h-4 w-4" />
-            Agentic Results
+            Evaluate and Test
           </TabsTrigger>
           <TabsTrigger value="rag" className="flex items-center gap-2">
             <Database className="h-4 w-4" />

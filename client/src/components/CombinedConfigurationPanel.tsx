@@ -660,10 +660,7 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
         </Accordion>
       </div>
       
-      {/* Fixed Finalize and Create Index Button */}
-      <div className="p-3 bg-gray-50 border-t border-gray-200 mt-auto">
-        <FinalizeIndexButton className="w-full text-white font-medium" />
-      </div>
+      {/* Finalize and Create Index Button has been hidden */}
     </div>
   );
 };
