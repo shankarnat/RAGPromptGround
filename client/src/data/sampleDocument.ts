@@ -2,18 +2,18 @@ import { MetadataField } from "@shared/schema";
 
 // Financial CSV data example - formatted as a table
 export const financialCsvDocument = {
-  title: "Financial Transactions 2024 (CSV)",
+  title: "Honda_Acura_Parts_Inventory_2025 (CSV)",
   pageCount: 1,
   content: `<table class="w-full border-collapse">
   <thead class="bg-slate-100">
     <tr>
-      <th class="border border-slate-300 p-2 text-left">Transaction_ID</th>
-      <th class="border border-slate-300 p-2 text-left">Date</th>
-      <th class="border border-slate-300 p-2 text-left">Customer_ID</th>
-      <th class="border border-slate-300 p-2 text-left">Product_ID</th>
+      <th class="border border-slate-300 p-2 text-left">Part_Number</th>
+      <th class="border border-slate-300 p-2 text-left">Date_Added</th>
+      <th class="border border-slate-300 p-2 text-left">Vehicle_Model</th>
+      <th class="border border-slate-300 p-2 text-left">Part_Name</th>
       <th class="border border-slate-300 p-2 text-left">Category</th>
-      <th class="border border-slate-300 p-2 text-left">Amount</th>
-      <th class="border border-slate-300 p-2 text-left">Payment_Method</th>
+      <th class="border border-slate-300 p-2 text-left">Price</th>
+      <th class="border border-slate-300 p-2 text-left">Availability</th>
       <th class="border border-slate-300 p-2 text-left">Status</th>
       <th class="border border-slate-300 p-2 text-left">Location</th>
       <th class="border border-slate-300 p-2 text-left">Notes</th>
@@ -21,180 +21,200 @@ export const financialCsvDocument = {
   </thead>
   <tbody>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045678</td>
-      <td class="border border-slate-300 p-2">2024-01-15</td>
-      <td class="border border-slate-300 p-2">CUST8821</td>
-      <td class="border border-slate-300 p-2">PROD334</td>
-      <td class="border border-slate-300 p-2">Electronics</td>
-      <td class="border border-slate-300 p-2">1299.99</td>
-      <td class="border border-slate-300 p-2">Credit Card</td>
-      <td class="border border-slate-300 p-2">Completed</td>
-      <td class="border border-slate-300 p-2">New York</td>
-      <td class="border border-slate-300 p-2">High-end laptop purchase</td>
+      <td class="border border-slate-300 p-2">17220-5PH-A01</td>
+      <td class="border border-slate-300 p-2">2025-01-15</td>
+      <td class="border border-slate-300 p-2">Accord 2024</td>
+      <td class="border border-slate-300 p-2">Air Filter</td>
+      <td class="border border-slate-300 p-2">Engine</td>
+      <td class="border border-slate-300 p-2">34.99</td>
+      <td class="border border-slate-300 p-2">In Stock</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse A</td>
+      <td class="border border-slate-300 p-2">OEM replacement part</td>
     </tr>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045679</td>
-      <td class="border border-slate-300 p-2">2024-01-15</td>
-      <td class="border border-slate-300 p-2">CUST4532</td>
-      <td class="border border-slate-300 p-2">PROD112</td>
-      <td class="border border-slate-300 p-2">Clothing</td>
-      <td class="border border-slate-300 p-2">78.50</td>
-      <td class="border border-slate-300 p-2">Debit Card</td>
-      <td class="border border-slate-300 p-2">Completed</td>
-      <td class="border border-slate-300 p-2">Chicago</td>
-      <td class="border border-slate-300 p-2">Winter sale items</td>
+      <td class="border border-slate-300 p-2">51300-TZ5-A03</td>
+      <td class="border border-slate-300 p-2">2025-01-15</td>
+      <td class="border border-slate-300 p-2">MDX 2025</td>
+      <td class="border border-slate-300 p-2">Front Shock Absorber</td>
+      <td class="border border-slate-300 p-2">Suspension</td>
+      <td class="border border-slate-300 p-2">189.50</td>
+      <td class="border border-slate-300 p-2">In Stock</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse B</td>
+      <td class="border border-slate-300 p-2">Premium damping technology</td>
     </tr>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045680</td>
-      <td class="border border-slate-300 p-2">2024-01-16</td>
-      <td class="border border-slate-300 p-2">CUST9012</td>
-      <td class="border border-slate-300 p-2">PROD445</td>
-      <td class="border border-slate-300 p-2">Home Goods</td>
-      <td class="border border-slate-300 p-2">249.95</td>
-      <td class="border border-slate-300 p-2">PayPal</td>
-      <td class="border border-slate-300 p-2">Completed</td>
-      <td class="border border-slate-300 p-2">San Francisco</td>
-      <td class="border border-slate-300 p-2">Kitchen appliance</td>
+      <td class="border border-slate-300 p-2">45251-STK-A01</td>
+      <td class="border border-slate-300 p-2">2025-01-16</td>
+      <td class="border border-slate-300 p-2">Civic 2025</td>
+      <td class="border border-slate-300 p-2">Brake Pad Set</td>
+      <td class="border border-slate-300 p-2">Brakes</td>
+      <td class="border border-slate-300 p-2">67.95</td>
+      <td class="border border-slate-300 p-2">In Stock</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse A</td>
+      <td class="border border-slate-300 p-2">Ceramic compound</td>
     </tr>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045681</td>
-      <td class="border border-slate-300 p-2">2024-01-16</td>
-      <td class="border border-slate-300 p-2">CUST2345</td>
-      <td class="border border-slate-300 p-2">PROD223</td>
-      <td class="border border-slate-300 p-2">Electronics</td>
-      <td class="border border-slate-300 p-2">899.00</td>
-      <td class="border border-slate-300 p-2">Credit Card</td>
-      <td class="border border-slate-300 p-2">Completed</td>
-      <td class="border border-slate-300 p-2">Los Angeles</td>
-      <td class="border border-slate-300 p-2">Smartphone purchase</td>
+      <td class="border border-slate-300 p-2">19200-5J6-A05</td>
+      <td class="border border-slate-300 p-2">2025-01-16</td>
+      <td class="border border-slate-300 p-2">TLX 2024</td>
+      <td class="border border-slate-300 p-2">Water Pump</td>
+      <td class="border border-slate-300 p-2">Cooling</td>
+      <td class="border border-slate-300 p-2">142.00</td>
+      <td class="border border-slate-300 p-2">In Stock</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse C</td>
+      <td class="border border-slate-300 p-2">High-flow design</td>
     </tr>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045682</td>
-      <td class="border border-slate-300 p-2">2024-01-17</td>
-      <td class="border border-slate-300 p-2">CUST7865</td>
-      <td class="border border-slate-300 p-2">PROD556</td>
-      <td class="border border-slate-300 p-2">Furniture</td>
-      <td class="border border-slate-300 p-2">1845.75</td>
-      <td class="border border-slate-300 p-2">Financing</td>
-      <td class="border border-slate-300 p-2">Processing</td>
-      <td class="border border-slate-300 p-2">Dallas</td>
-      <td class="border border-slate-300 p-2">Living room set</td>
+      <td class="border border-slate-300 p-2">15400-PLM-A02</td>
+      <td class="border border-slate-300 p-2">2025-01-17</td>
+      <td class="border border-slate-300 p-2">CR-V 2025</td>
+      <td class="border border-slate-300 p-2">Oil Filter</td>
+      <td class="border border-slate-300 p-2">Engine</td>
+      <td class="border border-slate-300 p-2">12.75</td>
+      <td class="border border-slate-300 p-2">Low Stock</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse A</td>
+      <td class="border border-slate-300 p-2">Genuine Honda part</td>
     </tr>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045683</td>
-      <td class="border border-slate-300 p-2">2024-01-17</td>
-      <td class="border border-slate-300 p-2">CUST3421</td>
-      <td class="border border-slate-300 p-2">PROD667</td>
-      <td class="border border-slate-300 p-2">Clothing</td>
-      <td class="border border-slate-300 p-2">125.40</td>
-      <td class="border border-slate-300 p-2">Gift Card</td>
-      <td class="border border-slate-300 p-2">Completed</td>
-      <td class="border border-slate-300 p-2">Miami</td>
-      <td class="border border-slate-300 p-2">Birthday present purchase</td>
+      <td class="border border-slate-300 p-2">42700-T2A-A93</td>
+      <td class="border border-slate-300 p-2">2025-01-17</td>
+      <td class="border border-slate-300 p-2">Pilot 2024</td>
+      <td class="border border-slate-300 p-2">Wheel Hub Assembly</td>
+      <td class="border border-slate-300 p-2">Wheels</td>
+      <td class="border border-slate-300 p-2">225.40</td>
+      <td class="border border-slate-300 p-2">In Stock</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse B</td>
+      <td class="border border-slate-300 p-2">With ABS sensor</td>
     </tr>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045684</td>
-      <td class="border border-slate-300 p-2">2024-01-18</td>
-      <td class="border border-slate-300 p-2">CUST5678</td>
-      <td class="border border-slate-300 p-2">PROD778</td>
-      <td class="border border-slate-300 p-2">Electronics</td>
-      <td class="border border-slate-300 p-2">599.99</td>
-      <td class="border border-slate-300 p-2">Credit Card</td>
-      <td class="border border-slate-300 p-2">Completed</td>
-      <td class="border border-slate-300 p-2">Seattle</td>
-      <td class="border border-slate-300 p-2">Gaming console</td>
+      <td class="border border-slate-300 p-2">12251-R70-A01</td>
+      <td class="border border-slate-300 p-2">2025-01-18</td>
+      <td class="border border-slate-300 p-2">RDX 2025</td>
+      <td class="border border-slate-300 p-2">Cylinder Head Gasket</td>
+      <td class="border border-slate-300 p-2">Engine</td>
+      <td class="border border-slate-300 p-2">89.99</td>
+      <td class="border border-slate-300 p-2">In Stock</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse C</td>
+      <td class="border border-slate-300 p-2">Multi-layer steel</td>
     </tr>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045685</td>
-      <td class="border border-slate-300 p-2">2024-01-18</td>
-      <td class="border border-slate-300 p-2">CUST8976</td>
-      <td class="border border-slate-300 p-2">PROD889</td>
-      <td class="border border-slate-300 p-2">Grocery</td>
-      <td class="border border-slate-300 p-2">156.78</td>
-      <td class="border border-slate-300 p-2">Debit Card</td>
-      <td class="border border-slate-300 p-2">Completed</td>
-      <td class="border border-slate-300 p-2">Boston</td>
-      <td class="border border-slate-300 p-2">Weekly groceries</td>
+      <td class="border border-slate-300 p-2">76250-TK8-A01</td>
+      <td class="border border-slate-300 p-2">2025-01-18</td>
+      <td class="border border-slate-300 p-2">Odyssey 2025</td>
+      <td class="border border-slate-300 p-2">Windshield Wiper</td>
+      <td class="border border-slate-300 p-2">Body</td>
+      <td class="border border-slate-300 p-2">28.78</td>
+      <td class="border border-slate-300 p-2">In Stock</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse A</td>
+      <td class="border border-slate-300 p-2">All-weather blade</td>
     </tr>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045686</td>
-      <td class="border border-slate-300 p-2">2024-01-19</td>
-      <td class="border border-slate-300 p-2">CUST2468</td>
-      <td class="border border-slate-300 p-2">PROD990</td>
-      <td class="border border-slate-300 p-2">Home Goods</td>
-      <td class="border border-slate-300 p-2">89.95</td>
-      <td class="border border-slate-300 p-2">PayPal</td>
-      <td class="border border-slate-300 p-2">Completed</td>
-      <td class="border border-slate-300 p-2">Phoenix</td>
-      <td class="border border-slate-300 p-2">Home decor items</td>
+      <td class="border border-slate-300 p-2">31110-5G0-A03</td>
+      <td class="border border-slate-300 p-2">2025-01-19</td>
+      <td class="border border-slate-300 p-2">HR-V 2025</td>
+      <td class="border border-slate-300 p-2">Alternator</td>
+      <td class="border border-slate-300 p-2">Electrical</td>
+      <td class="border border-slate-300 p-2">389.95</td>
+      <td class="border border-slate-300 p-2">On Order</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse B</td>
+      <td class="border border-slate-300 p-2">150A output</td>
     </tr>
     <tr>
-      <td class="border border-slate-300 p-2">TX10045687</td>
-      <td class="border border-slate-300 p-2">2024-01-19</td>
-      <td class="border border-slate-300 p-2">CUST1357</td>
-      <td class="border border-slate-300 p-2">PROD112</td>
-      <td class="border border-slate-300 p-2">Clothing</td>
-      <td class="border border-slate-300 p-2">245.00</td>
-      <td class="border border-slate-300 p-2">Credit Card</td>
-      <td class="border border-slate-300 p-2">Refunded</td>
-      <td class="border border-slate-300 p-2">Denver</td>
-      <td class="border border-slate-300 p-2">Return due to sizing issue</td>
+      <td class="border border-slate-300 p-2">22205-5BA-A03</td>
+      <td class="border border-slate-300 p-2">2025-01-19</td>
+      <td class="border border-slate-300 p-2">Integra 2024</td>
+      <td class="border border-slate-300 p-2">Clutch Kit</td>
+      <td class="border border-slate-300 p-2">Transmission</td>
+      <td class="border border-slate-300 p-2">445.00</td>
+      <td class="border border-slate-300 p-2">In Stock</td>
+      <td class="border border-slate-300 p-2">Active</td>
+      <td class="border border-slate-300 p-2">Warehouse C</td>
+      <td class="border border-slate-300 p-2">Performance upgrade</td>
     </tr>
   </tbody>
 </table>`
 };
 
-// Financial report example (original)
+// Automotive Parts CSV data example - formatted as a table
+export const automotivePartsDocument = financialCsvDocument;
+
+// Honda/Acura Service Manual example
 export const sampleDocument = {
-  title: "Financial Report Q4 2024",
-  pageCount: 23,
-  content: `# Financial Report Q4 2024
+  title: "Honda_Acura_2025_Manual.PDF",
+  pageCount: 156,
+  content: `# Honda/Acura 2025 Service Manual
 
 ## Executive Summary
 
-The fourth quarter of 2024 showed strong performance across all business units. Revenue increased by 12% year-over-year, reaching $128.5 million, while operating margins improved to 28.3% from 26.7% in the same period last year. The company's strategic investments in artificial intelligence and machine learning capabilities have begun to yield results, with efficiency improvements noted across several operational metrics.
+This comprehensive service manual covers all 2025 Honda and Acura models, providing detailed technical specifications, maintenance procedures, and diagnostic information. The manual has been updated to include the latest hybrid and electric vehicle technologies, advanced driver assistance systems (ADAS), and connected vehicle features introduced in the 2025 model year.
 
-## Revenue Breakdown
+## Vehicle Model Coverage
 
-| Business Segment | Q4 2024 ($M) | Q4 2023 ($M) | YoY Change |
-|------------------|--------------|--------------|------------|
-| Enterprise Solutions | 58.2 | 51.8 | +12.4% |
-| Consumer Products | 42.3 | 39.7 | +6.5% |
-| Emerging Markets | 28.0 | 22.6 | +23.9% |
-| **Total** | **128.5** | **114.1** | **+12.6%** |
+| Model | Platform | Engine Options | Transmission |
+|-------|----------|----------------|-------------|
+| Accord | Mid-Size Sedan | 1.5L Turbo, 2.0L Hybrid | CVT, 10AT |
+| CR-V | Compact SUV | 1.5L Turbo, 2.0L Hybrid | CVT |
+| Pilot | 3-Row SUV | 3.5L V6, 2.0L Turbo Hybrid | 10AT |
+| MDX | Luxury SUV | 3.0L Turbo, Type S 3.0L | 10AT |
+| TLX | Sport Sedan | 2.0L Turbo, 3.0L Type S | 10AT |
+| **Total Models** | **15** | **22 Variants** | **4 Types** |
 
-## Key Performance Indicators
+## Service Intervals & Maintenance
 
-- Customer acquisition cost decreased by 8.2%
-- Customer lifetime value increased by 14.5%
-- Net Promoter Score improved from 68 to 72
-- Monthly recurring revenue growth rate: 2.8%
+- Engine Oil Change: 7,500-10,000 miles (based on oil life monitor)
+- Transmission Fluid: 30,000-60,000 miles (varies by model)
+- Brake Fluid Replacement: Every 3 years
+- Engine Air Filter: 30,000 miles
+- Cabin Air Filter: 15,000-20,000 miles
 
-## Regional Performance
+## Technical Specifications Overview
 
-North America continues to be our strongest market, accounting for 62% of total revenue. However, we've seen accelerated growth in the APAC region, which grew by 31% year-over-year and now represents 18% of our global revenue.
+All 2025 models feature enhanced safety systems including:
 
-## Risk Factors
+1. Honda SENSING® / AcuraWatch™ suite standard
+2. Blind Spot Information System with Cross Traffic Monitor
+3. Traffic Jam Assist (selected models)
+4. Wireless Apple CarPlay® and Android Auto™ compatibility
 
-While performance has been strong, we note several risk factors that require ongoing monitoring:
+## Common Service Procedures
 
-1. Increasing competitive pressure in the Enterprise Solutions segment
-2. Regulatory changes in European markets affecting data privacy compliance costs
-3. Foreign exchange volatility impacting international revenue
-4. Supply chain constraints affecting hardware component availability
+This manual includes step-by-step procedures for:
 
-## Outlook for 2025
+1. Engine diagnostics and trouble code reading
+2. Brake system inspection and service
+3. Suspension component replacement
+4. ADAS calibration procedures
+5. Hybrid battery system maintenance
+6. Infotainment system updates and troubleshooting
 
-We maintain our positive outlook for fiscal year 2025, with projected revenue growth of 15-18% and further margin expansion expected. Key growth initiatives include:
+## Safety Precautions
 
-- Expansion of AI-powered solutions across our product portfolio
-- Deeper penetration in healthcare and financial services verticals
-- Launch of next-generation platform scheduled for Q2 2025
-- Strategic acquisitions to enhance technological capabilities
+When servicing 2025 Honda/Acura vehicles, technicians must observe:
+
+- High-voltage safety procedures for hybrid/electric models
+- Proper SRS (airbag) system handling protocols
+- ADAS sensor calibration requirements after windshield replacement
+- Refrigerant handling procedures for R-1234yf systems
+
+## Diagnostic Equipment Requirements
+
+- Honda Diagnostic System (HDS) or i-HDS tablet
+- ADAS calibration targets and alignment equipment
+- Digital multimeter with high-voltage capabilities
+- Refrigerant recovery and recycling equipment
 
 ## Conclusion
 
-The strong Q4 2024 results provide momentum as we enter the new fiscal year. Our focus on innovation, operational excellence, and strategic expansion positions us well for continued growth despite macroeconomic uncertainties.`
+This service manual provides comprehensive guidance for maintaining and repairing 2025 Honda and Acura vehicles. Regular updates will be provided through the Honda Service Express system to ensure technicians have access to the latest procedures and specifications.`
 };
 
 // Financial CSV data chunks - for each row, text field becomes a separate chunk
@@ -204,46 +224,46 @@ export const financialCsvChunks = [
     id: 101,
     documentId: 2,
     title: "Row 1: Category",
-    content: "Electronics",
+    content: "Engine",
     tokenCount: 1,
     chunkIndex: 1,
-    tags: ["row-1", "category", "electronics"]
+    tags: ["row-1", "category", "engine"]
   },
   {
     id: 102,
     documentId: 2,
-    title: "Row 1: Payment Method",
-    content: "Credit Card",
+    title: "Row 1: Part Name",
+    content: "Air Filter",
     tokenCount: 2,
     chunkIndex: 2,
-    tags: ["row-1", "payment", "credit-card"]
+    tags: ["row-1", "part", "air-filter"]
   },
   {
     id: 103,
     documentId: 2,
     title: "Row 1: Status",
-    content: "Completed",
+    content: "Active",
     tokenCount: 1,
     chunkIndex: 3,
-    tags: ["row-1", "status", "completed"]
+    tags: ["row-1", "status", "active"]
   },
   {
     id: 104,
     documentId: 2,
     title: "Row 1: Location",
-    content: "New York",
+    content: "Warehouse A",
     tokenCount: 2, 
     chunkIndex: 4,
-    tags: ["row-1", "location", "new-york"]
+    tags: ["row-1", "location", "warehouse-a"]
   },
   {
     id: 105,
     documentId: 2,
     title: "Row 1: Notes",
-    content: "High-end laptop purchase",
-    tokenCount: 4,
+    content: "OEM replacement part",
+    tokenCount: 3,
     chunkIndex: 5,
-    tags: ["row-1", "notes", "purchase", "electronics"]
+    tags: ["row-1", "notes", "oem", "replacement"]
   },
   
   // Row 2 - Text field chunks
@@ -251,46 +271,46 @@ export const financialCsvChunks = [
     id: 106,
     documentId: 2,
     title: "Row 2: Category",
-    content: "Clothing",
+    content: "Suspension",
     tokenCount: 1,
     chunkIndex: 6,
-    tags: ["row-2", "category", "clothing"]
+    tags: ["row-2", "category", "suspension"]
   },
   {
     id: 107,
     documentId: 2,
-    title: "Row 2: Payment Method",
-    content: "Debit Card",
-    tokenCount: 2,
+    title: "Row 2: Part Name",
+    content: "Front Shock Absorber",
+    tokenCount: 3,
     chunkIndex: 7,
-    tags: ["row-2", "payment", "debit-card"]
+    tags: ["row-2", "part", "shock-absorber"]
   },
   {
     id: 108,
     documentId: 2,
     title: "Row 2: Status",
-    content: "Completed",
+    content: "Active",
     tokenCount: 1,
     chunkIndex: 8,
-    tags: ["row-2", "status", "completed"]
+    tags: ["row-2", "status", "active"]
   },
   {
     id: 109,
     documentId: 2,
     title: "Row 2: Location",
-    content: "Chicago",
-    tokenCount: 1,
+    content: "Warehouse B",
+    tokenCount: 2,
     chunkIndex: 9,
-    tags: ["row-2", "location", "chicago"]
+    tags: ["row-2", "location", "warehouse-b"]
   },
   {
     id: 110,
     documentId: 2,
     title: "Row 2: Notes",
-    content: "Winter sale items",
+    content: "Premium damping technology",
     tokenCount: 3,
     chunkIndex: 10,
-    tags: ["row-2", "notes", "sale", "winter"]
+    tags: ["row-2", "notes", "premium", "technology"]
   },
   
   // Row 3 - Text field chunks
@@ -298,46 +318,46 @@ export const financialCsvChunks = [
     id: 111,
     documentId: 2,
     title: "Row 3: Category",
-    content: "Home Goods",
-    tokenCount: 2,
+    content: "Brakes",
+    tokenCount: 1,
     chunkIndex: 11,
-    tags: ["row-3", "category", "home-goods"]
+    tags: ["row-3", "category", "brakes"]
   },
   {
     id: 112,
     documentId: 2,
-    title: "Row 3: Payment Method",
-    content: "PayPal",
-    tokenCount: 1,
+    title: "Row 3: Part Name",
+    content: "Brake Pad Set",
+    tokenCount: 3,
     chunkIndex: 12,
-    tags: ["row-3", "payment", "paypal"]
+    tags: ["row-3", "part", "brake-pads"]
   },
   {
     id: 113,
     documentId: 2,
     title: "Row 3: Status",
-    content: "Completed",
+    content: "Active",
     tokenCount: 1,
     chunkIndex: 13,
-    tags: ["row-3", "status", "completed"]
+    tags: ["row-3", "status", "active"]
   },
   {
     id: 114,
     documentId: 2,
     title: "Row 3: Location",
-    content: "San Francisco",
+    content: "Warehouse A",
     tokenCount: 2,
     chunkIndex: 14,
-    tags: ["row-3", "location", "san-francisco"]
+    tags: ["row-3", "location", "warehouse-a"]
   },
   {
     id: 115,
     documentId: 2,
     title: "Row 3: Notes",
-    content: "Kitchen appliance",
+    content: "Ceramic compound",
     tokenCount: 2,
     chunkIndex: 15,
-    tags: ["row-3", "notes", "kitchen", "appliance"]
+    tags: ["row-3", "notes", "ceramic", "compound"]
   },
   
   // Row 4 - Text field chunks
@@ -345,46 +365,46 @@ export const financialCsvChunks = [
     id: 116,
     documentId: 2,
     title: "Row 4: Category",
-    content: "Electronics",
+    content: "Cooling",
     tokenCount: 1,
     chunkIndex: 16,
-    tags: ["row-4", "category", "electronics"]
+    tags: ["row-4", "category", "cooling"]
   },
   {
     id: 117,
     documentId: 2,
-    title: "Row 4: Payment Method",
-    content: "Credit Card",
+    title: "Row 4: Part Name",
+    content: "Water Pump",
     tokenCount: 2,
     chunkIndex: 17,
-    tags: ["row-4", "payment", "credit-card"]
+    tags: ["row-4", "part", "water-pump"]
   },
   {
     id: 118,
     documentId: 2,
     title: "Row 4: Status",
-    content: "Completed",
+    content: "Active",
     tokenCount: 1,
     chunkIndex: 18,
-    tags: ["row-4", "status", "completed"]
+    tags: ["row-4", "status", "active"]
   },
   {
     id: 119,
     documentId: 2,
     title: "Row 4: Location",
-    content: "Los Angeles",
+    content: "Warehouse C",
     tokenCount: 2,
     chunkIndex: 19,
-    tags: ["row-4", "location", "los-angeles"]
+    tags: ["row-4", "location", "warehouse-c"]
   },
   {
     id: 120,
     documentId: 2,
     title: "Row 4: Notes",
-    content: "Smartphone purchase",
-    tokenCount: 2,
+    content: "High-flow design",
+    tokenCount: 3,
     chunkIndex: 20,
-    tags: ["row-4", "notes", "smartphone", "purchase"]
+    tags: ["row-4", "notes", "high-flow", "design"]
   },
   
   // Row 5 - Text field chunks
@@ -392,122 +412,125 @@ export const financialCsvChunks = [
     id: 121,
     documentId: 2,
     title: "Row 5: Category",
-    content: "Furniture",
+    content: "Engine",
     tokenCount: 1,
     chunkIndex: 21,
-    tags: ["row-5", "category", "furniture"]
+    tags: ["row-5", "category", "engine"]
   },
   {
     id: 122,
     documentId: 2,
-    title: "Row 5: Payment Method",
-    content: "Financing",
-    tokenCount: 1,
+    title: "Row 5: Part Name",
+    content: "Oil Filter",
+    tokenCount: 2,
     chunkIndex: 22,
-    tags: ["row-5", "payment", "financing"]
+    tags: ["row-5", "part", "oil-filter"]
   },
   {
     id: 123,
     documentId: 2,
     title: "Row 5: Status",
-    content: "Processing",
+    content: "Active",
     tokenCount: 1,
     chunkIndex: 23,
-    tags: ["row-5", "status", "processing"]
+    tags: ["row-5", "status", "active"]
   },
   {
     id: 124,
     documentId: 2,
     title: "Row 5: Location",
-    content: "Dallas",
-    tokenCount: 1,
+    content: "Warehouse A",
+    tokenCount: 2,
     chunkIndex: 24,
-    tags: ["row-5", "location", "dallas"]
+    tags: ["row-5", "location", "warehouse-a"]
   },
   {
     id: 125,
     documentId: 2,
     title: "Row 5: Notes",
-    content: "Living room set",
+    content: "Genuine Honda part",
     tokenCount: 3,
     chunkIndex: 25,
-    tags: ["row-5", "notes", "furniture", "living-room"]
+    tags: ["row-5", "notes", "genuine", "honda"]
   }
 ];
 
-// Original financial report chunks
+// Automotive Parts CSV data chunks
+export const automotivePartsCsvChunks = financialCsvChunks;
+
+// Honda/Acura service manual chunks
 export const sampleChunks = [
   {
     id: 1,
     documentId: 1,
     title: "Executive Summary",
-    content: "The fourth quarter of 2024 showed strong performance across all business units. Revenue increased by 12% year-over-year, reaching $128.5 million, while operating margins improved to 28.3% from 26.7% in the same period last year.",
-    tokenCount: 42,
+    content: "This comprehensive service manual covers all 2025 Honda and Acura models, providing detailed technical specifications, maintenance procedures, and diagnostic information. The manual has been updated to include the latest hybrid and electric vehicle technologies.",
+    tokenCount: 38,
     chunkIndex: 1,
-    tags: ["summary", "performance", "revenue"]
+    tags: ["summary", "service", "manual", "2025"]
   },
   {
     id: 2,
     documentId: 1,
     title: "Executive Summary (continued)",
-    content: "The company's strategic investments in artificial intelligence and machine learning capabilities have begun to yield results, with efficiency improvements noted across several operational metrics.",
-    tokenCount: 29,
+    content: "Advanced driver assistance systems (ADAS), and connected vehicle features introduced in the 2025 model year are covered in detail with calibration procedures and safety precautions.",
+    tokenCount: 27,
     chunkIndex: 2,
-    tags: ["summary", "AI", "machine learning", "efficiency"]
+    tags: ["summary", "ADAS", "safety", "technology"]
   },
   {
     id: 3,
     documentId: 1,
-    title: "Revenue Breakdown",
-    content: "| Business Segment | Q4 2024 ($M) | Q4 2023 ($M) | YoY Change |\n|------------------|--------------|--------------|------------|\n| Enterprise Solutions | 58.2 | 51.8 | +12.4% |\n| Consumer Products | 42.3 | 39.7 | +6.5% |\n| Emerging Markets | 28.0 | 22.6 | +23.9% |\n| **Total** | **128.5** | **114.1** | **+12.6%** |",
-    tokenCount: 56,
+    title: "Vehicle Model Coverage",
+    content: "| Model | Platform | Engine Options | Transmission |\n|-------|----------|----------------|-------------|\n| Accord | Mid-Size Sedan | 1.5L Turbo, 2.0L Hybrid | CVT, 10AT |\n| CR-V | Compact SUV | 1.5L Turbo, 2.0L Hybrid | CVT |\n| Pilot | 3-Row SUV | 3.5L V6, 2.0L Turbo Hybrid | 10AT |\n| MDX | Luxury SUV | 3.0L Turbo, Type S 3.0L | 10AT |",
+    tokenCount: 54,
     chunkIndex: 3,
-    tags: ["revenue", "breakdown", "segments", "table"]
+    tags: ["models", "vehicles", "specifications", "table"]
   },
   {
     id: 4,
     documentId: 1,
-    title: "Key Performance Indicators",
-    content: "- Customer acquisition cost decreased by 8.2%\n- Customer lifetime value increased by 14.5%\n- Net Promoter Score improved from 68 to 72\n- Monthly recurring revenue growth rate: 2.8%",
-    tokenCount: 34,
+    title: "Service Intervals & Maintenance",
+    content: "- Engine Oil Change: 7,500-10,000 miles (based on oil life monitor)\n- Transmission Fluid: 30,000-60,000 miles (varies by model)\n- Brake Fluid Replacement: Every 3 years\n- Engine Air Filter: 30,000 miles",
+    tokenCount: 36,
     chunkIndex: 4,
-    tags: ["KPI", "metrics", "customer", "revenue"]
+    tags: ["service", "maintenance", "intervals", "schedule"]
   },
   {
     id: 5,
     documentId: 1,
-    title: "Regional Performance",
-    content: "North America continues to be our strongest market, accounting for 62% of total revenue. However, we've seen accelerated growth in the APAC region, which grew by 31% year-over-year and now represents 18% of our global revenue.",
-    tokenCount: 40,
+    title: "Technical Specifications Overview",
+    content: "All 2025 models feature enhanced safety systems including: Honda SENSING® / AcuraWatch™ suite standard, Blind Spot Information System with Cross Traffic Monitor, Traffic Jam Assist (selected models), and Wireless Apple CarPlay® and Android Auto™ compatibility.",
+    tokenCount: 41,
     chunkIndex: 5,
-    tags: ["regional", "north america", "APAC", "growth"]
+    tags: ["specifications", "safety", "technology", "features"]
   },
   {
     id: 6,
     documentId: 1,
-    title: "Risk Factors",
-    content: "While performance has been strong, we note several risk factors that require ongoing monitoring:\n\n1. Increasing competitive pressure in the Enterprise Solutions segment\n2. Regulatory changes in European markets affecting data privacy compliance costs\n3. Foreign exchange volatility impacting international revenue\n4. Supply chain constraints affecting hardware component availability",
-    tokenCount: 57,
+    title: "Common Service Procedures",
+    content: "This manual includes step-by-step procedures for:\n\n1. Engine diagnostics and trouble code reading\n2. Brake system inspection and service\n3. Suspension component replacement\n4. ADAS calibration procedures\n5. Hybrid battery system maintenance\n6. Infotainment system updates and troubleshooting",
+    tokenCount: 48,
     chunkIndex: 6,
-    tags: ["risk", "competition", "regulation", "supply chain"]
+    tags: ["procedures", "service", "diagnostics", "maintenance"]
   },
   {
     id: 7,
     documentId: 1,
-    title: "Outlook for 2025",
-    content: "We maintain our positive outlook for fiscal year 2025, with projected revenue growth of 15-18% and further margin expansion expected. Key growth initiatives include:\n\n- Expansion of AI-powered solutions across our product portfolio\n- Deeper penetration in healthcare and financial services verticals\n- Launch of next-generation platform scheduled for Q2 2025\n- Strategic acquisitions to enhance technological capabilities",
-    tokenCount: 69,
+    title: "Safety Precautions",
+    content: "When servicing 2025 Honda/Acura vehicles, technicians must observe:\n\n- High-voltage safety procedures for hybrid/electric models\n- Proper SRS (airbag) system handling protocols\n- ADAS sensor calibration requirements after windshield replacement\n- Refrigerant handling procedures for R-1234yf systems",
+    tokenCount: 52,
     chunkIndex: 7,
-    tags: ["outlook", "growth", "initiatives", "expansion"]
+    tags: ["safety", "precautions", "procedures", "technician"]
   },
   {
     id: 8,
     documentId: 1,
-    title: "Conclusion",
-    content: "The strong Q4 2024 results provide momentum as we enter the new fiscal year. Our focus on innovation, operational excellence, and strategic expansion positions us well for continued growth despite macroeconomic uncertainties.",
-    tokenCount: 35,
+    title: "Diagnostic Equipment Requirements",
+    content: "Required tools include: Honda Diagnostic System (HDS) or i-HDS tablet, ADAS calibration targets and alignment equipment, Digital multimeter with high-voltage capabilities, and Refrigerant recovery and recycling equipment.",
+    tokenCount: 33,
     chunkIndex: 8,
-    tags: ["conclusion", "growth", "strategy"]
+    tags: ["diagnostic", "equipment", "tools", "requirements"]
   }
 ];
 
@@ -575,14 +598,14 @@ export const financialCsvMetadataFields: MetadataField[] = [
   {
     id: 101,
     name: "title",
-    value: "Financial Transactions 2024",
+    value: "Honda/Acura Parts Inventory 2025",
     included: true,
     confidence: 1.0
   },
   {
     id: 102,
     name: "source",
-    value: "Enterprise Resource Planning (ERP) System",
+    value: "Honda Parts Management System",
     included: true,
     confidence: 1.0
   },
@@ -610,7 +633,7 @@ export const financialCsvMetadataFields: MetadataField[] = [
   {
     id: 106,
     name: "department",
-    value: "Sales",
+    value: "Parts & Service",
     included: true,
     confidence: 0.95
   },
@@ -631,14 +654,14 @@ export const financialCsvMetadataFields: MetadataField[] = [
   {
     id: 109, 
     name: "columns",
-    value: "Transaction_ID,Date,Customer_ID,Product_ID,Category,Amount,Payment_Method,Status,Location,Notes",
+    value: "Part_Number,Date_Added,Vehicle_Model,Part_Name,Category,Price,Availability,Status,Location,Notes",
     included: true,
     confidence: 1.0
   },
   {
     id: 110,
     name: "dataOwner",
-    value: "Finance Department",
+    value: "Parts Department",
     included: true,
     confidence: 0.9
   },
@@ -651,40 +674,43 @@ export const financialCsvMetadataFields: MetadataField[] = [
   },
   {
     id: 112,
-    name: "totalAmount",
-    value: "$11,495.02",
+    name: "totalValue",
+    value: "$1,874.52",
     included: true,
     confidence: 1.0
   },
   {
     id: 113,
     name: "dateRange",
-    value: "2024-01-15 to 2024-01-24",
+    value: "2025-01-15 to 2025-01-19",
     included: true,
     confidence: 1.0
   },
   {
     id: 114,
-    name: "uniqueCustomers",
-    value: "20",
+    name: "uniqueModels",
+    value: "10",
     included: true,
     confidence: 1.0
   },
   {
     id: 115,
-    name: "uniqueProducts",
-    value: "9", 
+    name: "uniqueParts",
+    value: "10", 
     included: true,
     confidence: 1.0
   }
 ];
 
-// Sample metadata fields for document record-level indexing (original)
+// Automotive Parts CSV metadata fields
+export const automotivePartsCsvMetadataFields: MetadataField[] = financialCsvMetadataFields;
+
+// Sample metadata fields for document record-level indexing
 export const sampleMetadataFields: MetadataField[] = [
   {
     id: 1,
     name: "author",
-    value: "Finance Department",
+    value: "Honda Technical Publications",
     included: true,
     confidence: 0.95
   },
@@ -705,7 +731,7 @@ export const sampleMetadataFields: MetadataField[] = [
   {
     id: 4,
     name: "title",
-    value: "Financial Report Q4 2024",
+    value: "Honda_Acura_2025_Manual.PDF",
     included: true,
     confidence: 0.98
   },
@@ -726,35 +752,35 @@ export const sampleMetadataFields: MetadataField[] = [
   {
     id: 7,
     name: "sourceLocation",
-    value: "Finance Repository/Q4Reports/",
+    value: "Technical Library/Service Manuals/",
     included: false,
     confidence: 0.85
   },
   {
     id: 8,
     name: "department",
-    value: "Finance",
+    value: "Service & Parts",
     included: true,
     confidence: 0.92
   },
   {
     id: 9,
-    name: "quarter",
-    value: "Q4",
+    name: "modelYear",
+    value: "2025",
     included: true,
     confidence: 0.97
   },
   {
     id: 10,
     name: "year",
-    value: "2024",
+    value: "2025",
     included: true,
     confidence: 0.99
   },
   {
     id: 11,
-    name: "reportType",
-    value: "Financial",
+    name: "documentType",
+    value: "Service Manual",
     included: true,
     confidence: 0.96
   },
@@ -768,7 +794,7 @@ export const sampleMetadataFields: MetadataField[] = [
   {
     id: 13,
     name: "totalPages",
-    value: "23",
+    value: "156",
     included: true,
     confidence: 1.0
   },

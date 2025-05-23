@@ -195,31 +195,31 @@ export class ConversationManager {
 
   private conversationSteps = {
     intro: (docType: string) => ({
-      message: `I've analyzed this ${docType} and detected key content elements including tables, structured data, and important financial metrics. I'm optimized to understand financial documents like earnings reports, balance sheets, and market analyses. Type "analyze financial data" or just click below to configure the optimal financial intelligence extraction.`,
+      message: `I've analyzed this ${docType} and detected key content elements including technical specifications, parts information, and service procedures. I'm optimized to understand automotive documents like service manuals, parts catalogs, and technical bulletins. Type "analyze automotive data" or just click below to configure the optimal automotive intelligence extraction.`,
       actions: [
         { label: 'Let\'s get started', action: 'next_step', data: { nextStep: 'user_profile' } }
       ]
     }),
     
     user_profile: () => ({
-      message: "Which financial stakeholder role will be using this analysis? Financial document processing can be tailored to different financial roles and their specific needs.",
+      message: "Which automotive role will be using this analysis? Automotive document processing can be tailored to different roles and their specific needs.",
       actions: [
-        { label: 'Financial Analyst', action: 'set_role', data: { role: 'financial_analyst', nextStep: 'department' } },
-        { label: 'Investment Manager', action: 'set_role', data: { role: 'investment_manager', nextStep: 'department' } },
-        { label: 'Risk & Compliance Officer', action: 'set_role', data: { role: 'risk_officer', nextStep: 'department' } },
-        { label: 'Financial Controller', action: 'set_role', data: { role: 'financial_controller', nextStep: 'department' } },
-        { label: 'CFO/Finance Executive', action: 'set_role', data: { role: 'finance_executive', nextStep: 'department' } }
+        { label: 'Service Technician', action: 'set_role', data: { role: 'service_technician', nextStep: 'department' } },
+        { label: 'Parts Manager', action: 'set_role', data: { role: 'parts_manager', nextStep: 'department' } },
+        { label: 'Technical Writer', action: 'set_role', data: { role: 'technical_writer', nextStep: 'department' } },
+        { label: 'Quality Engineer', action: 'set_role', data: { role: 'quality_engineer', nextStep: 'department' } },
+        { label: 'Fleet Manager', action: 'set_role', data: { role: 'fleet_manager', nextStep: 'department' } }
       ]
     }),
     
     department: () => ({
-      message: 'Which financial function or department will be leveraging this analysis? Different financial teams have specialized needs for document processing and intelligence extraction.',
+      message: 'Which automotive function or department will be leveraging this analysis? Different teams have specialized needs for document processing and intelligence extraction.',
       actions: [
-        { label: 'Investment Management', action: 'set_department', data: { department: 'investment', nextStep: 'goals' } },
-        { label: 'Financial Planning & Analysis', action: 'set_department', data: { department: 'financial_planning', nextStep: 'goals' } },
-        { label: 'Treasury & Cash Management', action: 'set_department', data: { department: 'treasury', nextStep: 'goals' } },
-        { label: 'Risk & Compliance', action: 'set_department', data: { department: 'risk_compliance', nextStep: 'goals' } },
-        { label: 'Financial Reporting', action: 'set_department', data: { department: 'financial_reporting', nextStep: 'goals' } }
+        { label: 'Service Department', action: 'set_department', data: { department: 'service', nextStep: 'goals' } },
+        { label: 'Parts Department', action: 'set_department', data: { department: 'parts', nextStep: 'goals' } },
+        { label: 'Technical Publications', action: 'set_department', data: { department: 'tech_pubs', nextStep: 'goals' } },
+        { label: 'Quality Assurance', action: 'set_department', data: { department: 'quality', nextStep: 'goals' } },
+        { label: 'Fleet Operations', action: 'set_department', data: { department: 'fleet', nextStep: 'goals' } }
       ]
     }),
     
@@ -227,12 +227,12 @@ export class ConversationManager {
     // experience: () => ({ ... }),
     
     goals: () => ({
-      message: 'What financial insights do you need to extract from this document? Your selection will optimize how we process the financial data.',
+      message: 'What automotive insights do you need to extract from this document? Your selection will optimize how we process the technical data.',
       actions: [
-        { label: 'Financial Data Search & Analysis', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
-        { label: 'Extract Financial Tables & Metrics', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
-        { label: 'Map Financial Entity Relationships', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
-        { label: 'Comprehensive Financial Intelligence', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
+        { label: 'Technical Specification Search', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
+        { label: 'Extract Parts & Service Data', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
+        { label: 'Map Component Relationships', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
+        { label: 'Comprehensive Technical Analysis', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
       ]
     }),
     
@@ -243,16 +243,16 @@ export class ConversationManager {
     processing_selection: (state: ConversationState) => {
       const recommendations = this.getProcessingRecommendations(state);
       
-      // Map the technical recommendation labels to more user-friendly financial terms
+      // Map the technical recommendation labels to more user-friendly automotive terms
       const userFriendlyLabels = {
-        'RAG Search': 'Enable Financial Search & Retrieval',
-        'Document Processing': 'Enable Financial Data Extraction',
-        'Knowledge Graph': 'Enable Financial Relationship Mapping',
-        'All Processing Methods': 'Enable Comprehensive Financial Analysis'
+        'RAG Search': 'Enable Technical Search & Retrieval',
+        'Document Processing': 'Enable Automotive Data Extraction',
+        'Knowledge Graph': 'Enable Component Relationship Mapping',
+        'All Processing Methods': 'Enable Comprehensive Technical Analysis'
       };
       
       return {
-        message: 'Based on your financial analysis requirements, I recommend these specialized processing methods. When you approve, I\'ll create a financial intelligence index that allows you to search, analyze, and extract insights from this document. Does this configuration look appropriate for your needs?',
+        message: 'Based on your automotive analysis requirements, I recommend these specialized processing methods. When you approve, I\'ll create a technical intelligence index that allows you to search, analyze, and extract insights from this document. Does this configuration look appropriate for your needs?',
         actions: recommendations.map(rec => ({
           label: userFriendlyLabels[rec.label] || rec.label, // Use the user-friendly label if available
           action: 'select_processing',
@@ -265,25 +265,25 @@ export class ConversationManager {
     },
     
     multimodal_check: () => ({
-      message: 'I\'ve detected that your financial document contains images with facts and figures. Would you like me to analyze these visual elements to extract additional financial insights?',
+      message: 'I\'ve detected that your automotive document contains diagrams, schematics, and technical illustrations. Would you like me to analyze these visual elements to extract additional technical insights?',
       actions: [
-        { label: 'Yes, analyze images with financial data', action: 'set_has_images', data: { hasImages: true, nextStep: 'visual_analysis_check' } },
+        { label: 'Yes, analyze technical diagrams', action: 'set_has_images', data: { hasImages: true, nextStep: 'visual_analysis_check' } },
         { label: 'No, process text content only', action: 'set_has_images', data: { hasImages: false, nextStep: 'visual_analysis_check' } }
       ]
     }),
     
     audio_check: () => ({
-      message: 'Great! Have you tried our playground to evaluate and test financial content understanding, search functionality, and document structure analysis? It provides hands-on experience with your configured financial intelligence.',
+      message: 'Great! Have you tried our playground to evaluate and test technical content understanding, search functionality, and document structure analysis? It provides hands-on experience with your configured automotive intelligence.',
       actions: [
-        { label: 'Yes, I\'ll explore the financial insights', action: 'highlight_playground', data: { nextStep: 'confirmation' } }
+        { label: 'Yes, I\'ll explore the technical insights', action: 'highlight_playground', data: { nextStep: 'confirmation' } }
       ]
     }),
     
     visual_analysis_check: () => ({
-      message: 'Would you like AI to interpret financial charts, analyze trend graphs, and extract insights from visual elements in your document?',
+      message: 'Would you like AI to interpret wiring diagrams, analyze component schematics, and extract insights from technical illustrations in your document?',
       actions: [
-        { label: 'Yes, analyze financial visualizations', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
-        { label: 'No, focus on textual financial data', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
+        { label: 'Yes, analyze technical visualizations', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
+        { label: 'No, focus on textual technical data', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
       ]
     }),
     
@@ -307,19 +307,19 @@ export class ConversationManager {
     }),
     
     idp_check: () => ({
-      message: 'Which type of financial data extraction do you need from this document?',
+      message: 'Which type of automotive data extraction do you need from this document?',
       actions: [
-        { label: 'Financial Tables & Metrics', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'audio_check' } },
+        { label: 'Parts Tables & Specifications', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'audio_check' } },
         { label: 'Document Summarization', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'audio_check' } },
-        { label: 'Comprehensive Financial Extraction', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'audio_check' } },
-        { label: 'Skip Financial Data Extraction', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'audio_check' } }
+        { label: 'Comprehensive Technical Extraction', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'audio_check' } },
+        { label: 'Skip Technical Data Extraction', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'audio_check' } }
       ]
     }),
     
     confirmation: (state: ConversationState) => {
       const config = this.buildFinalConfiguration(state);
       return {
-        message: 'Explore the results and let me know once you have evaluated the findings. We can discuss next steps for deeper financial analysis.',
+        message: 'Explore the results and let me know once you have evaluated the findings. We can discuss next steps for deeper technical analysis.',
         actions: [
           { 
             label: 'Yes, tell me about next steps', 
@@ -339,14 +339,14 @@ export class ConversationManager {
     recommendations: (state: ConversationState) => {
       const config = this.buildFinalConfiguration(state);
       return {
-        message: 'Based on your evaluation, I want to recommend the following actions for your financial document analysis:',
+        message: 'Based on your evaluation, I want to recommend the following actions for your automotive document analysis:',
         actions: [
           { 
             label: 'Summarize', 
             action: 'apply_recommendation', 
             data: { 
               recommendationType: 'summarize',
-              description: 'Generate a comprehensive summary of the financial document including key metrics, trends, and insights.',
+              description: 'Generate a comprehensive summary of the technical document including key specifications, procedures, and requirements.',
               config
             } 
           },
@@ -355,7 +355,7 @@ export class ConversationManager {
             action: 'apply_recommendation', 
             data: { 
               recommendationType: 'content_generation',
-              description: 'Create new financial content based on the document analysis, such as reports, presentations, or executive briefs.',
+              description: 'Create new technical content based on the document analysis, such as service bulletins, work orders, or technical guides.',
               config
             } 
           },
@@ -364,16 +364,16 @@ export class ConversationManager {
             action: 'apply_recommendation', 
             data: { 
               recommendationType: 'qna',
-              description: 'Ask specific questions about the financial data and receive accurate, contextual answers.',
+              description: 'Ask specific questions about the technical data and receive accurate, contextual answers.',
               config
             } 
           },
           { 
-            label: 'Financial Data Extraction', 
+            label: 'Technical Data Extraction', 
             action: 'apply_recommendation', 
             data: { 
-              recommendationType: 'financial_extraction',
-              description: 'Extract structured financial data like metrics, tables, and key figures for further analysis.',
+              recommendationType: 'technical_extraction',
+              description: 'Extract structured technical data like specifications, part numbers, and service intervals for further analysis.',
               config
             } 
           }
@@ -383,7 +383,7 @@ export class ConversationManager {
     
     recommendation_applied: (state: ConversationState) => {
       return {
-        message: 'Your selected financial analysis action has been initiated. The results will be available shortly. Would you like to try another approach or continue with this analysis?',
+        message: 'Your selected technical analysis action has been initiated. The results will be available shortly. Would you like to try another approach or continue with this analysis?',
         actions: [
           { 
             label: 'Continue with current analysis', 

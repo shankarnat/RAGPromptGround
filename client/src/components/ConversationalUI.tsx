@@ -451,52 +451,47 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         ]
       },
       'role': {
-        'sales_rep': [
-          'sales rep', 'sales representative', 'seller', 'sales person', 'salesperson', 
-          'sales associate', 'sales consultant', 'account executive', 'account rep', 
-          'sales executive', 'sales agent', 'i sell', 'i am in sales', 'work in sales', 
-          'sales team member', 'sales professional', 'business development rep', 'bdr',
-          'client manager', 'account manager', 'client advisor', 'customer advisor',
-          'relationship manager', 'business consultant', 'sales consultant', 'sales advisor',
-          'client executive', 'sales', 'sales role', 'client facing', 'client representative',
-          'territory manager', 'field sales', 'inside sales', 'selling', 'pipeline management'
+        'service_technician': [
+          'service technician', 'technician', 'mechanic', 'automotive technician', 'service tech', 
+          'master technician', 'certified technician', 'diagnostic technician', 'repair technician', 
+          'maintenance technician', 'shop technician', 'i fix cars', 'i repair vehicles', 'work in service', 
+          'service team member', 'technical specialist', 'automotive specialist', 'vehicle technician',
+          'honda technician', 'acura technician', 'service advisor', 'technical advisor',
+          'diagnostic specialist', 'service professional', 'automotive professional', 'repair specialist',
+          'maintenance specialist', 'shop foreman', 'lead technician', 'senior technician'
         ],
-        'sales_manager': [
-          'sales manager', 'sales lead', 'sales director', 'sales boss', 'head of sales', 
-          'sales supervisor', 'sales team lead', 'regional sales manager', 'district manager',
-          'vp of sales', 'sales vp', 'senior sales', 'sales leadership', 'manage sales team',
-          'sales management', 'director of sales', 'chief sales officer', 'cso', 'sales executive',
-          'business unit manager', 'business development director', 'bd manager',
-          'business development manager', 'commercial director', 'revenue manager',
-          'revenue director', 'sales operations director', 'national sales manager',
-          'channel manager', 'partner manager', 'head of business development'
+        'parts_manager': [
+          'parts manager', 'parts lead', 'parts director', 'parts supervisor', 'head of parts', 
+          'parts department manager', 'parts team lead', 'parts inventory manager', 'parts specialist',
+          'parts counter', 'parts advisor', 'parts professional', 'manage parts department',
+          'parts management', 'director of parts', 'parts operations manager', 'parts executive',
+          'inventory manager', 'parts procurement', 'parts coordinator', 'warehouse manager',
+          'parts distribution manager', 'aftermarket manager', 'oem parts manager',
+          'parts sales manager', 'parts purchasing manager', 'supply chain manager'
         ],
-        'service_agent': [
-          'service agent', 'customer service', 'support agent', 'cs agent', 'help desk',
-          'customer support', 'customer care', 'support rep', 'support representative',
-          'customer success', 'client services', 'technical support', 'service desk',
-          'service rep', 'customer advocate', 'service specialist', 'support specialist',
-          'customer experience', 'cx', 'service professional', 'customer happiness',
-          'helpdesk agent', 'client support', 'customer relations', 'client relations',
-          'customer service representative', 'support technician', 'service consultant',
-          'client advocate', 'cx specialist', 'account support', 'product support',
-          'customer advisor', 'service delivery', 'client success manager'
+        'technical_writer': [
+          'technical writer', 'documentation specialist', 'technical author', 'documentation engineer',
+          'service writer', 'manual writer', 'technical communicator', 'documentation manager',
+          'technical editor', 'content developer', 'technical publications', 'tech writer',
+          'service documentation', 'repair manual writer', 'technical content creator',
+          'automotive writer', 'documentation professional', 'technical documentation',
+          'service information developer', 'workshop manual writer', 'diagnostic writer',
+          'technical illustrator', 'documentation analyst', 'content specialist',
+          'publications specialist', 'information developer', 'technical content specialist'
         ],
-        'marketing_specialist': [
-          'marketing specialist', 'marketing expert', 'marketer', 'marketing professional',
-          'digital marketer', 'content marketer', 'marketing coordinator', 'marketing associate',
-          'brand specialist', 'communications specialist', 'marketing analyst', 'growth marketer',
-          'marketing strategist', 'product marketer', 'marketing manager', 'marketing team',
-          'pr specialist', 'marketing communications', 'marcom', 'social media specialist',
-          'content creator', 'seo specialist', 'marketing technologist', 'marketing ops',
-          'growth hacker', 'brand manager', 'digital marketing specialist', 'campaign manager',
-          'demand generation', 'social media manager', 'community manager', 'content strategist',
-          'email marketer', 'marketing automation', 'marketing', 'comms', 'creative'
+        'quality_engineer': [
+          'quality engineer', 'quality specialist', 'qa engineer', 'quality analyst',
+          'quality assurance', 'quality control', 'quality inspector', 'quality technician',
+          'quality manager', 'quality professional', 'qa specialist', 'quality supervisor',
+          'quality coordinator', 'product quality', 'vehicle quality', 'manufacturing quality',
+          'quality auditor', 'quality improvement', 'quality systems', 'reliability engineer',
+          'validation engineer', 'test engineer', 'quality consultant', 'qa manager',
+          'quality director', 'continuous improvement', 'process quality', 'supplier quality'
         ],
-        'business_analyst': [
-          'business analyst', 'analyst', 'ba', 'business intelligence', 'data analyst',
-          'financial analyst', 'operations analyst', 'research analyst', 'systems analyst',
-          'business systems analyst', 'process analyst', 'requirements analyst', 'analytics',
+        'fleet_manager': [
+          'fleet manager', 'fleet coordinator', 'fleet supervisor', 'fleet director',
+          'fleet administrator', 'fleet operations', 'vehicle manager', 'fleet specialist',
+          'fleet maintenance manager', 'fleet services', 'transportation manager', 'fleet analyst',
           'intelligence specialist', 'insights specialist', 'data scientist', 'market research',
           'analytics professional', 'bi analyst', 'business analytics', 'data engineer',
           'reporting analyst', 'dashboard developer', 'performance analyst', 'metrics analyst',

@@ -8,22 +8,15 @@ export interface DocumentCharacteristics {
 }
 
 export type DocumentType = 
+  | 'service_manual'
+  | 'parts_catalog'
+  | 'owners_manual'
+  | 'technical_bulletin'
+  | 'specification_sheet'
   | 'form'
   | 'report'
-  | 'contract'
-  | 'invoice'
-  | 'email'
-  | 'article'
   | 'presentation'
   | 'spreadsheet'
-  | 'proposal'
-  | 'quote'
-  | 'ticket'
-  | 'sla'
-  | 'feedback'
-  | 'campaign'
-  | 'analytics'
-  | 'content'
   | 'unknown';
 
 export interface DocumentStructure {
@@ -111,23 +104,17 @@ export class DocumentAnalyzer {
   private inferDocumentType(fileName: string, fileType: string): DocumentType {
     const lowerName = fileName.toLowerCase();
     
-    // CRM-specific document patterns
-    if (lowerName.includes('proposal')) return 'proposal';
-    if (lowerName.includes('quote') || lowerName.includes('quotation')) return 'quote';
-    if (lowerName.includes('ticket') || lowerName.includes('case') || lowerName.includes('support')) return 'ticket';
-    if (lowerName.includes('sla') || lowerName.includes('service-level') || lowerName.includes('service_level')) return 'sla';
-    if (lowerName.includes('feedback') || lowerName.includes('survey') || lowerName.includes('review')) return 'feedback';
-    if (lowerName.includes('campaign')) return 'campaign';
-    if (lowerName.includes('analytics') || lowerName.includes('metrics') || lowerName.includes('kpi')) return 'analytics';
-    if (lowerName.includes('content') || lowerName.includes('asset') || lowerName.includes('media')) return 'content';
+    // Automotive-specific document patterns
+    if (lowerName.includes('service') && lowerName.includes('manual')) return 'service_manual';
+    if (lowerName.includes('parts') && (lowerName.includes('catalog') || lowerName.includes('inventory'))) return 'parts_catalog';
+    if (lowerName.includes('owner') && lowerName.includes('manual')) return 'owners_manual';
+    if (lowerName.includes('technical') && lowerName.includes('bulletin')) return 'technical_bulletin';
+    if (lowerName.includes('tsb')) return 'technical_bulletin';
+    if (lowerName.includes('specification') || lowerName.includes('spec') && lowerName.includes('sheet')) return 'specification_sheet';
     
     // Standard document patterns
-    if (lowerName.includes('invoice') || lowerName.includes('bill')) return 'invoice';
-    if (lowerName.includes('contract') || lowerName.includes('agreement')) return 'contract';
     if (lowerName.includes('report') || lowerName.includes('analysis')) return 'report';
     if (lowerName.includes('form') || lowerName.includes('application')) return 'form';
-    if (lowerName.includes('email') || lowerName.includes('message')) return 'email';
-    if (lowerName.includes('article') || lowerName.includes('blog')) return 'article';
     if (fileType === 'ppt' || fileType === 'pptx') return 'presentation';
     if (fileType === 'xls' || fileType === 'xlsx' || fileType === 'csv') return 'spreadsheet';
     
@@ -137,6 +124,61 @@ export class DocumentAnalyzer {
   private async analyzeStructure(file: File, documentType: DocumentType): Promise<DocumentStructure> {
     // Mocked structure analysis based on document type
     const structures: Record<DocumentType, DocumentStructure> = {
+      service_manual: {
+        hasTables: true,
+        hasLists: true,
+        hasHeaders: true,
+        hasFooters: true,
+        pageCount: 150,
+        hasImages: true,
+        hasCharts: true,
+        formFields: 0,
+        structureComplexity: 'complex'
+      },
+      parts_catalog: {
+        hasTables: true,
+        hasLists: true,
+        hasHeaders: true,
+        hasFooters: true,
+        pageCount: 200,
+        hasImages: true,
+        hasCharts: false,
+        formFields: 0,
+        structureComplexity: 'complex'
+      },
+      owners_manual: {
+        hasTables: true,
+        hasLists: true,
+        hasHeaders: true,
+        hasFooters: true,
+        pageCount: 300,
+        hasImages: true,
+        hasCharts: true,
+        formFields: 0,
+        structureComplexity: 'moderate'
+      },
+      technical_bulletin: {
+        hasTables: true,
+        hasLists: true,
+        hasHeaders: true,
+        hasFooters: true,
+        pageCount: 10,
+        hasImages: true,
+        hasCharts: false,
+        formFields: 0,
+        structureComplexity: 'moderate'
+      },
+      specification_sheet: {
+        hasTables: true,
+        hasLists: true,
+        hasHeaders: true,
+        hasFooters: false,
+        pageCount: 5,
+        hasImages: false,
+        hasCharts: true,
+        formFields: 0,
+        structureComplexity: 'simple'
+      },
       form: {
         hasTables: true,
         hasLists: false,
@@ -158,50 +200,6 @@ export class DocumentAnalyzer {
         hasCharts: true,
         formFields: 0,
         structureComplexity: 'complex'
-      },
-      contract: {
-        hasTables: false,
-        hasLists: true,
-        hasHeaders: true,
-        hasFooters: true,
-        pageCount: 20,
-        hasImages: false,
-        hasCharts: false,
-        formFields: 0,
-        structureComplexity: 'complex'
-      },
-      invoice: {
-        hasTables: true,
-        hasLists: false,
-        hasHeaders: true,
-        hasFooters: true,
-        pageCount: 1,
-        hasImages: true,
-        hasCharts: false,
-        formFields: 10,
-        structureComplexity: 'simple'
-      },
-      email: {
-        hasTables: false,
-        hasLists: false,
-        hasHeaders: true,
-        hasFooters: false,
-        pageCount: 1,
-        hasImages: false,
-        hasCharts: false,
-        formFields: 0,
-        structureComplexity: 'simple'
-      },
-      article: {
-        hasTables: false,
-        hasLists: true,
-        hasHeaders: true,
-        hasFooters: false,
-        pageCount: 5,
-        hasImages: true,
-        hasCharts: false,
-        formFields: 0,
-        structureComplexity: 'simple'
       },
       presentation: {
         hasTables: true,
@@ -238,12 +236,72 @@ export class DocumentAnalyzer {
       }
     };
 
-    return structures[documentType];
+    return structures[documentType] || structures.unknown;
   }
 
   private async analyzeContent(file: File, documentType: DocumentType): Promise<ContentFeatures> {
     // Mocked content analysis based on document type
     const contentFeatures: Record<DocumentType, ContentFeatures> = {
+      service_manual: {
+        language: 'en',
+        wordCount: 50000,
+        avgSentenceLength: 15,
+        technicalContent: true,
+        financialData: false,
+        legalContent: false,
+        hasNamedEntities: true,
+        hasDates: true,
+        hasAmounts: true,
+        topKeywords: ['maintenance', 'procedure', 'specification', 'torque', 'diagnosis', 'repair']
+      },
+      parts_catalog: {
+        language: 'en',
+        wordCount: 30000,
+        avgSentenceLength: 8,
+        technicalContent: true,
+        financialData: true,
+        legalContent: false,
+        hasNamedEntities: true,
+        hasDates: true,
+        hasAmounts: true,
+        topKeywords: ['part number', 'component', 'assembly', 'price', 'availability', 'model']
+      },
+      owners_manual: {
+        language: 'en',
+        wordCount: 40000,
+        avgSentenceLength: 12,
+        technicalContent: true,
+        financialData: false,
+        legalContent: true,
+        hasNamedEntities: true,
+        hasDates: true,
+        hasAmounts: false,
+        topKeywords: ['operation', 'safety', 'maintenance', 'warranty', 'features', 'controls']
+      },
+      technical_bulletin: {
+        language: 'en',
+        wordCount: 2000,
+        avgSentenceLength: 18,
+        technicalContent: true,
+        financialData: false,
+        legalContent: false,
+        hasNamedEntities: true,
+        hasDates: true,
+        hasAmounts: false,
+        topKeywords: ['issue', 'solution', 'affected', 'vehicles', 'procedure', 'update']
+      },
+      specification_sheet: {
+        language: 'en',
+        wordCount: 1000,
+        avgSentenceLength: 10,
+        technicalContent: true,
+        financialData: false,
+        legalContent: false,
+        hasNamedEntities: false,
+        hasDates: false,
+        hasAmounts: true,
+        topKeywords: ['dimension', 'weight', 'capacity', 'performance', 'rating', 'standard']
+      },
       form: {
         language: 'en',
         wordCount: 500,
@@ -267,54 +325,6 @@ export class DocumentAnalyzer {
         hasDates: true,
         hasAmounts: true,
         topKeywords: ['analysis', 'results', 'conclusions', 'recommendations', 'data']
-      },
-      contract: {
-        language: 'en',
-        wordCount: 10000,
-        avgSentenceLength: 30,
-        technicalContent: false,
-        financialData: true,
-        legalContent: true,
-        hasNamedEntities: true,
-        hasDates: true,
-        hasAmounts: true,
-        topKeywords: ['party', 'agreement', 'terms', 'conditions', 'liability']
-      },
-      invoice: {
-        language: 'en',
-        wordCount: 200,
-        avgSentenceLength: 8,
-        technicalContent: false,
-        financialData: true,
-        legalContent: false,
-        hasNamedEntities: true,
-        hasDates: true,
-        hasAmounts: true,
-        topKeywords: ['invoice', 'total', 'due', 'payment', 'item']
-      },
-      email: {
-        language: 'en',
-        wordCount: 300,
-        avgSentenceLength: 15,
-        technicalContent: false,
-        financialData: false,
-        legalContent: false,
-        hasNamedEntities: true,
-        hasDates: true,
-        hasAmounts: false,
-        topKeywords: ['meeting', 'follow-up', 'request', 'update', 'action']
-      },
-      article: {
-        language: 'en',
-        wordCount: 2000,
-        avgSentenceLength: 18,
-        technicalContent: true,
-        financialData: false,
-        legalContent: false,
-        hasNamedEntities: true,
-        hasDates: true,
-        hasAmounts: false,
-        topKeywords: ['technology', 'innovation', 'development', 'future', 'impact']
       },
       presentation: {
         language: 'en',
@@ -354,7 +364,7 @@ export class DocumentAnalyzer {
       }
     };
 
-    return contentFeatures[documentType];
+    return contentFeatures[documentType] || contentFeatures.unknown;
   }
 
   private async analyzeRelationships(content: ContentFeatures): Promise<RelationshipFeatures> {
@@ -381,7 +391,7 @@ export class DocumentAnalyzer {
     const recommendations: ProcessingRecommendation[] = [];
 
     // RAG recommendation - best for long-form content and search
-    if (content.wordCount > 1000 || documentType === 'article' || documentType === 'report') {
+    if (content.wordCount > 1000 || documentType === 'service_manual' || documentType === 'owners_manual' || documentType === 'report') {
       recommendations.push({
         processingType: 'rag',
         priority: 'high',
@@ -411,7 +421,7 @@ export class DocumentAnalyzer {
 
     // IDP recommendation - best for structured documents
     if (structure.hasTables || structure.formFields > 0 || 
-        documentType === 'invoice' || documentType === 'form') {
+        documentType === 'parts_catalog' || documentType === 'specification_sheet' || documentType === 'form') {
       recommendations.push({
         processingType: 'idp',
         priority: 'high',
