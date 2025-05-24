@@ -508,8 +508,8 @@ export class ImageAssetManager {
 
   // Metadata management
   async updateImageMetadata(imageId: string, updates: Partial<ImageAsset>): Promise<ImageAsset | null> {
-    for (const manifest of this.manifests.values()) {
-      const image = manifest.images.find(img => img.id === imageId);
+    for (const manifest of Array.from(this.manifests.values())) {
+      const image = manifest.images.find((img: ImageAsset) => img.id === imageId);
       if (image) {
         Object.assign(image, updates);
         return image;
@@ -519,8 +519,8 @@ export class ImageAssetManager {
   }
 
   async addTagsToImage(imageId: string, tags: string[]): Promise<boolean> {
-    for (const manifest of this.manifests.values()) {
-      const image = manifest.images.find(img => img.id === imageId);
+    for (const manifest of Array.from(this.manifests.values())) {
+      const image = manifest.images.find((img: ImageAsset) => img.id === imageId);
       if (image) {
         const uniqueTags = new Set([...image.tags, ...tags]);
         image.tags = Array.from(uniqueTags);
@@ -600,7 +600,7 @@ export class ImageAssetManager {
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
     
     let cleaned = 0;
-    for (const [documentId, manifest] of this.manifests.entries()) {
+    for (const [documentId, manifest] of Array.from(this.manifests.entries())) {
       if (manifest.extractionDate < cutoffDate) {
         this.manifests.delete(documentId);
         cleaned++;

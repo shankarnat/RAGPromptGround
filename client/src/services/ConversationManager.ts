@@ -276,7 +276,7 @@ export class ConversationManager {
       const recommendations = this.getProcessingRecommendations(state);
       
       // Map the technical recommendation labels to more user-friendly automotive terms
-      const userFriendlyLabels = {
+      const userFriendlyLabels: Record<string, string> = {
         'RAG Search': 'Enable Technical Search & Retrieval',
         'Document Processing': 'Enable Automotive Data Extraction',
         'Knowledge Graph': 'Enable Component Relationship Mapping',
@@ -286,7 +286,7 @@ export class ConversationManager {
       return {
         message: 'Based on your automotive analysis requirements, I recommend these specialized processing methods. When you approve, I\'ll create a technical intelligence index that allows you to search, analyze, and extract insights from this document. Does this configuration look appropriate for your needs?',
         actions: recommendations.map(rec => ({
-          label: userFriendlyLabels[rec.label] || rec.label, // Use the user-friendly label if available
+          label: userFriendlyLabels[rec.label as string] || rec.label, // Use the user-friendly label if available
           action: 'select_processing',
           data: { 
             ...rec.data, 
@@ -427,12 +427,15 @@ export class ConversationManager {
     
     results_validation: (state: ConversationState) => {
       const testResults = state.qaTestResults || { questionsAnswered: 0, correctAnswers: 0, confidence: 0 };
-      const accuracy = testResults.questionsAnswered > 0 
-        ? Math.round((testResults.correctAnswers / testResults.questionsAnswered) * 100)
+      const questionsAnswered = testResults.questionsAnswered ?? 0;
+      const correctAnswers = testResults.correctAnswers ?? 0;
+      const confidence = testResults.confidence ?? 0;
+      const accuracy = questionsAnswered > 0 
+        ? Math.round((correctAnswers / questionsAnswered) * 100)
         : 0;
         
       return {
-        message: `Q&A Test Results: ${accuracy}% accuracy (${testResults.correctAnswers}/${testResults.questionsAnswered} correct). The system confidence is ${Math.round(testResults.confidence * 100)}%. Would you like to proceed with the recommendations?`,
+        message: `Q&A Test Results: ${accuracy}% accuracy (${correctAnswers}/${questionsAnswered} correct). The system confidence is ${Math.round(confidence * 100)}%. Would you like to proceed with the recommendations?`,
         actions: [
           { 
             label: 'View recommendations', 
@@ -1018,22 +1021,6 @@ export class ConversationManager {
         newState.conversationStep = data.nextStep;
         break;
         
-      case 'set_vehicle':
-        newState.vehicleInfo = { 
-          ...newState.vehicleInfo, 
-          year: data.year,
-          make: data.make,
-          model: data.model 
-        };
-        newState.conversationStep = data.nextStep;
-        break;
-        
-      case 'request_vin_input':
-      case 'request_vehicle_input':
-        // For now, we'll just move to the next step
-        // In a real implementation, this would open an input dialog
-        newState.conversationStep = data.nextStep;
-        break;
         
       case 'set_experience':
         newState.userProfile = { ...newState.userProfile, experience: data.experience };

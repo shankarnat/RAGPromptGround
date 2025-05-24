@@ -139,16 +139,19 @@ export function useProcessingConfig(initialConfig: ProcessingConfig) {
   }, []);
 
   // Batch update for multiple changes
-  const batchUpdate = useCallback((updates: Partial<ProcessingConfig>) => {
+  const batchUpdate = useCallback((updates: Partial<ProcessingConfig> | ((prev: ProcessingConfig) => Partial<ProcessingConfig>)) => {
     console.log('useProcessingConfig batchUpdate called with:', updates);
     setConfig(prev => {
       console.log('useProcessingConfig batchUpdate - previous config:', prev);
       console.log('useProcessingConfig batchUpdate - previous kg:', prev.kg);
       
+      // Handle function updates
+      const actualUpdates = typeof updates === 'function' ? updates(prev) : updates;
+      
       // Deep merge the updates
       const newConfig = { ...prev };
       
-      Object.entries(updates).forEach(([type, typeUpdates]) => {
+      Object.entries(actualUpdates).forEach(([type, typeUpdates]) => {
         if (typeUpdates && typeof typeUpdates === 'object') {
           (newConfig as any)[type] = {
             ...(prev as any)[type],

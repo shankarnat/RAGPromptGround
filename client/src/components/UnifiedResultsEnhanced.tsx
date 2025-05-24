@@ -1298,7 +1298,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                       </div>
                     </div>
                   </div>
-                )}})
+                ))}
               </div>
             </CardContent>
           </Card>

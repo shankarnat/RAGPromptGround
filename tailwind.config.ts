@@ -29,6 +29,23 @@ export default {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        // Automotive theme colors
+        honda: {
+          red: "#CC0000",
+          blue: "#003DA5",
+          gray: "#54565B"
+        },
+        acura: {
+          silver: "#C0C0C0",
+          black: "#000000",
+          precision: "#FF6B35"
+        },
+        automotive: {
+          success: "#10B981",
+          warning: "#F59E0B",
+          danger: "#EF4444",
+          info: "#3B82F6"
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",

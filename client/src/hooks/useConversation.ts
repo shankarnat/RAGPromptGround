@@ -413,6 +413,37 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
     }));
   }, [setState]);
 
+  const submitTestAnswer = useCallback((questionId: string, answer: string) => {
+    setState(prev => {
+      const currentTest = prev.testing?.currentTest;
+      if (!currentTest) return prev;
+      
+      const question = currentTest.questions[currentTest.currentQuestionIndex];
+      if (!question || question.id !== questionId) return prev;
+      
+      const testResult: QATestResult = {
+        questionId,
+        question: question.question,
+        userAnswer: answer,
+        systemAnswer: "", // This would be filled by the system
+        confidence: 0.85, // Placeholder confidence
+        timestamp: new Date()
+      };
+      
+      return {
+        ...prev,
+        testing: {
+          ...prev.testing!,
+          results: [...prev.testing!.results, testResult],
+          metrics: {
+            ...prev.testing!.metrics,
+            answeredQuestions: prev.testing!.metrics.answeredQuestions + 1
+          }
+        }
+      };
+    });
+  }, []);
+
   const sendMessage = useCallback((message: string) => {
     if (!message.trim()) return;
 
@@ -466,15 +497,19 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
           }));
           
           // Send completion message directly to conversation manager
-          const completionAction = 'action:' + JSON.stringify({ 
-            action: 'next_step', 
-            data: { nextStep: 'results_validation' } 
-          });
+          // Create completion message to move to results validation
+          const completionMessage: ConversationMessage = {
+            id: generateId(),
+            type: 'assistant' as const,
+            content: "Test completed! Let's review your results.",
+            timestamp: new Date()
+          };
           
-          // Process the action directly instead of recursive call
-          setTimeout(() => {
-            handleAction('next_step', { nextStep: 'results_validation' });
-          }, 100);
+          setState(prev => ({
+            ...prev,
+            messages: [...prev.messages, completionMessage],
+            conversationStep: 'results_validation'
+          }));
         }
         return;
       }
@@ -549,7 +584,33 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
         multimodalPreferences: newState.multimodalPreferences || prev.multimodalPreferences
       };
     });
-  }, [state, submitTestAnswer, handleAction]);
+  }, [state, submitTestAnswer, generateId]);
+
+  const enableTesting = useCallback((mode: 'live' | 'batch' | 'validation') => {
+    setState(prev => ({
+      ...prev,
+      userProfile: {
+        ...prev.userProfile,
+        testingEnabled: true,
+        testingMode: mode,
+        accuracyTracking: true
+      },
+      testing: {
+        ...prev.testing!,
+        enabled: true,
+        mode,
+        metrics: {
+          ...prev.testing!.metrics,
+          startTime: new Date()
+        }
+      }
+    }));
+    
+    toast({
+      title: "Testing Mode Enabled",
+      description: `Q&A testing mode set to: ${mode}`,
+    });
+  }, [toast]);
 
   const handleAction = useCallback((action: string, data?: any) => {
     console.log('useConversation: handleAction called with', action, data);
@@ -1779,63 +1840,6 @@ These settings will provide you with optimized results based on your specific ne
   };
 
   // Testing methods
-  const enableTesting = useCallback((mode: 'live' | 'batch' | 'validation') => {
-    setState(prev => ({
-      ...prev,
-      userProfile: {
-        ...prev.userProfile,
-        testingEnabled: true,
-        testingMode: mode,
-        accuracyTracking: true
-      },
-      testing: {
-        ...prev.testing!,
-        enabled: true,
-        mode,
-        metrics: {
-          ...prev.testing!.metrics,
-          startTime: new Date()
-        }
-      }
-    }));
-    
-    toast({
-      title: "Testing Mode Enabled",
-      description: `Q&A testing mode set to: ${mode}`,
-    });
-  }, [toast]);
-
-  const submitTestAnswer = useCallback((questionId: string, answer: string) => {
-    setState(prev => {
-      const currentTest = prev.testing?.currentTest;
-      if (!currentTest) return prev;
-      
-      const question = currentTest.questions[currentTest.currentQuestionIndex];
-      if (!question || question.id !== questionId) return prev;
-      
-      const testResult: QATestResult = {
-        questionId,
-        question: question.question,
-        userAnswer: answer,
-        systemAnswer: "", // This would be filled by the system
-        confidence: 0.85, // Placeholder confidence
-        timestamp: new Date()
-      };
-      
-      return {
-        ...prev,
-        testing: {
-          ...prev.testing!,
-          results: [...prev.testing!.results, testResult],
-          metrics: {
-            ...prev.testing!.metrics,
-            answeredQuestions: prev.testing!.metrics.answeredQuestions + 1
-          }
-        }
-      };
-    });
-  }, []);
-
   const validateAnswer = useCallback((questionId: string, isCorrect: boolean) => {
     setState(prev => {
       const resultIndex = prev.testing?.results.findIndex(r => r.questionId === questionId);

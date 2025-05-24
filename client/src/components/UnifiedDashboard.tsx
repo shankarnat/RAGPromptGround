@@ -69,7 +69,24 @@ interface ProcessingConfig {
 
 // The ManualConfigurationPanel component is already imported above
 
-const UnifiedDashboard: FC = () => {
+interface UnifiedDashboardProps {
+  initialVehicleInfo?: {
+    vin?: string;
+    model?: string;
+    year?: string;
+    make?: string;
+  };
+  defaultView?: string;
+  documentId?: string;
+  vehicleInfo?: {
+    vin?: string;
+    model?: string;
+    year?: string;
+    make?: string;
+  };
+}
+
+const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defaultView, documentId, vehicleInfo }) => {
   console.log('UnifiedDashboard: Component initializing');
   const [, navigate] = useLocation();
   const { state, selectDocument, uploadDocument, updateChunkingMethod, updateChunkSize, 

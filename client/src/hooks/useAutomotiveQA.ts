@@ -1,5 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { performanceMonitor, perfLog } from '@/services/PerformanceMonitor';
+import { progressiveApiRequest } from '@/lib/queryClient';
 
 export interface AutomotiveQuestion {
   id: string;
@@ -49,7 +51,15 @@ export interface TestExecution {
 
 interface UseAutomotiveQAReturn {
   // Question submission and answer retrieval
-  submitQuestion: (question: string, category?: AutomotiveQuestion['category']) => Promise<AutomotiveAnswer>;
+  submitQuestion: (
+    question: string, 
+    category?: AutomotiveQuestion['category'],
+    options?: {
+      vehicleInfo?: { year?: string; make?: string; model?: string };
+      priority?: 'high' | 'normal' | 'low';
+      timeout?: number;
+    }
+  ) => Promise<AutomotiveAnswer>;
   getAnswer: (questionId: string) => AutomotiveAnswer | undefined;
   
   // Confidence score management
@@ -62,7 +72,14 @@ interface UseAutomotiveQAReturn {
   
   // Test suite execution and monitoring
   createTestSuite: (name: string, questions: AutomotiveQuestion[], description?: string) => TestSuite;
-  executeTestSuite: (suiteId: string) => void;
+  executeTestSuite: (
+    suiteId: string,
+    options?: {
+      batchSize?: number;
+      onProgress?: (progress: number) => void;
+      abortSignal?: AbortSignal;
+    }
+  ) => Promise<void>;
   pauseTestExecution: () => void;
   resumeTestExecution: () => void;
   getCurrentTestStatus: () => TestExecution | undefined;
@@ -70,6 +87,10 @@ interface UseAutomotiveQAReturn {
   // Results and metrics
   getTestResults: (suiteId?: string) => TestExecution[];
   exportResults: (format: 'json' | 'csv' | 'pdf') => Promise<Blob>;
+  
+  // Performance monitoring
+  getPerformanceAnalytics: () => any;
+  getPerformanceAlerts: (severity?: 'warning' | 'error' | 'critical') => any[];
   
   // State
   questions: AutomotiveQuestion[];
@@ -88,10 +109,15 @@ export function useAutomotiveQA(): UseAutomotiveQAReturn {
   const [currentExecution, setCurrentExecution] = useState<TestExecution | undefined>();
   const [executions, setExecutions] = useState<TestExecution[]>([]);
 
-  // Question submission and answer retrieval
+  // Question submission and answer retrieval with error handling
   const submitQuestion = useCallback(async (
     question: string, 
-    category: AutomotiveQuestion['category'] = 'general'
+    category: AutomotiveQuestion['category'] = 'general',
+    options?: {
+      vehicleInfo?: { year?: string; make?: string; model?: string };
+      priority?: 'high' | 'normal' | 'low';
+      timeout?: number;
+    }
   ): Promise<AutomotiveAnswer> => {
     const questionObj: AutomotiveQuestion = {
       id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -100,27 +126,137 @@ export function useAutomotiveQA(): UseAutomotiveQAReturn {
       keywords: extractKeywords(question)
     };
     
-    setQuestions(prev => [...prev, questionObj]);
+    // Start performance tracking
+    const perfTracker = performanceMonitor.trackQAQuery(
+      questionObj.id,
+      question,
+      Date.now(),
+      {
+        vehicleInfo: options?.vehicleInfo,
+        documentType: category
+      }
+    );
     
-    // Simulate API call to get answer
-    // In real implementation, this would call your backend
-    const answer: AutomotiveAnswer = {
-      questionId: questionObj.id,
-      answer: await simulateAnswerGeneration(question, category),
-      confidence: Math.random() * 0.3 + 0.7, // 0.7-1.0 confidence
-      sources: ['Service Manual Page 45', 'Technical Bulletin TB-2025-03'],
-      relatedQuestions: generateRelatedQuestions(question, category),
-      timestamp: new Date()
-    };
-    
-    setAnswers(prev => new Map(prev.set(questionObj.id, answer)));
-    
-    toast({
-      title: "Question Submitted",
-      description: `Processing: "${question.substring(0, 50)}..."`,
-    });
-    
-    return answer;
+    try {
+      setQuestions(prev => [...prev, questionObj]);
+      
+      // Validate question format
+      if (!question.trim()) {
+        throw new Error('Question cannot be empty');
+      }
+      
+      if (question.length > 500) {
+        throw new Error('Question too long. Please limit to 500 characters.');
+      }
+      
+      // Check for invalid automotive data formats
+      if (category === 'parts' && !question.match(/\b\d{5}-[A-Z0-9]{3}-[A-Z0-9]{3}\b/i) && question.includes('part number')) {
+        perfLog.qa('Warning: Part number format may be invalid', { question });
+      }
+      
+      // In real implementation, use actual API
+      let answer: AutomotiveAnswer;
+      
+      if (process.env.NODE_ENV === 'production') {
+        // Real API call with timeout and error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), options?.timeout || 30000);
+        
+        try {
+          const response = await progressiveApiRequest(
+            'POST',
+            '/api/qa/submit',
+            {
+              question: questionObj,
+              options: {
+                priority: options?.priority || 'normal',
+                vehicleInfo: options?.vehicleInfo
+              }
+            },
+            {
+              documentType: 'manual',
+              onProgress: (progress) => {
+                perfLog.qa(`Q&A processing progress: ${(progress * 100).toFixed(0)}%`);
+              }
+            }
+          );
+          
+          clearTimeout(timeoutId);
+          answer = await response.json();
+        } catch (error: any) {
+          clearTimeout(timeoutId);
+          
+          if (error.name === 'AbortError') {
+            throw new Error('Question processing timeout. Please try a simpler question.');
+          }
+          
+          throw error;
+        }
+      } else {
+        // Development mode simulation
+        answer = {
+          questionId: questionObj.id,
+          answer: await simulateAnswerGeneration(question, category),
+          confidence: Math.random() * 0.3 + 0.7, // 0.7-1.0 confidence
+          sources: ['Service Manual Page 45', 'Technical Bulletin TB-2025-03'],
+          relatedQuestions: generateRelatedQuestions(question, category),
+          timestamp: new Date()
+        };
+      }
+      
+      setAnswers(prev => new Map(prev.set(questionObj.id, answer)));
+      
+      // Track successful completion
+      perfTracker.complete(true, answer.confidence);
+      
+      // User interaction tracking
+      performanceMonitor.trackUserInteraction('submit_question', 'qa', {
+        category,
+        confidence: answer.confidence,
+        sourceCount: answer.sources?.length || 0
+      });
+      
+      toast({
+        title: "Question Processed",
+        description: `Confidence: ${(answer.confidence * 100).toFixed(0)}%`,
+      });
+      
+      return answer;
+      
+    } catch (error: any) {
+      // Track failed completion
+      perfTracker.complete(false, 0, error);
+      
+      // Log specific automotive errors
+      perfLog.error('Q&A submission failed', {
+        question: questionObj.id,
+        error: error.message,
+        category
+      });
+      
+      // User-friendly error messages
+      let userMessage = 'Failed to process question. Please try again.';
+      
+      if (error.message.includes('timeout')) {
+        userMessage = 'The question took too long to process. Try breaking it into smaller parts.';
+      } else if (error.message.includes('empty')) {
+        userMessage = 'Please enter a question.';
+      } else if (error.message.includes('too long')) {
+        userMessage = error.message;
+      } else if (error.status === 422) {
+        userMessage = 'Invalid question format. Please check and try again.';
+      } else if (error.status === 503) {
+        userMessage = 'Service temporarily unavailable. Please try again later.';
+      }
+      
+      toast({
+        title: "Error Processing Question",
+        description: userMessage,
+        variant: "destructive"
+      });
+      
+      throw error;
+    }
   }, [toast]);
 
   const getAnswer = useCallback((questionId: string): AutomotiveAnswer | undefined => {
@@ -206,7 +342,14 @@ export function useAutomotiveQA(): UseAutomotiveQAReturn {
     return suite;
   }, [toast]);
 
-  const executeTestSuite = useCallback((suiteId: string): void => {
+  const executeTestSuite = useCallback(async (
+    suiteId: string,
+    options?: {
+      batchSize?: number;
+      onProgress?: (progress: number) => void;
+      abortSignal?: AbortSignal;
+    }
+  ): Promise<void> => {
     const suite = testSuites.find(s => s.id === suiteId);
     if (!suite) {
       toast({
@@ -228,9 +371,137 @@ export function useAutomotiveQA(): UseAutomotiveQAReturn {
     setCurrentExecution(execution);
     setExecutions(prev => [...prev, execution]);
     
-    // Start processing first question
-    if (suite.questions.length > 0) {
-      submitQuestion(suite.questions[0].question, suite.questions[0].category);
+    // Track test suite execution
+    performanceMonitor.trackUserInteraction('start_test_suite', 'qa', {
+      suiteId,
+      questionCount: suite.questions.length,
+      category: suite.category
+    });
+    
+    try {
+      const batchSize = options?.batchSize || 5;
+      const totalQuestions = suite.questions.length;
+      
+      // Process questions in batches for better performance
+      for (let i = 0; i < totalQuestions; i += batchSize) {
+        // Check for abort signal
+        if (options?.abortSignal?.aborted) {
+          throw new Error('Test execution aborted');
+        }
+        
+        const batch = suite.questions.slice(i, Math.min(i + batchSize, totalQuestions));
+        
+        // Process batch in parallel with error handling
+        const batchPromises = batch.map(async (question, index) => {
+          try {
+            const answer = await submitQuestion(
+              question.question,
+              question.category,
+              {
+                priority: 'normal',
+                timeout: 60000 // 1 minute timeout for test questions
+              }
+            );
+            
+            return {
+              question,
+              answer,
+              success: true
+            };
+          } catch (error) {
+            perfLog.error(`Failed to process test question ${i + index + 1}`, error);
+            
+            // Create a failed answer entry
+            return {
+              question,
+              answer: {
+                questionId: question.id,
+                answer: 'Failed to process question',
+                confidence: 0,
+                timestamp: new Date()
+              } as AutomotiveAnswer,
+              success: false,
+              error
+            };
+          }
+        });
+        
+        const batchResults = await Promise.all(batchPromises);
+        
+        // Update execution results
+        setCurrentExecution(prev => {
+          if (!prev) return prev;
+          
+          const newResults = [...prev.results];
+          batchResults.forEach(result => {
+            newResults.push({
+              question: result.question,
+              answer: result.answer
+            });
+          });
+          
+          return {
+            ...prev,
+            currentQuestionIndex: Math.min(i + batchSize, totalQuestions),
+            results: newResults
+          };
+        });
+        
+        // Report progress
+        const progress = Math.min((i + batchSize) / totalQuestions, 1);
+        options?.onProgress?.(progress);
+        
+        // Small delay between batches to avoid overwhelming the system
+        if (i + batchSize < totalQuestions) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      // Mark execution as completed
+      setCurrentExecution(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: 'completed',
+          endTime: new Date()
+        };
+      });
+      
+      // Track completion
+      performanceMonitor.trackUserInteraction('complete_test_suite', 'qa', {
+        suiteId,
+        duration: Date.now() - execution.startTime.getTime(),
+        questionsProcessed: totalQuestions
+      });
+      
+      toast({
+        title: "Test Suite Completed",
+        description: `Processed ${totalQuestions} questions`,
+      });
+      
+    } catch (error: any) {
+      // Handle test execution errors
+      setCurrentExecution(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: 'paused',
+          endTime: new Date()
+        };
+      });
+      
+      perfLog.error('Test suite execution failed', {
+        suiteId,
+        error: error.message
+      });
+      
+      toast({
+        title: "Test Execution Error",
+        description: error.message || "Failed to complete test suite",
+        variant: "destructive"
+      });
+      
+      throw error;
     }
   }, [testSuites, submitQuestion, toast]);
 
@@ -363,6 +634,27 @@ export function useAutomotiveQA(): UseAutomotiveQAReturn {
     }
   }, [currentExecution, testSuites, answers, validations, submitQuestion, toast]);
 
+  // Performance analytics
+  const getPerformanceAnalytics = useCallback(() => {
+    return performanceMonitor.getAnalytics();
+  }, []);
+  
+  const getPerformanceAlerts = useCallback((severity?: 'warning' | 'error' | 'critical') => {
+    return performanceMonitor.getAlerts(severity);
+  }, []);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Track session end
+      performanceMonitor.trackUserInteraction('end_qa_session', 'qa', {
+        totalQuestions: questions.length,
+        totalAnswers: answers.size,
+        averageConfidence: getAverageConfidence()
+      });
+    };
+  }, [questions.length, answers.size, getAverageConfidence]);
+
   return {
     submitQuestion,
     getAnswer,
@@ -377,6 +669,8 @@ export function useAutomotiveQA(): UseAutomotiveQAReturn {
     getCurrentTestStatus,
     getTestResults,
     exportResults,
+    getPerformanceAnalytics,
+    getPerformanceAlerts,
     questions,
     answers,
     validations,
@@ -391,7 +685,7 @@ function extractKeywords(question: string): string[] {
     .split(/\s+/)
     .filter(word => word.length > 3)
     .filter(word => !['what', 'when', 'where', 'which', 'how', 'the', 'for', 'and'].includes(word));
-  return [...new Set(keywords)];
+  return Array.from(new Set(keywords));
 }
 
 async function simulateAnswerGeneration(question: string, category: AutomotiveQuestion['category']): Promise<string> {
@@ -514,7 +808,7 @@ function convertToCSV(data: any): string {
     ])
   ];
   
-  return rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+  return rows.map(row => row.map((cell: any) => `"${cell}"`).join(',')).join('\n');
 }
 
 function generatePDFContent(data: any): string {

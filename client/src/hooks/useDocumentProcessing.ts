@@ -72,6 +72,13 @@ export interface DocumentProcessingState {
   selectedDataModel: DataModel | null;
   // Example switching
   currentExample: DocumentExample;
+  // Vehicle information for automotive context
+  vehicleInfo?: {
+    vin?: string;
+    model?: string;
+    year?: string;
+    make?: string;
+  };
   // Unified processing state
   unifiedProcessing: {
     ragEnabled: boolean;
@@ -1041,8 +1048,17 @@ export function useDocumentProcessing() {
     return runUnifiedProcessing();
   };
 
+  // Generic state update method
+  const updateState = (updates: Partial<DocumentProcessingState>) => {
+    setState(prev => ({
+      ...prev,
+      ...updates
+    }));
+  };
+
   return {
     state,
+    updateState,
     updateChunkingMethod,
     updateChunkSize,
     updateChunkOverlap,

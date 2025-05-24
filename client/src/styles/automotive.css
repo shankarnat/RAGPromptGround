@@ -1,0 +1,309 @@
+/* Automotive-specific styling */
+
+/* High contrast mode for industrial environments */
+@media (prefers-contrast: high) {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --primary: 212 100% 30%;
+    --secondary: 0 0% 90%;
+    --accent: 0 84% 40%;
+  }
+  
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --primary: 212 100% 70%;
+    --secondary: 0 0% 20%;
+  }
+}
+
+/* Mobile optimizations for technician use */
+@media (max-width: 768px) {
+  /* Larger touch targets */
+  button, .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better spacing for gloved hands */
+  .space-y-2 > * + * {
+    margin-top: 1rem;
+  }
+  
+  /* Larger text for readability */
+  .text-sm {
+    font-size: 1rem;
+  }
+  
+  .text-xs {
+    font-size: 0.875rem;
+  }
+}
+
+/* Automotive icons and branding */
+.automotive-icon {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.honda-theme {
+  --primary: 213 100% 32%; /* Honda Blue */
+  --accent: 0 100% 40%; /* Honda Red */
+}
+
+.acura-theme {
+  --primary: 0 0% 75%; /* Acura Silver */
+  --accent: 16 85% 58%; /* Acura Precision */
+}
+
+/* Loading states for Q&A */
+@keyframes pulse-car {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.95);
+  }
+}
+
+.automotive-loading {
+  animation: pulse-car 2s ease-in-out infinite;
+}
+
+/* Performance indicators */
+.perf-good {
+  color: #10B981;
+  background-color: #10B98120;
+}
+
+.perf-warning {
+  color: #F59E0B;
+  background-color: #F59E0B20;
+}
+
+.perf-critical {
+  color: #EF4444;
+  background-color: #EF444420;
+}
+
+/* Offline mode styling */
+.offline-indicator {
+  background: repeating-linear-gradient(
+    -45deg,
+    #FCD34D,
+    #FCD34D 10px,
+    #F59E0B 10px,
+    #F59E0B 20px
+  );
+}
+
+/* Print styles for technician reports */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break {
+    page-break-before: always;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+  
+  .qa-result {
+    border: 1px solid #000;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Accessibility improvements */
+.focus-visible:focus {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* High visibility mode */
+.high-visibility {
+  .text-muted-foreground {
+    color: var(--foreground) !important;
+    opacity: 0.8;
+  }
+  
+  .border {
+    border-width: 2px;
+  }
+  
+  .shadow-sm {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Automotive data visualization */
+.confidence-indicator {
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: currentColor;
+    opacity: 0.3;
+  }
+}
+
+/* Technical diagram viewer */
+.diagram-container {
+  position: relative;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  
+  img {
+    max-width: none;
+    cursor: grab;
+    
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}
+
+/* Parts number formatting */
+.part-number {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.05em;
+  background-color: #F3F4F6;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.125rem;
+}
+
+/* VIN display */
+.vin-display {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 1.125rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: linear-gradient(to right, #F3F4F6, #E5E7EB);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid #D1D5DB;
+}
+
+/* Status indicators */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+  }
+  
+  &.status-success {
+    color: #10B981;
+  }
+  
+  &.status-warning {
+    color: #F59E0B;
+  }
+  
+  &.status-error {
+    color: #EF4444;
+  }
+}
+
+/* Responsive tables for specifications */
+@media (max-width: 640px) {
+  .spec-table {
+    display: block;
+    
+    thead {
+      display: none;
+    }
+    
+    tbody, tr, td {
+      display: block;
+    }
+    
+    td {
+      padding-left: 50%;
+      position: relative;
+      
+      &::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 6px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+/* Animation for real-time updates */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.real-time-update {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Touch-friendly sliders */
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 8px;
+  background: #E5E7EB;
+  border-radius: 4px;
+  outline: none;
+  
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    background: #3B82F6;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background: #2563EB;
+      transform: scale(1.1);
+    }
+  }
+  
+  &::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: #3B82F6;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background: #2563EB;
+      transform: scale(1.1);
+    }
+  }
+}
