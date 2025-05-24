@@ -437,7 +437,8 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
     console.log('useConversation: handleAction called with', action, data);
     
     // Handle step-based actions from ConversationManager
-    if (['next_step', 'set_role', 'set_department', 'set_experience', 'set_goal', 
+    if (['next_step', 'set_role', 'set_department', 'set_vehicle', 'request_vin_input', 
+        'request_vehicle_input', 'set_experience', 'set_goal', 
         'set_urgency', 'set_detail', 'select_processing', 'set_has_images', 
         'set_has_audio', 'set_needs_ocr', 'set_visual_analysis', 'set_image_processing',
         'set_kg_preferences', 'set_kg_entities', 'set_idp_preferences', 'apply_recommendation'].includes(action)) {

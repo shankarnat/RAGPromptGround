@@ -24,11 +24,18 @@ export interface ConversationState {
   isComplete: boolean;
   useCase?: string;
   configuration?: Record<string, any>;
-  conversationStep?: 'intro' | 'user_profile' | 'goals' | 'processing_selection' | 'multimodal_check' | 'audio_check' | 'visual_analysis_check' | 'kg_check' | 'confirmation' | 'recommendations' | 'recommendation_applied';
+  conversationStep?: 'intro' | 'user_profile' | 'department' | 'vehicle_info' | 'goals' | 'processing_selection' | 'multimodal_check' | 'visual_analysis_check' | 'idp_check' | 'audio_check' | 'kg_check' | 'confirmation' | 'qa_testing' | 'recommendations' | 'recommendation_applied' | 'results_validation';
   userProfile?: {
     role?: string;
     department?: string;
     experience?: string;
+  };
+  vehicleInfo?: {
+    year?: string;
+    make?: string;
+    model?: string;
+    vin?: string;
+    documentType?: string;
   };
   processingPreferences?: {
     urgency?: string;
@@ -48,7 +55,19 @@ export interface ConversationState {
   };
   idpPreferences?: {
     enabled?: boolean;
-    extractType?: 'structured' | 'metadata' | 'full';
+    extractType?: 'structured' | 'metadata' | 'full' | 'automotive';
+    automotiveOptions?: {
+      extractVIN?: boolean;
+      extractPartNumbers?: boolean;
+      extractTorqueSpecs?: boolean;
+      extractServiceIntervals?: boolean;
+    };
+  };
+  qaTestingEnabled?: boolean;
+  qaTestResults?: {
+    questionsAnswered?: number;
+    correctAnswers?: number;
+    confidence?: number;
   };
   highlightProcessButton?: boolean; // Flag to highlight the Process Document button
   recommendationType?: string; // Type of recommendation applied
@@ -66,9 +85,9 @@ export class ConversationManager {
   private static instance: ConversationManager;
   
   private intents: Map<string, ProcessingIntent> = new Map([
-    // Sales use cases
-    ['sales_proposals', {
-      intent: 'sales_proposals',
+    // Automotive service use cases
+    ['service_manual', {
+      intent: 'service_manual',
       processingTypes: ['rag', 'idp', 'kg'],
       configuration: {
         rag: { 
@@ -81,18 +100,20 @@ export class ConversationManager {
           enabled: true, 
           extractTables: true, 
           extractForms: true,
-          textExtraction: true
+          textExtraction: true,
+          automotiveExtraction: true
         },
         kg: {
           enabled: true,
           entityExtraction: true,
-          relationMapping: true
+          relationMapping: true,
+          entityTypes: ['component', 'procedure', 'specification']
         }
       },
       confidence: 0.9
     }],
-    ['sales_contracts', {
-      intent: 'sales_contracts',
+    ['parts_catalog', {
+      intent: 'parts_catalog',
       processingTypes: ['rag', 'kg', 'idp'],
       configuration: {
         rag: { 
@@ -115,9 +136,9 @@ export class ConversationManager {
       confidence: 0.9
     }],
     
-    // Service use cases
-    ['service_tickets', {
-      intent: 'service_tickets',
+    // Automotive diagnostic use cases
+    ['diagnostic_procedures', {
+      intent: 'diagnostic_procedures',
       processingTypes: ['rag', 'idp'],
       configuration: {
         rag: { 
@@ -134,8 +155,8 @@ export class ConversationManager {
       },
       confidence: 0.9
     }],
-    ['customer_feedback', {
-      intent: 'customer_feedback',
+    ['technical_bulletins', {
+      intent: 'technical_bulletins',
       processingTypes: ['rag', 'kg'],
       configuration: {
         rag: { 
@@ -154,9 +175,9 @@ export class ConversationManager {
       confidence: 0.9
     }],
     
-    // Marketing use cases
-    ['campaign_analytics', {
-      intent: 'campaign_analytics',
+    // Automotive Q&A use cases
+    ['specification_lookup', {
+      intent: 'specification_lookup',
       processingTypes: ['rag', 'idp'],
       configuration: {
         rag: { 
@@ -173,8 +194,8 @@ export class ConversationManager {
       },
       confidence: 0.9
     }],
-    ['content_library', {
-      intent: 'content_library',
+    ['maintenance_schedules', {
+      intent: 'maintenance_schedules',
       processingTypes: ['rag', 'kg'],
       configuration: {
         rag: { 
@@ -215,11 +236,22 @@ export class ConversationManager {
     department: () => ({
       message: 'Which automotive function or department will be leveraging this analysis? Different teams have specialized needs for document processing and intelligence extraction.',
       actions: [
-        { label: 'Service Department', action: 'set_department', data: { department: 'service', nextStep: 'goals' } },
-        { label: 'Parts Department', action: 'set_department', data: { department: 'parts', nextStep: 'goals' } },
-        { label: 'Technical Publications', action: 'set_department', data: { department: 'tech_pubs', nextStep: 'goals' } },
-        { label: 'Quality Assurance', action: 'set_department', data: { department: 'quality', nextStep: 'goals' } },
-        { label: 'Fleet Operations', action: 'set_department', data: { department: 'fleet', nextStep: 'goals' } }
+        { label: 'Service Department', action: 'set_department', data: { department: 'service', nextStep: 'vehicle_info' } },
+        { label: 'Parts Department', action: 'set_department', data: { department: 'parts', nextStep: 'vehicle_info' } },
+        { label: 'Technical Publications', action: 'set_department', data: { department: 'tech_pubs', nextStep: 'vehicle_info' } },
+        { label: 'Quality Assurance', action: 'set_department', data: { department: 'quality', nextStep: 'vehicle_info' } },
+        { label: 'Fleet Operations', action: 'set_department', data: { department: 'fleet', nextStep: 'vehicle_info' } }
+      ]
+    }),
+    
+    vehicle_info: () => ({
+      message: 'To provide the most accurate analysis, please provide vehicle information. You can enter a VIN for automatic detection or manually select the vehicle details.',
+      actions: [
+        { label: 'Enter VIN', action: 'request_vin_input', data: { nextStep: 'goals' } },
+        { label: '2025 Honda Accord', action: 'set_vehicle', data: { year: '2025', make: 'Honda', model: 'Accord', nextStep: 'goals' } },
+        { label: '2025 Honda CR-V', action: 'set_vehicle', data: { year: '2025', make: 'Honda', model: 'CR-V', nextStep: 'goals' } },
+        { label: '2025 Acura MDX', action: 'set_vehicle', data: { year: '2025', make: 'Acura', model: 'MDX', nextStep: 'goals' } },
+        { label: 'Other Honda/Acura Model', action: 'request_vehicle_input', data: { nextStep: 'goals' } }
       ]
     }),
     
@@ -309,28 +341,113 @@ export class ConversationManager {
     idp_check: () => ({
       message: 'Which type of automotive data extraction do you need from this document?',
       actions: [
-        { label: 'Parts Tables & Specifications', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'structured', nextStep: 'audio_check' } },
-        { label: 'Document Summarization', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'metadata', nextStep: 'audio_check' } },
-        { label: 'Comprehensive Technical Extraction', action: 'set_idp_preferences', data: { idpEnabled: true, extractType: 'full', nextStep: 'audio_check' } },
-        { label: 'Skip Technical Data Extraction', action: 'set_idp_preferences', data: { idpEnabled: false, nextStep: 'audio_check' } }
+        { label: 'VIN & Part Numbers', action: 'set_idp_preferences', data: { 
+          idpEnabled: true, 
+          extractType: 'automotive',
+          automotiveOptions: { extractVIN: true, extractPartNumbers: true },
+          nextStep: 'audio_check' 
+        }},
+        { label: 'Torque Specifications', action: 'set_idp_preferences', data: { 
+          idpEnabled: true, 
+          extractType: 'automotive',
+          automotiveOptions: { extractTorqueSpecs: true },
+          nextStep: 'audio_check' 
+        }},
+        { label: 'Service Intervals', action: 'set_idp_preferences', data: { 
+          idpEnabled: true, 
+          extractType: 'automotive',
+          automotiveOptions: { extractServiceIntervals: true },
+          nextStep: 'audio_check' 
+        }},
+        { label: 'All Automotive Data', action: 'set_idp_preferences', data: { 
+          idpEnabled: true, 
+          extractType: 'automotive',
+          automotiveOptions: { 
+            extractVIN: true, 
+            extractPartNumbers: true, 
+            extractTorqueSpecs: true, 
+            extractServiceIntervals: true 
+          },
+          nextStep: 'audio_check' 
+        }}
       ]
     }),
     
     confirmation: (state: ConversationState) => {
       const config = this.buildFinalConfiguration(state);
       return {
-        message: 'Explore the results and let me know once you have evaluated the findings. We can discuss next steps for deeper technical analysis.',
+        message: 'Your document has been processed! Would you like to test the Q&A capabilities with automotive-specific questions before exploring the full results?',
         actions: [
           { 
-            label: 'Yes, tell me about next steps', 
-            // Changed to a direct message that can be more easily handled
+            label: 'Yes, test Q&A first', 
+            action: 'next_step', 
+            data: { nextStep: 'qa_testing', config }
+          },
+          { 
+            label: 'Skip to results', 
             action: 'next_step', 
             data: { nextStep: 'recommendations', config }
           },
           { 
-            label: 'Wait', 
+            label: 'Modify configuration', 
             action: 'modify_processing', 
             data: config 
+          }
+        ]
+      };
+    },
+    
+    qa_testing: (state: ConversationState) => {
+      return {
+        message: 'Let\'s test the Q&A capabilities! I\'ll ask you some questions about the document to verify the extraction quality. Ready?',
+        actions: [
+          { 
+            label: 'Start with VIN/Part questions', 
+            action: 'start_qa_test', 
+            data: { testType: 'parts', nextStep: 'results_validation' }
+          },
+          { 
+            label: 'Start with specification questions', 
+            action: 'start_qa_test', 
+            data: { testType: 'specifications', nextStep: 'results_validation' }
+          },
+          { 
+            label: 'Start with service questions', 
+            action: 'start_qa_test', 
+            data: { testType: 'service', nextStep: 'results_validation' }
+          },
+          { 
+            label: 'Skip testing', 
+            action: 'next_step', 
+            data: { nextStep: 'recommendations' }
+          }
+        ]
+      };
+    },
+    
+    results_validation: (state: ConversationState) => {
+      const testResults = state.qaTestResults || { questionsAnswered: 0, correctAnswers: 0, confidence: 0 };
+      const accuracy = testResults.questionsAnswered > 0 
+        ? Math.round((testResults.correctAnswers / testResults.questionsAnswered) * 100)
+        : 0;
+        
+      return {
+        message: `Q&A Test Results: ${accuracy}% accuracy (${testResults.correctAnswers}/${testResults.questionsAnswered} correct). The system confidence is ${Math.round(testResults.confidence * 100)}%. Would you like to proceed with the recommendations?`,
+        actions: [
+          { 
+            label: 'View recommendations', 
+            action: 'next_step', 
+            data: { nextStep: 'recommendations' }
+          },
+          { 
+            label: 'Re-test with different questions', 
+            action: 'next_step', 
+            data: { nextStep: 'qa_testing' }
+          },
+          { 
+            label: 'Adjust configuration', 
+            action: 'modify_processing', 
+            data: state.configuration 
           }
         ]
       };
@@ -376,6 +493,15 @@ export class ConversationManager {
               description: 'Extract structured technical data like specifications, part numbers, and service intervals for further analysis.',
               config
             } 
+          },
+          { 
+            label: 'Test with Q&A', 
+            action: 'apply_recommendation', 
+            data: { 
+              recommendationType: 'qa_test',
+              description: 'Test the document understanding with automotive Q&A to verify extraction accuracy.',
+              config
+            } 
           }
         ]
       };
@@ -401,77 +527,48 @@ export class ConversationManager {
   };
   
   private questions: Map<string, string[]> = new Map([
-    // Sales-related documents
-    ['proposal', [
-      'I see this is a sales proposal. Which CRM workflow would you like to optimize?',
-      'Would you like to extract product details and pricing for opportunity tracking, or analyze competitor mentions?',
-      'Should I set up multimodal processing to capture images and diagrams from the proposal?'
+    // Automotive service documents
+    ['service_manual', [
+      'I see this is a service manual. What technical information would you like to extract?',
+      'Would you like to extract torque specifications, service procedures, or diagnostic codes?',
+      'Should I analyze technical diagrams and schematics for component relationships?'
     ]],
-    ['contract', [
-      'I\'ve identified this as a sales contract. What CRM process should I configure?',
-      'Would you like to extract key terms, parties, and obligations for deal tracking?',
-      'Should I enable entity extraction to link this contract to accounts and contacts in your CRM?'
+    ['parts_catalog', [
+      'I\'ve identified this as a parts catalog. What parts information do you need?',
+      'Would you like to extract part numbers, compatibility information, or pricing data?',
+      'Should I map part relationships and supersession information?'
     ]],
-    ['quote', [
-      'This appears to be a sales quote. How can I help integrate it with your CRM?',
-      'Would you like to extract pricing tiers and product configurations for opportunity management?',
-      'Should I analyze discount patterns and approval workflows mentioned in the quote?'
+    ['technical_bulletin', [
+      'This appears to be a technical bulletin. How should I process this TSB?',
+      'Would you like to extract affected VINs, repair procedures, or warranty information?',
+      'Should I identify related components and cross-reference with other bulletins?'
     ]],
-    
-    // Service-related documents
-    ['ticket', [
-      'This looks like a support ticket. What service workflow should I optimize?',
-      'Would you like to extract issue details and customer information for case management?',
-      'Should I enable audio transcription for any attached call recordings or voice notes?'
+    ['owners_manual', [
+      'This is an owner\'s manual. What information would you like to make searchable?',
+      'Would you like to extract maintenance schedules, warning messages, or operating procedures?',
+      'Should I process diagrams showing controls and features?'
     ]],
-    ['sla', [
-      'I\'ve detected an SLA document. How should I process it for your service team?',
-      'Would you like to extract service levels and response times for automated escalations?',
-      'Should I map customer entities to monitor compliance across accounts?'
-    ]],
-    ['feedback', [
-      'This appears to be customer feedback. What insights are you looking for?',
-      'Would you like sentiment analysis and entity extraction to link feedback to accounts?',
-      'Should I enable transcription for any audio feedback or survey responses?'
+    ['specification_sheet', [
+      'I\'ve detected a specification sheet. Which specifications should I extract?',
+      'Would you like to extract dimensions, capacities, or performance data?',
+      'Should I create a searchable database of all technical specifications?'
     ]],
     
-    // Marketing-related documents
-    ['campaign', [
-      'I see this is campaign material. Which marketing workflow should I support?',
-      'Would you like to extract campaign metrics, channels, and target segments?',
-      'Should I enable image captioning and visual analysis for marketing assets?'
-    ]],
-    ['analytics', [
-      'This looks like marketing analytics. What insights do you need for your CRM?',
-      'Would you like to extract KPIs and conversion data for campaign attribution?',
-      'Should I analyze tables and charts to update lead scoring models?'
-    ]],
-    ['content', [
-      'I\'ve identified marketing content. How should I process it for your content library?',
-      'Would you like OCR for infographics and visual analysis for brand assets?',
-      'Should I extract topics and entities to improve content recommendation?'
-    ]],
-    
-    // General CRM documents
+    // General automotive document patterns
     ['report', [
-      'This appears to be a CRM report. What insights are you looking for?',
-      'Would you like to extract metrics and KPIs for dashboard automation?',
-      'Should I identify entities and relationships to update your CRM data model?'
-    ]],
-    ['email', [
-      'I see this is an email communication. How should I process it for your CRM?',
-      'Would you like to extract action items and link them to relevant accounts?',
-      'Should I analyze sentiment and intent for lead scoring or case routing?'
+      'This appears to be an automotive report. What insights are you looking for?',
+      'Would you like to extract test results, compliance data, or quality metrics?',
+      'Should I identify failure patterns and root cause analysis?'
     ]],
     ['form', [
-      'This is a form submission. Which CRM process should I optimize?',
-      'Would you like to extract form fields for automatic lead/contact creation?',
-      'Should I classify the form type to route it to the right team?'
+      'This is an automotive form. Which data should I extract?',
+      'Would you like to extract VIN, mileage, service history, or inspection results?',
+      'Should I validate the data against Honda/Acura specifications?'
     ]],
     ['unknown', [
-      'I\'ve analyzed your document. Which CRM workflow would you like to enhance?',
-      'Are you looking to improve sales processes, service efficiency, or marketing insights?',
-      'What\'s your main goal - lead generation, customer service, or data enrichment?'
+      'I\'ve analyzed your automotive document. What information would you like to extract?',
+      'Are you looking for specifications, part numbers, or service procedures?',
+      'What\'s your main goal - troubleshooting, parts lookup, or maintenance planning?'
     ]]
   ]);
 
@@ -514,7 +611,11 @@ export class ConversationManager {
       isComplete: false,
       conversationStep: 'intro',
       userProfile: {},
-      processingPreferences: {}
+      processingPreferences: {},
+      vehicleInfo: {},
+      multimodalPreferences: {},
+      kgPreferences: {},
+      idpPreferences: {}
     };
   }
 
@@ -614,7 +715,7 @@ export class ConversationManager {
           configuration: {},
           confidence: 1.0,
           action: 'next_step',
-          nextStep: 'recommendations',
+          nextStep: 'qa_testing',
           config: state.configuration
         } as any;
       }
@@ -634,59 +735,66 @@ export class ConversationManager {
       }
     }
 
-    // Sales intents
-    if ((lowerMessage.includes('proposal') || lowerMessage.includes('opportunity')) && 
-        (lowerMessage.includes('product') || lowerMessage.includes('pricing') || lowerMessage.includes('competitor'))) {
-      return this.intents.get('sales_proposals')!;
+    // Automotive service intents
+    if ((lowerMessage.includes('service') || lowerMessage.includes('manual')) && 
+        (lowerMessage.includes('procedure') || lowerMessage.includes('torque') || lowerMessage.includes('specification'))) {
+      return this.intents.get('service_manual')!;
     }
     
-    if ((lowerMessage.includes('contract') || lowerMessage.includes('deal')) && 
-        (lowerMessage.includes('terms') || lowerMessage.includes('parties') || lowerMessage.includes('obligations'))) {
-      return this.intents.get('sales_contracts')!;
+    if ((lowerMessage.includes('part') || lowerMessage.includes('parts')) && 
+        (lowerMessage.includes('number') || lowerMessage.includes('catalog') || lowerMessage.includes('lookup'))) {
+      return this.intents.get('parts_catalog')!;
     }
     
-    // Service intents
-    if ((lowerMessage.includes('ticket') || lowerMessage.includes('support') || lowerMessage.includes('case')) && 
-        (lowerMessage.includes('issue') || lowerMessage.includes('customer') || lowerMessage.includes('transcription'))) {
-      return this.intents.get('service_tickets')!;
+    // Automotive diagnostic intents
+    if ((lowerMessage.includes('diagnostic') || lowerMessage.includes('troubleshoot') || lowerMessage.includes('dtc')) && 
+        (lowerMessage.includes('code') || lowerMessage.includes('procedure') || lowerMessage.includes('test'))) {
+      return this.intents.get('diagnostic_procedures')!;
     }
     
-    if ((lowerMessage.includes('feedback') || lowerMessage.includes('sentiment')) && 
-        (lowerMessage.includes('customer') || lowerMessage.includes('account') || lowerMessage.includes('analyze'))) {
-      return this.intents.get('customer_feedback')!;
+    if ((lowerMessage.includes('bulletin') || lowerMessage.includes('tsb')) && 
+        (lowerMessage.includes('technical') || lowerMessage.includes('service') || lowerMessage.includes('recall'))) {
+      return this.intents.get('technical_bulletins')!;
     }
     
-    // Marketing intents
-    if ((lowerMessage.includes('campaign') || lowerMessage.includes('marketing')) && 
-        (lowerMessage.includes('metrics') || lowerMessage.includes('analytics') || lowerMessage.includes('visual'))) {
-      return this.intents.get('campaign_analytics')!;
+    // Automotive Q&A intents
+    if ((lowerMessage.includes('specification') || lowerMessage.includes('spec')) && 
+        (lowerMessage.includes('engine') || lowerMessage.includes('transmission') || lowerMessage.includes('capacity'))) {
+      return this.intents.get('specification_lookup')!;
     }
     
-    if ((lowerMessage.includes('content') || lowerMessage.includes('library')) && 
-        (lowerMessage.includes('ocr') || lowerMessage.includes('image') || lowerMessage.includes('brand'))) {
-      return this.intents.get('content_library')!;
+    if ((lowerMessage.includes('maintenance') || lowerMessage.includes('service')) && 
+        (lowerMessage.includes('schedule') || lowerMessage.includes('interval') || lowerMessage.includes('when'))) {
+      return this.intents.get('maintenance_schedules')!;
     }
     
-    // General patterns
-    if (lowerMessage.includes('multimodal') || lowerMessage.includes('image') || lowerMessage.includes('audio')) {
-      // Determine context for multimodal
-      if (lowerMessage.includes('sales') || lowerMessage.includes('proposal')) {
-        return this.intents.get('sales_proposals')!;
-      } else if (lowerMessage.includes('marketing') || lowerMessage.includes('content')) {
-        return this.intents.get('content_library')!;
-      } else if (lowerMessage.includes('service') || lowerMessage.includes('support')) {
-        return this.intents.get('service_tickets')!;
-      }
+    // VIN and part number detection
+    if (lowerMessage.match(/\b[jh][a-z0-9]{2}[a-z0-9]{6}[0-9]{6}\b/) || lowerMessage.includes('vin')) {
+      return this.intents.get('parts_catalog')!;
+    }
+    
+    if (lowerMessage.match(/\b\d{5}-[a-z0-9]{3}-[a-z0-9]{3}\b/i)) {
+      return this.intents.get('parts_catalog')!;
+    }
+    
+    // Automotive Q&A patterns
+    if (lowerMessage.includes('q&a') || lowerMessage.includes('question') || lowerMessage.includes('answer')) {
+      return this.intents.get('specification_lookup')!;
+    }
+    
+    // General automotive patterns
+    if (lowerMessage.includes('multimodal') || lowerMessage.includes('diagram') || lowerMessage.includes('schematic')) {
+      return this.intents.get('service_manual')!;
     }
     
     // Fallback patterns
     if (lowerMessage.includes('extract') || lowerMessage.includes('analyze') || lowerMessage.includes('process')) {
-      if (lowerMessage.includes('sales') || lowerMessage.includes('opportunity') || lowerMessage.includes('deal')) {
-        return this.intents.get('sales_proposals')!;
-      } else if (lowerMessage.includes('service') || lowerMessage.includes('support') || lowerMessage.includes('ticket')) {
-        return this.intents.get('service_tickets')!;
-      } else if (lowerMessage.includes('marketing') || lowerMessage.includes('campaign')) {
-        return this.intents.get('campaign_analytics')!;
+      if (lowerMessage.includes('torque') || lowerMessage.includes('specification') || lowerMessage.includes('procedure')) {
+        return this.intents.get('service_manual')!;
+      } else if (lowerMessage.includes('part') || lowerMessage.includes('component') || lowerMessage.includes('assembly')) {
+        return this.intents.get('parts_catalog')!;
+      } else if (lowerMessage.includes('maintenance') || lowerMessage.includes('service') || lowerMessage.includes('interval')) {
+        return this.intents.get('maintenance_schedules')!;
       }
     }
 
@@ -706,7 +814,16 @@ export class ConversationManager {
   }
 
   private generateConfirmationMessage(intent: ProcessingIntent): string {
-    return 'Document processing has been configured and is ready to start.';
+    const messages: Record<string, string> = {
+      'service_manual': 'Service manual processing configured. Ready to extract torque specs, procedures, and diagrams.',
+      'parts_catalog': 'Parts catalog processing configured. Ready to extract part numbers and compatibility data.',
+      'diagnostic_procedures': 'Diagnostic processing configured. Ready to extract DTCs and troubleshooting steps.',
+      'technical_bulletins': 'TSB processing configured. Ready to extract affected VINs and repair procedures.',
+      'specification_lookup': 'Specification search configured. Ready to answer technical questions.',
+      'maintenance_schedules': 'Maintenance schedule processing configured. Ready to extract service intervals.'
+    };
+    
+    return messages[intent.intent] || 'Automotive document processing has been configured and is ready to start.';
   }
 
   private generateFollowUpQuestion(userMessage: string, state: ConversationState): ConversationMessage {
@@ -729,121 +846,129 @@ export class ConversationManager {
     const actions: ConversationAction[] = [];
 
     switch (documentType) {
-      case 'proposal':
+      case 'service_manual':
         actions.push({
           id: this.generateId(),
-          label: 'Extract for opportunity tracking',
+          label: 'Extract torque specifications',
           action: 'quick_intent',
-          data: 'Extract product details and pricing for opportunity tracking'
+          data: 'Extract all torque specifications and tightening sequences'
         });
         actions.push({
           id: this.generateId(),
-          label: 'Analyze competitors',
+          label: 'Find service procedures',
           action: 'quick_intent',
-          data: 'Analyze competitor mentions in the proposal'
+          data: 'Extract step-by-step service procedures with diagrams'
         });
         actions.push({
           id: this.generateId(),
-          label: 'Process visual content',
+          label: 'Process technical diagrams',
           action: 'quick_intent',
-          data: 'Enable multimodal processing for images and diagrams'
-        });
-        break;
-        
-      case 'contract':
-        actions.push({
-          id: this.generateId(),
-          label: 'Extract contract terms',
-          action: 'quick_intent',
-          data: 'Extract key terms and parties for deal tracking'
-        });
-        actions.push({
-          id: this.generateId(),
-          label: 'Link to CRM entities',
-          action: 'quick_intent',
-          data: 'Enable entity extraction to link contract to accounts'
+          data: 'Analyze wiring diagrams and component schematics'
         });
         break;
         
-      case 'ticket':
-      case 'support':
+      case 'parts_catalog':
         actions.push({
           id: this.generateId(),
-          label: 'Extract for case management',
+          label: 'Extract part numbers',
           action: 'quick_intent',
-          data: 'Extract issue details and customer information for case management'
+          data: 'Extract all Honda/Acura part numbers with descriptions'
         });
         actions.push({
           id: this.generateId(),
-          label: 'Transcribe audio',
+          label: 'Map part compatibility',
           action: 'quick_intent',
-          data: 'Enable audio transcription for call recordings'
-        });
-        break;
-        
-      case 'feedback':
-        actions.push({
-          id: this.generateId(),
-          label: 'Analyze sentiment',
-          action: 'quick_intent',
-          data: 'Sentiment analysis and entity extraction to link feedback to accounts'
+          data: 'Create compatibility matrix for parts across models'
         });
         actions.push({
           id: this.generateId(),
-          label: 'Process audio feedback',
+          label: 'Find superseded parts',
           action: 'quick_intent',
-          data: 'Enable transcription for audio feedback'
+          data: 'Identify superseded parts and their replacements'
         });
         break;
         
-      case 'campaign':
-      case 'marketing':
+      case 'technical_bulletin':
         actions.push({
           id: this.generateId(),
-          label: 'Extract campaign metrics',
+          label: 'Extract affected VINs',
           action: 'quick_intent',
-          data: 'Extract campaign metrics and target segments'
+          data: 'Extract VIN ranges and affected models'
         });
         actions.push({
           id: this.generateId(),
-          label: 'Analyze visual content',
+          label: 'Get repair procedures',
           action: 'quick_intent',
-          data: 'Enable image captioning and visual analysis for marketing assets'
+          data: 'Extract detailed repair procedures from TSB'
+        });
+        actions.push({
+          id: this.generateId(),
+          label: 'Find warranty info',
+          action: 'quick_intent',
+          data: 'Extract warranty and reimbursement information'
         });
         break;
         
-      case 'form':
+      case 'owners_manual':
         actions.push({
           id: this.generateId(),
-          label: 'Create lead/contact',
+          label: 'Extract maintenance schedule',
           action: 'quick_intent',
-          data: 'Extract form fields for automatic lead creation'
+          data: 'Extract complete maintenance schedule with intervals'
         });
         actions.push({
           id: this.generateId(),
-          label: 'Route to team',
+          label: 'Find warning messages',
           action: 'quick_intent',
-          data: 'Classify form type to route to right team'
+          data: 'Extract all warning and caution messages'
+        });
+        actions.push({
+          id: this.generateId(),
+          label: 'Map controls & features',
+          action: 'quick_intent',
+          data: 'Extract control locations and feature operations'
         });
         break;
+        
+      case 'specification_sheet':
+        actions.push({
+          id: this.generateId(),
+          label: 'Extract specifications',
+          action: 'quick_intent',
+          data: 'Extract all technical specifications and capacities'
+        });
+        actions.push({
+          id: this.generateId(),
+          label: 'Compare models',
+          action: 'quick_intent',
+          data: 'Create comparison matrix across models'
+        });
+        actions.push({
+          id: this.generateId(),
+          label: 'Find performance data',
+          action: 'quick_intent',
+          data: 'Extract performance metrics and ratings'
+        });
+        break;
+        
       default:
         actions.push({
           id: this.generateId(),
-          label: 'Search document',
+          label: 'Search technical data',
           action: 'quick_intent',
-          data: 'I want to find answers to questions about the tables in this document'
+          data: 'I want to search for specifications in this document'
         });
         actions.push({
           id: this.generateId(),
-          label: 'Extract data',
+          label: 'Extract VIN/Part numbers',
           action: 'quick_intent',
-          data: 'I need to extract all the form fields into a structured format'
+          data: 'I need to extract all VINs and part numbers'
         });
         actions.push({
           id: this.generateId(),
-          label: 'Analyze relationships',
+          label: 'Q&A about document',
           action: 'quick_intent',
-          data: 'I want to understand the relationships between entities'
+          data: 'I want to ask questions about this automotive document'
         });
     }
 
@@ -890,6 +1015,23 @@ export class ConversationManager {
         
       case 'set_department':
         newState.userProfile = { ...newState.userProfile, department: data.department };
+        newState.conversationStep = data.nextStep;
+        break;
+        
+      case 'set_vehicle':
+        newState.vehicleInfo = { 
+          ...newState.vehicleInfo, 
+          year: data.year,
+          make: data.make,
+          model: data.model 
+        };
+        newState.conversationStep = data.nextStep;
+        break;
+        
+      case 'request_vin_input':
+      case 'request_vehicle_input':
+        // For now, we'll just move to the next step
+        // In a real implementation, this would open an input dialog
         newState.conversationStep = data.nextStep;
         break;
         
@@ -959,8 +1101,51 @@ export class ConversationManager {
         break;
         
       case 'set_idp_preferences':
-        console.log('ConversationManager: Setting IDP preferences:', { enabled: data.idpEnabled, extractType: data.extractType });
-        newState.idpPreferences = { enabled: data.idpEnabled, extractType: data.extractType };
+        console.log('ConversationManager: Setting IDP preferences:', { 
+          enabled: data.idpEnabled, 
+          extractType: data.extractType,
+          automotiveOptions: data.automotiveOptions 
+        });
+        newState.idpPreferences = { 
+          enabled: data.idpEnabled, 
+          extractType: data.extractType,
+          automotiveOptions: data.automotiveOptions
+        };
+        newState.conversationStep = data.nextStep;
+        break;
+        
+      case 'set_vehicle':
+        console.log('ConversationManager: Setting vehicle info:', data);
+        newState.vehicleInfo = { 
+          ...newState.vehicleInfo,
+          year: data.year,
+          make: data.make,
+          model: data.model
+        };
+        newState.conversationStep = data.nextStep;
+        console.log('ConversationManager: Vehicle info set, moving to:', data.nextStep);
+        break;
+        
+      case 'request_vin_input':
+        // This would trigger a VIN input modal or field
+        newState.conversationStep = 'vehicle_info';
+        // In real implementation, would show VIN input UI
+        break;
+        
+      case 'request_vehicle_input':
+        // This would trigger manual vehicle selection
+        newState.conversationStep = 'vehicle_info';
+        // In real implementation, would show vehicle selector UI
+        break;
+        
+      case 'start_qa_test':
+        newState.qaTestingEnabled = true;
+        newState.qaTestResults = {
+          questionsAnswered: 0,
+          correctAnswers: 0,
+          confidence: 0
+        };
+        // Would initiate Q&A testing based on testType
         newState.conversationStep = data.nextStep;
         break;
         
@@ -1009,7 +1194,7 @@ export class ConversationManager {
     console.log('ConversationManager: Getting next message for step:', newState.conversationStep);
     const nextMessage = this.getNextStepMessage(newState);
     console.log('ConversationManager: Next message:', nextMessage.content);
-    console.log('ConversationManager: Next message actions:', nextMessage.actions.map(a => a.label));
+    console.log('ConversationManager: Next message actions:', nextMessage.actions?.map(a => a.label) || []);
     newState.messages = [...newState.messages, nextMessage];
     newState.currentQuestion = nextMessage.content;
     
@@ -1029,7 +1214,9 @@ export class ConversationManager {
       // Check if it needs specific arguments
       if (stepName === 'intro') {
         step = (stepFunction as any)(state.documentAnalysis?.documentType || 'document');
-      } else if (stepName === 'processing_selection' || stepName === 'confirmation' || stepName === 'recommendations') {
+      } else if (stepName === 'processing_selection' || stepName === 'confirmation' || 
+                 stepName === 'recommendations' || stepName === 'qa_testing' || 
+                 stepName === 'results_validation') {
         step = (stepFunction as any)(state);
       } else {
         step = (stepFunction as any)();
@@ -1207,8 +1394,14 @@ export class ConversationManager {
       textExtraction: idp.enabled || baseConfig.idp?.textExtraction || false,
       classification: idp.extractType === 'metadata' || idp.extractType === 'full' || baseConfig.idp?.classification || false,
       metadata: idp.extractType === 'metadata' || idp.extractType === 'full' || baseConfig.idp?.metadata || false,
-      tables: idp.extractType === 'structured' || idp.extractType === 'full' || baseConfig.idp?.tables || false,
-      formFields: idp.extractType === 'structured' || idp.extractType === 'full' || baseConfig.idp?.formFields || false
+      tables: idp.extractType === 'structured' || idp.extractType === 'full' || idp.extractType === 'automotive' || baseConfig.idp?.tables || false,
+      formFields: idp.extractType === 'structured' || idp.extractType === 'full' || baseConfig.idp?.formFields || false,
+      // Add automotive-specific extraction options
+      automotiveExtraction: idp.extractType === 'automotive' || false,
+      extractVIN: idp.automotiveOptions?.extractVIN || false,
+      extractPartNumbers: idp.automotiveOptions?.extractPartNumbers || false,
+      extractTorqueSpecs: idp.automotiveOptions?.extractTorqueSpecs || false,
+      extractServiceIntervals: idp.automotiveOptions?.extractServiceIntervals || false
     };
     
     return {
@@ -1227,6 +1420,8 @@ export class ConversationManager {
       multimodalPreferences: state.multimodalPreferences,
       kgPreferences: state.kgPreferences,
       idpPreferences: state.idpPreferences,
+      vehicleInfo: state.vehicleInfo,
+      qaTestingEnabled: state.qaTestingEnabled,
       intent: true,
       triggerType: 'conversation'
     };
