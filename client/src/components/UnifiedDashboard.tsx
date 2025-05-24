@@ -1668,7 +1668,11 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1.5 rounded-lg shadow-md">
               <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-xl font-semibold text-gray-800">Content Workbench</h1>
+            <h1 className="text-xl font-semibold text-gray-800">
+              {currentStep === 'results' && state.document?.title 
+                ? `${state.document.title} - Analysis Results`
+                : 'Content Workbench'}
+            </h1>
           </div>
           
           <div className="flex items-center space-x-4">
