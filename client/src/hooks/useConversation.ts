@@ -86,6 +86,9 @@ export interface UserProfile {
   preferences: string[];
   format?: string;
   vehicleRole?: string;
+  testingEnabled?: boolean;
+  testingMode?: 'live' | 'batch' | 'validation';
+  accuracyTracking?: boolean;
 }
 
 export interface ProcessingConfiguration {
@@ -114,6 +117,39 @@ export interface ProcessingConfiguration {
   };
 }
 
+export interface QATestResult {
+  questionId: string;
+  question: string;
+  userAnswer?: string;
+  systemAnswer: string;
+  isCorrect?: boolean;
+  confidence: number;
+  timestamp: Date;
+}
+
+export interface TestingState {
+  enabled: boolean;
+  mode: 'live' | 'batch' | 'validation';
+  currentTest?: {
+    type: 'parts' | 'specifications' | 'service';
+    questions: Array<{
+      id: string;
+      question: string;
+      expectedAnswer?: string;
+    }>;
+    currentQuestionIndex: number;
+  };
+  results: QATestResult[];
+  metrics: {
+    totalQuestions: number;
+    answeredQuestions: number;
+    correctAnswers: number;
+    averageConfidence: number;
+    startTime?: Date;
+    endTime?: Date;
+  };
+}
+
 export interface EnhancedConversationState extends Omit<ConversationState, 'documentAnalysis' | 'userProfile'> {
   userProfile: UserProfile;
   selectedFeatures: string[];
@@ -121,6 +157,7 @@ export interface EnhancedConversationState extends Omit<ConversationState, 'docu
   processingPriority?: string;
   isVehicleDocument?: boolean;
   documentAnalysis?: DocumentCharacteristics | null;
+  testing?: TestingState;
 }
 
 export interface UseConversationReturn {
@@ -130,6 +167,12 @@ export interface UseConversationReturn {
   startConversation: (documentAnalysis: DocumentCharacteristics) => void;
   resetConversation: () => void;
   getProcessingConfig: () => any;
+  // Testing methods
+  enableTesting: (mode: 'live' | 'batch' | 'validation') => void;
+  submitTestAnswer: (questionId: string, answer: string) => void;
+  validateAnswer: (questionId: string, isCorrect: boolean) => void;
+  getTestResults: () => QATestResult[];
+  getTestMetrics: () => TestingState['metrics'];
 }
 
 export function useConversation(onProcessingConfigured?: (config: any) => void): UseConversationReturn {
@@ -153,6 +196,17 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
       rag: { enabled: false, method: 'semantic', chunkSize: 150, overlap: 20 },
       kg: { enabled: false, entityTypes: ['all'], relationMapping: true },
       idp: { enabled: false, extractFields: true, classification: true }
+    },
+    testing: {
+      enabled: false,
+      mode: 'live',
+      results: [],
+      metrics: {
+        totalQuestions: 0,
+        answeredQuestions: 0,
+        correctAnswers: 0,
+        averageConfidence: 0
+      }
     }
   });
 
@@ -362,6 +416,70 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
   const sendMessage = useCallback((message: string) => {
     if (!message.trim()) return;
 
+    // Check if we're in testing mode and this is a test answer
+    if (state.testing?.enabled && state.testing.currentTest && !message.startsWith('action:')) {
+      const currentTest = state.testing.currentTest;
+      const currentQuestion = currentTest.questions[currentTest.currentQuestionIndex];
+      
+      if (currentQuestion) {
+        // Submit the test answer
+        submitTestAnswer(currentQuestion.id, message);
+        
+        // Move to next question or finish test
+        const nextIndex = currentTest.currentQuestionIndex + 1;
+        if (nextIndex < currentTest.questions.length) {
+          // Show next question
+          const nextQuestion = currentTest.questions[nextIndex];
+          const testMessage: ConversationMessage = {
+            id: generateId(),
+            type: 'assistant' as const,
+            content: `Test Question ${nextIndex + 1}/${currentTest.questions.length}: ${nextQuestion.question}`,
+            timestamp: new Date()
+          };
+          
+          setState(prev => ({
+            ...prev,
+            testing: {
+              ...prev.testing!,
+              currentTest: {
+                ...currentTest,
+                currentQuestionIndex: nextIndex
+              }
+            },
+            messages: [...prev.messages, 
+              { id: generateId(), type: 'user' as const, content: message, timestamp: new Date() },
+              testMessage
+            ]
+          }));
+        } else {
+          // Test complete
+          setState(prev => ({
+            ...prev,
+            testing: {
+              ...prev.testing!,
+              currentTest: undefined,
+              metrics: {
+                ...prev.testing!.metrics,
+                endTime: new Date()
+              }
+            }
+          }));
+          
+          // Send completion message directly to conversation manager
+          const completionAction = 'action:' + JSON.stringify({ 
+            action: 'next_step', 
+            data: { nextStep: 'results_validation' } 
+          });
+          
+          // Process the action directly instead of recursive call
+          setTimeout(() => {
+            handleAction('next_step', { nextStep: 'results_validation' });
+          }, 100);
+        }
+        return;
+      }
+    }
+
     // Add debugging for action messages
     if (message.startsWith('action:')) {
       console.log('useConversation: Received action message:', message);
@@ -431,7 +549,7 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
         multimodalPreferences: newState.multimodalPreferences || prev.multimodalPreferences
       };
     });
-  }, [state]);
+  }, [state, submitTestAnswer, handleAction]);
 
   const handleAction = useCallback((action: string, data?: any) => {
     console.log('useConversation: handleAction called with', action, data);
@@ -441,7 +559,8 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
         'request_vehicle_input', 'set_experience', 'set_goal', 
         'set_urgency', 'set_detail', 'select_processing', 'set_has_images', 
         'set_has_audio', 'set_needs_ocr', 'set_visual_analysis', 'set_image_processing',
-        'set_kg_preferences', 'set_kg_entities', 'set_idp_preferences', 'apply_recommendation'].includes(action)) {
+        'set_kg_preferences', 'set_kg_entities', 'set_idp_preferences', 'apply_recommendation',
+        'start_qa_test'].includes(action)) {
       
       // Handle immediate updates for specific actions
       if (action === 'select_processing') {
@@ -680,6 +799,49 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
           console.log('useConversation: IDP not enabled or onProcessingConfigured not available');
           console.log('useConversation: data.idpEnabled =', data.idpEnabled);
           console.log('useConversation: onProcessingConfigured =', onProcessingConfigured);
+        }
+      }
+      
+      // Handle Q&A test start action
+      if (action === 'start_qa_test') {
+        console.log('useConversation: Starting Q&A test with type:', data.testType);
+        
+        // Enable testing with the appropriate mode
+        enableTesting('live');
+        
+        // Create test questions based on test type
+        const testQuestions = getTestQuestions(data.testType, state.documentAnalysis);
+        
+        setState(prev => ({
+          ...prev,
+          testing: {
+            ...prev.testing!,
+            currentTest: {
+              type: data.testType,
+              questions: testQuestions,
+              currentQuestionIndex: 0
+            },
+            metrics: {
+              ...prev.testing!.metrics,
+              totalQuestions: testQuestions.length
+            }
+          }
+        }));
+        
+        // Show first test question
+        const firstQuestion = testQuestions[0];
+        if (firstQuestion) {
+          const testMessage: ConversationMessage = {
+            id: generateId(),
+            type: 'assistant' as const,
+            content: `Test Question 1/${testQuestions.length}: ${firstQuestion.question}`,
+            timestamp: new Date()
+          };
+          
+          setState(prev => ({
+            ...prev,
+            messages: [...prev.messages, testMessage]
+          }));
         }
       }
       
@@ -1463,7 +1625,7 @@ These settings will provide you with optimized results based on your specific ne
           console.log('Unknown action:', action);
       }
     }
-  }, [state, sendMessage, toast, configureProcessingFromUserProfile, startConversation]);
+  }, [state, sendMessage, toast, configureProcessingFromUserProfile, startConversation, enableTesting, generateId]);
 
   // Handle document-specific customizations
   useEffect(() => {
@@ -1536,7 +1698,13 @@ These settings will provide you with optimized results based on your specific ne
     return {
       configuration: state.processingConfig,
       userProfile: state.userProfile,
-      selectedFeatures: state.selectedFeatures
+      selectedFeatures: state.selectedFeatures,
+      testing: state.testing ? {
+        enabled: state.testing.enabled,
+        mode: state.testing.mode,
+        metrics: state.testing.metrics,
+        results: state.testing.results
+      } : undefined
     };
   }, [state]);
 
@@ -1578,6 +1746,138 @@ These settings will provide you with optimized results based on your specific ne
     };
   }, [state]);
 
+  // Helper function to generate test questions based on type and document
+  const getTestQuestions = (testType: 'parts' | 'specifications' | 'service', documentAnalysis: DocumentCharacteristics | null | undefined) => {
+    const questions = [];
+    const generateId = () => `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    switch (testType) {
+      case 'parts':
+        questions.push(
+          { id: generateId(), question: "What is the part number for the engine air filter?", expectedAnswer: "17220-5BA-A00" },
+          { id: generateId(), question: "What is the recommended replacement interval for brake pads?", expectedAnswer: "Every 25,000-50,000 miles" },
+          { id: generateId(), question: "What is the part number for the cabin air filter?", expectedAnswer: "80292-TBA-A11" }
+        );
+        break;
+      case 'specifications':
+        questions.push(
+          { id: generateId(), question: "What is the engine oil capacity?", expectedAnswer: "4.2 quarts with filter" },
+          { id: generateId(), question: "What is the recommended tire pressure?", expectedAnswer: "32 PSI front and rear" },
+          { id: generateId(), question: "What is the transmission fluid type?", expectedAnswer: "Honda ATF-DW1" }
+        );
+        break;
+      case 'service':
+        questions.push(
+          { id: generateId(), question: "What is the service interval for engine oil change?", expectedAnswer: "Every 7,500 miles or 12 months" },
+          { id: generateId(), question: "When should the timing belt be replaced?", expectedAnswer: "Every 100,000 miles" },
+          { id: generateId(), question: "What is the coolant replacement interval?", expectedAnswer: "Every 120,000 miles or 10 years" }
+        );
+        break;
+    }
+    
+    return questions;
+  };
+
+  // Testing methods
+  const enableTesting = useCallback((mode: 'live' | 'batch' | 'validation') => {
+    setState(prev => ({
+      ...prev,
+      userProfile: {
+        ...prev.userProfile,
+        testingEnabled: true,
+        testingMode: mode,
+        accuracyTracking: true
+      },
+      testing: {
+        ...prev.testing!,
+        enabled: true,
+        mode,
+        metrics: {
+          ...prev.testing!.metrics,
+          startTime: new Date()
+        }
+      }
+    }));
+    
+    toast({
+      title: "Testing Mode Enabled",
+      description: `Q&A testing mode set to: ${mode}`,
+    });
+  }, [toast]);
+
+  const submitTestAnswer = useCallback((questionId: string, answer: string) => {
+    setState(prev => {
+      const currentTest = prev.testing?.currentTest;
+      if (!currentTest) return prev;
+      
+      const question = currentTest.questions[currentTest.currentQuestionIndex];
+      if (!question || question.id !== questionId) return prev;
+      
+      const testResult: QATestResult = {
+        questionId,
+        question: question.question,
+        userAnswer: answer,
+        systemAnswer: "", // This would be filled by the system
+        confidence: 0.85, // Placeholder confidence
+        timestamp: new Date()
+      };
+      
+      return {
+        ...prev,
+        testing: {
+          ...prev.testing!,
+          results: [...prev.testing!.results, testResult],
+          metrics: {
+            ...prev.testing!.metrics,
+            answeredQuestions: prev.testing!.metrics.answeredQuestions + 1
+          }
+        }
+      };
+    });
+  }, []);
+
+  const validateAnswer = useCallback((questionId: string, isCorrect: boolean) => {
+    setState(prev => {
+      const resultIndex = prev.testing?.results.findIndex(r => r.questionId === questionId);
+      if (resultIndex === undefined || resultIndex === -1) return prev;
+      
+      const updatedResults = [...prev.testing!.results];
+      updatedResults[resultIndex] = {
+        ...updatedResults[resultIndex],
+        isCorrect
+      };
+      
+      const correctAnswers = updatedResults.filter(r => r.isCorrect).length;
+      const averageConfidence = updatedResults.reduce((sum, r) => sum + r.confidence, 0) / updatedResults.length;
+      
+      return {
+        ...prev,
+        testing: {
+          ...prev.testing!,
+          results: updatedResults,
+          metrics: {
+            ...prev.testing!.metrics,
+            correctAnswers,
+            averageConfidence
+          }
+        }
+      };
+    });
+  }, []);
+
+  const getTestResults = useCallback(() => {
+    return state.testing?.results || [];
+  }, [state.testing]);
+
+  const getTestMetrics = useCallback(() => {
+    return state.testing?.metrics || {
+      totalQuestions: 0,
+      answeredQuestions: 0,
+      correctAnswers: 0,
+      averageConfidence: 0
+    };
+  }, [state.testing]);
+
   // Use debounced sync to avoid rapid state updates
   useConfigSync(
     (config) => {
@@ -1596,6 +1896,11 @@ These settings will provide you with optimized results based on your specific ne
     handleAction,
     startConversation,
     resetConversation,
-    getProcessingConfig
+    getProcessingConfig,
+    enableTesting,
+    submitTestAnswer,
+    validateAnswer,
+    getTestResults,
+    getTestMetrics
   };
 }
