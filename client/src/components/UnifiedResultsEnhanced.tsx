@@ -8,7 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import UnifiedSearchEnhanced from '@/components/UnifiedSearchEnhanced';
+import { TestingInterface } from '@/components/TestingInterface';
 import { cn } from '@/lib/utils';
 import { 
   FileText, 
@@ -16,6 +18,7 @@ import {
   Database,
   File,
   ChevronRight,
+  ChevronDown,
   Package,
   User,
   Calendar,
@@ -45,7 +48,16 @@ import {
   ThumbsUp,
   ThumbsDown,
   Wand2,
-  Settings
+  Settings,
+  Car,
+  Wrench,
+  FileJson,
+  ZoomIn,
+  Grid,
+  List,
+  FileSearch,
+  TestTube,
+  CheckCircle
 } from 'lucide-react';
 
 interface RAGResults {
@@ -106,17 +118,50 @@ interface IDPResults {
       headers: string[];
       rows: string[][];
       confidence: number;
+      category?: 'specifications' | 'parts' | 'procedures' | 'general';
     }>;
     images: Array<{
       id: string;
       url: string;
       caption?: string;
       metadata: Record<string, any>;
+      category?: 'diagram' | 'part' | 'procedure' | 'general';
+      annotations?: Array<{
+        x: number;
+        y: number;
+        label: string;
+      }>;
     }>;
     formFields: Record<string, {
       value: any;
       type: string;
       confidence: number;
+    }>;
+    specifications?: {
+      vehicle: {
+        make: string;
+        model: string;
+        year: string;
+        trim?: string;
+      };
+      engine?: Record<string, any>;
+      dimensions?: Record<string, any>;
+      features?: string[];
+    };
+    partsData?: Array<{
+      partNumber: string;
+      description: string;
+      category: string;
+      price?: number;
+      availability?: string;
+    }>;
+    procedures?: Array<{
+      id: string;
+      title: string;
+      category: string;
+      steps: string[];
+      duration?: string;
+      difficulty?: 'easy' | 'medium' | 'hard';
     }>;
   };
 }
@@ -161,6 +206,12 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   onClearResults
 }) => {
   const [activeTab, setActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic'>('agentic');
+  const [showTestingInterface, setShowTestingInterface] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<any>(null);
+  const [imageViewMode, setImageViewMode] = useState<'grid' | 'list'>('grid');
+  const [expandedJson, setExpandedJson] = useState<string[]>([]);
+  const [jsonSearchQuery, setJsonSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
   // Handle tab switching if the current tab is disabled
   useEffect(() => {
@@ -509,6 +560,90 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   );
   };
 
+  const renderJsonNode = (data: any, path: string = '', depth: number = 0): JSX.Element => {
+    if (data === null || data === undefined) {
+      return <span className="text-gray-400">null</span>;
+    }
+
+    if (typeof data !== 'object') {
+      return <span className="text-green-600">{JSON.stringify(data)}</span>;
+    }
+
+    if (Array.isArray(data)) {
+      return (
+        <div className="ml-4">
+          {data.map((item, index) => {
+            const itemPath = `${path}[${index}]`;
+            const isExpanded = expandedJson.includes(itemPath);
+            
+            return (
+              <div key={index} className="my-1">
+                <div className="flex items-start">
+                  <button
+                    onClick={() => {
+                      setExpandedJson(prev => 
+                        isExpanded 
+                          ? prev.filter(p => p !== itemPath)
+                          : [...prev, itemPath]
+                      );
+                    }}
+                    className="mr-1 text-gray-500 hover:text-gray-700"
+                  >
+                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </button>
+                  <span className="text-blue-600">[{index}]</span>
+                </div>
+                {isExpanded && (
+                  <div className="ml-6">
+                    {renderJsonNode(item, itemPath, depth + 1)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return (
+      <div className="ml-4">
+        {Object.entries(data).map(([key, value]) => {
+          const itemPath = `${path}.${key}`;
+          const isExpanded = expandedJson.includes(itemPath);
+          const isObject = typeof value === 'object' && value !== null;
+          
+          return (
+            <div key={key} className="my-1">
+              <div className="flex items-start">
+                {isObject && (
+                  <button
+                    onClick={() => {
+                      setExpandedJson(prev => 
+                        isExpanded 
+                          ? prev.filter(p => p !== itemPath)
+                          : [...prev, itemPath]
+                      );
+                    }}
+                    className="mr-1 text-gray-500 hover:text-gray-700"
+                  >
+                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </button>
+                )}
+                <span className="text-purple-600 font-medium">{key}:</span>
+                {!isObject && <span className="ml-2">{renderJsonNode(value, itemPath, depth + 1)}</span>}
+              </div>
+              {isObject && isExpanded && (
+                <div className="ml-6">
+                  {renderJsonNode(value, itemPath, depth + 1)}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderIDPResults = () => {
     // Check if Document Intelligence processing is enabled through the checkbox
     if (!processingConfig?.idp?.enabled) {
@@ -530,6 +665,237 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
     return (
       <div className="space-y-6">
+        {/* Automotive Data Display */}
+        {idpResults?.extractedData?.specifications && (
+          <Card className="border-blue-200">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Car className="h-5 w-5 text-blue-500" />
+                  <CardTitle>Vehicle Specifications</CardTitle>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const data = JSON.stringify(idpResults.extractedData.specifications, null, 2);
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'vehicle-specifications.json';
+                    a.click();
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Export JSON
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {idpResults.extractedData.specifications.vehicle && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Vehicle Information</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Make</p>
+                        <p className="font-medium">{idpResults.extractedData.specifications.vehicle.make}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Model</p>
+                        <p className="font-medium">{idpResults.extractedData.specifications.vehicle.model}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Year</p>
+                        <p className="font-medium">{idpResults.extractedData.specifications.vehicle.year}</p>
+                      </div>
+                      {idpResults.extractedData.specifications.vehicle.trim && (
+                        <div>
+                          <p className="text-sm text-gray-600">Trim</p>
+                          <p className="font-medium">{idpResults.extractedData.specifications.vehicle.trim}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {idpResults.extractedData.specifications.features && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Features</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {idpResults.extractedData.specifications.features.map((feature, idx) => (
+                        <Badge key={idx} variant="secondary">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          {feature}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Parts Catalog */}
+        {idpResults?.extractedData?.partsData && idpResults.extractedData.partsData.length > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Wrench className="h-5 w-5 text-orange-500" />
+                  <CardTitle>Parts Catalog</CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Search parts..."
+                    className="w-64"
+                    onChange={(e) => setJsonSearchQuery(e.target.value)}
+                  />
+                  <Badge variant="secondary">
+                    {idpResults.extractedData.partsData.length} parts
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Part Number</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Availability</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {idpResults.extractedData.partsData
+                      .filter(part => 
+                        !jsonSearchQuery || 
+                        part.partNumber.toLowerCase().includes(jsonSearchQuery.toLowerCase()) ||
+                        part.description.toLowerCase().includes(jsonSearchQuery.toLowerCase())
+                      )
+                      .map((part, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell className="font-mono">{part.partNumber}</TableCell>
+                          <TableCell>{part.description}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{part.category}</Badge>
+                          </TableCell>
+                          <TableCell>{part.price ? `$${part.price}` : '-'}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={part.availability === 'In Stock' ? 'default' : 'secondary'}
+                              className={part.availability === 'In Stock' ? 'bg-green-100 text-green-800' : ''}
+                            >
+                              {part.availability || 'Check'}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Service Procedures */}
+        {idpResults?.extractedData?.procedures && idpResults.extractedData.procedures.length > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <FileSearch className="h-5 w-5 text-green-500" />
+                  <CardTitle>Service Procedures</CardTitle>
+                </div>
+                <Badge variant="secondary">
+                  {idpResults.extractedData.procedures.length} procedures
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {idpResults.extractedData.procedures.map((procedure) => (
+                  <Card key={procedure.id} className="border-l-4 border-l-blue-500">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{procedure.title}</CardTitle>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline">{procedure.category}</Badge>
+                            {procedure.duration && (
+                              <span className="text-sm text-gray-600">⏱ {procedure.duration}</span>
+                            )}
+                            {procedure.difficulty && (
+                              <Badge 
+                                variant="secondary"
+                                className={cn(
+                                  procedure.difficulty === 'easy' && 'bg-green-100 text-green-800',
+                                  procedure.difficulty === 'medium' && 'bg-yellow-100 text-yellow-800',
+                                  procedure.difficulty === 'hard' && 'bg-red-100 text-red-800'
+                                )}
+                              >
+                                {procedure.difficulty}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <ol className="list-decimal list-inside space-y-1">
+                        {procedure.steps.map((step, idx) => (
+                          <li key={idx} className="text-sm text-gray-700">{step}</li>
+                        ))}
+                      </ol>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* JSON Data Viewer */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <FileJson className="h-5 w-5 text-purple-500" />
+                <CardTitle>Extracted JSON Data</CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Search JSON..."
+                  value={jsonSearchQuery}
+                  onChange={(e) => setJsonSearchQuery(e.target.value)}
+                  className="w-48"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const data = JSON.stringify(idpResults, null, 2);
+                    navigator.clipboard.writeText(data);
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copy
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm overflow-auto max-h-[500px]">
+              {renderJsonNode(idpResults)}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Document Intelligence Header with Enhancement */}
         <Card className="border-blue-200 bg-blue-50/30">
           <CardHeader>
@@ -674,6 +1040,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
               <CardTitle className="flex items-center gap-2">
                 <TableIcon className="h-5 w-5" />
                 Table {tableIndex + 1}: {table.name}
+                {table.category && (
+                  <Badge variant="outline" className="ml-2">
+                    {table.category}
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription>
                 Confidence: {(table.confidence * 100).toFixed(1)}%
@@ -704,6 +1075,202 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </Card>
         ))}
 
+        {/* Image Gallery */}
+        {idpResults?.extractedData?.images && idpResults.extractedData.images.length > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Image className="h-5 w-5 text-indigo-500" />
+                  <CardTitle>Image Gallery</CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <TabsList className="h-8">
+                      <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+                      <TabsTrigger value="diagram" className="text-xs">Diagrams</TabsTrigger>
+                      <TabsTrigger value="part" className="text-xs">Parts</TabsTrigger>
+                      <TabsTrigger value="procedure" className="text-xs">Procedures</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  <div className="flex gap-1">
+                    <Button
+                      size="icon"
+                      variant={imageViewMode === 'grid' ? 'default' : 'outline'}
+                      className="h-8 w-8"
+                      onClick={() => setImageViewMode('grid')}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant={imageViewMode === 'list' ? 'default' : 'outline'}
+                      className="h-8 w-8"
+                      onClick={() => setImageViewMode('list')}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {imageViewMode === 'grid' ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {idpResults.extractedData.images
+                    .filter(img => selectedCategory === 'all' || img.category === selectedCategory)
+                    .map((image) => (
+                      <div
+                        key={image.id}
+                        className="relative group cursor-pointer"
+                        onClick={() => setSelectedImage(image)}
+                      >
+                        <div className="aspect-square overflow-hidden rounded-lg border">
+                          <img
+                            src={image.url}
+                            alt={image.caption || 'Document image'}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity rounded-lg flex items-center justify-center">
+                          <ZoomIn className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        {image.category && (
+                          <Badge
+                            variant="secondary"
+                            className="absolute top-2 right-2 text-xs"
+                          >
+                            {image.category}
+                          </Badge>
+                        )}
+                        {image.caption && (
+                          <p className="mt-2 text-sm text-gray-600 line-clamp-2">{image.caption}</p>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {idpResults.extractedData.images
+                    .filter(img => selectedCategory === 'all' || img.category === selectedCategory)
+                    .map((image) => (
+                      <div
+                        key={image.id}
+                        className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        onClick={() => setSelectedImage(image)}
+                      >
+                        <div className="w-32 h-32 flex-shrink-0 overflow-hidden rounded-lg">
+                          <img
+                            src={image.url}
+                            alt={image.caption || 'Document image'}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-medium">{image.caption || 'Untitled Image'}</h4>
+                              {image.category && (
+                                <Badge variant="outline" className="mt-1">
+                                  {image.category}
+                                </Badge>
+                              )}
+                            </div>
+                            <Button size="sm" variant="outline">
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
+                          </div>
+                          {image.metadata && Object.keys(image.metadata).length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {Object.entries(image.metadata).map(([key, value]) => (
+                                <div key={key} className="text-sm">
+                                  <span className="text-gray-600">{key}:</span>
+                                  <span className="ml-2">{String(value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Q&A Integration */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <TestTube className="h-5 w-5 text-green-500" />
+                <CardTitle>Q&A Testing</CardTitle>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => setShowTestingInterface(true)}
+              >
+                Open Testing Interface
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Test document understanding with automotive-specific questions
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="justify-start"
+                  onClick={() => {
+                    setAgenticQuery('What is the engine displacement?');
+                    setActiveTab('agentic');
+                  }}
+                >
+                  What is the engine displacement?
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="justify-start"
+                  onClick={() => {
+                    setAgenticQuery('List all available safety features');
+                    setActiveTab('agentic');
+                  }}
+                >
+                  List all available safety features
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="justify-start"
+                  onClick={() => {
+                    setAgenticQuery('What are the maintenance intervals?');
+                    setActiveTab('agentic');
+                  }}
+                >
+                  What are the maintenance intervals?
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="justify-start"
+                  onClick={() => {
+                    setAgenticQuery('Find part numbers for brake pads');
+                    setActiveTab('agentic');
+                  }}
+                >
+                  Find part numbers for brake pads
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Form Fields */}
         {Object.keys(idpResults?.extractedData?.formFields || {}).length > 0 && (
           <Card>
@@ -731,7 +1298,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                       </div>
                     </div>
                   </div>
-                ))}
+                )}})
               </div>
             </CardContent>
           </Card>
@@ -1969,12 +2536,13 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <BrainCircuit className="h-6 w-6 text-purple-500" />
-          <h2 className="text-2xl font-semibold">Content Understanding</h2>
-        </div>
+    <>
+      <div className="h-full flex flex-col">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <BrainCircuit className="h-6 w-6 text-purple-500" />
+            <h2 className="text-2xl font-semibold">Content Understanding</h2>
+          </div>
         {onClearResults && (
           <Button 
             variant="outline" 
@@ -2069,6 +2637,68 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
         </ScrollArea>
       </Tabs>
     </div>
+
+    {/* Image Zoom Dialog */}
+    {selectedImage && (
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{selectedImage.caption || 'Document Image'}</DialogTitle>
+          </DialogHeader>
+          <div className="relative">
+            <img
+              src={selectedImage.url}
+              alt={selectedImage.caption || 'Document image'}
+              className="w-full h-auto rounded-lg"
+            />
+            {selectedImage.annotations && selectedImage.annotations.length > 0 && (
+              <>
+                {selectedImage.annotations.map((annotation, idx) => (
+                  <div
+                    key={idx}
+                    className="absolute bg-red-500 text-white text-xs px-2 py-1 rounded"
+                    style={{
+                      left: `${annotation.x}%`,
+                      top: `${annotation.y}%`,
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  >
+                    {annotation.label}
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                const a = document.createElement('a');
+                a.href = selectedImage.url;
+                a.download = `image-${selectedImage.id}.png`;
+                a.click();
+              }}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )}
+
+    {/* Testing Interface Dialog */}
+    {showTestingInterface && (
+      <Dialog open={showTestingInterface} onOpenChange={setShowTestingInterface}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Automotive Q&A Testing Interface</DialogTitle>
+          </DialogHeader>
+          <TestingInterface />
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   );
 };
 
