@@ -6,7 +6,7 @@ import { useConfigSync } from '@/hooks/use-config-sync';
 
 // Simple UUID generator
 const generateId = () => {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
 };
 
 // Helper function to generate configuration summary
@@ -425,11 +425,10 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
         questionId,
         question: question.question,
         userAnswer: answer,
-        systemAnswer: question.answer || "", // Use the expected answer from test data
+        systemAnswer: question.expectedAnswer || "", // Use the expected answer from test data
         confidence: 0.75 + Math.random() * 0.25, // Simulate confidence
         timestamp: new Date(),
-        isCorrect: Math.random() > 0.2, // 80% success rate for demo
-        sources: question.sources || []
+        isCorrect: Math.random() > 0.2 // 80% success rate for demo
       };
       
       return {
@@ -1812,7 +1811,7 @@ These settings will provide you with optimized results based on your specific ne
   // Helper function to generate test questions based on type and document
   const getTestQuestions = (testType: 'parts' | 'specifications' | 'service', documentAnalysis: DocumentCharacteristics | null | undefined) => {
     const questions = [];
-    const generateId = () => `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const generateId = () => `q_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     switch (testType) {
       case 'parts':
