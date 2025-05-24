@@ -68,6 +68,14 @@ export interface ConversationState {
     questionsAnswered?: number;
     correctAnswers?: number;
     confidence?: number;
+    testType?: string;
+    details?: Array<{
+      question: string;
+      answer: string;
+      isCorrect: boolean;
+      confidence: number;
+      sources?: string[];
+    }>;
   };
   highlightProcessButton?: boolean; // Flag to highlight the Process Document button
   recommendationType?: string; // Type of recommendation applied

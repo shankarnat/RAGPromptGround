@@ -31,6 +31,7 @@ import ConversationalUI from "@/components/ConversationalUI";
 import ProgressiveDocumentLoader from "@/components/ProgressiveDocumentLoader";
 import ManualConfigurationPanel from "@/components/ManualConfigurationPanel";
 import IntentBasedProcessingTrigger from "@/services/IntentBasedProcessingTrigger";
+import IntegratedTestResults from "@/components/IntegratedTestResults";
 import { useDocumentProcessing } from "@/hooks/useDocumentProcessing";
 import { useToast } from "@/hooks/use-toast";
 import { useDocumentAnalysisContext } from "@/context/DocumentAnalysisContext";
@@ -109,6 +110,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const [configChanged, setConfigChanged] = useState(false);
   const [highlightProcessButton, setHighlightProcessButton] = useState(false);
   const [pulseProcessButton, setPulseProcessButton] = useState(false);
+  const [showIntegratedTests, setShowIntegratedTests] = useState(false);
   
   // Use multimodal config hook for better state management
   const {
@@ -1574,20 +1576,43 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                     Re-process with Current Configuration
                     {configChanged && <span className="ml-1 text-xs animate-pulse">•</span>}
                   </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowIntegratedTests(!showIntegratedTests)}
+                    className="flex items-center gap-2"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    {showIntegratedTests ? 'View Results' : 'Test & Evaluate'}
+                  </Button>
                 </div>
                 <div className="flex-1 p-6 overflow-y-auto">
-                  <UnifiedResultsEnhanced
-                    ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
-                    kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
-                    idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
-                    processingConfig={processingConfig}
-                    onChunkSelect={selectChunk}
-                    onEntitySelect={(entityId) => {
-                      console.log('Entity selected:', entityId);
-                    }}
-                    selectedChunk={state.selectedChunk}
-                    onClearResults={clearAllResults}
-                  />
+                  {showIntegratedTests ? (
+                    <IntegratedTestResults
+                      onClose={() => setShowIntegratedTests(false)}
+                      onComplete={(results) => {
+                        console.log('Test results:', results);
+                        // Integrate test results with the main results
+                        toast({
+                          title: "Tests Completed",
+                          description: `Completed ${results.length} tests with evaluation results`,
+                        });
+                        setShowIntegratedTests(false);
+                      }}
+                    />
+                  ) : (
+                    <UnifiedResultsEnhanced
+                      ragResults={state.unifiedProcessing.unifiedResults.standard || undefined}
+                      kgResults={state.unifiedProcessing.unifiedResults.kg || undefined}
+                      idpResults={state.unifiedProcessing.unifiedResults.idp || undefined}
+                      processingConfig={processingConfig}
+                      onChunkSelect={selectChunk}
+                      onEntitySelect={(entityId) => {
+                        console.log('Entity selected:', entityId);
+                      }}
+                      selectedChunk={state.selectedChunk}
+                      onClearResults={clearAllResults}
+                    />
+                  )}
                 </div>
               </div>
             </ResizablePanel>

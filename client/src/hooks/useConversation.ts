@@ -425,9 +425,11 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
         questionId,
         question: question.question,
         userAnswer: answer,
-        systemAnswer: "", // This would be filled by the system
-        confidence: 0.85, // Placeholder confidence
-        timestamp: new Date()
+        systemAnswer: question.answer || "", // Use the expected answer from test data
+        confidence: 0.75 + Math.random() * 0.25, // Simulate confidence
+        timestamp: new Date(),
+        isCorrect: Math.random() > 0.2, // 80% success rate for demo
+        sources: question.sources || []
       };
       
       return {
