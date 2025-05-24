@@ -1,9 +1,9 @@
+/* Import automotive-specific styles */
+@import './styles/automotive.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import automotive-specific styles */
-@import './styles/automotive.css';
 
 :root {
       --background: 0 0% 100%;

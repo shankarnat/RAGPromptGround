@@ -656,9 +656,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
             enabled: true,
             textExtraction: config.configuration.idp.textExtraction ?? true,
             classification: config.configuration.idp.classification ?? true,
-            metadata: config.configuration.idp.metadata ?? true,
-            tables: config.configuration.idp.tables ?? true,
-            formFields: config.configuration.idp.formFields ?? true
+            metadata: config.configuration.idp.metadata ?? true
           });
           console.log('Called updateProcessingType with full IDP config');
         }, 100);
@@ -1041,9 +1039,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
             ...config.configuration.idp,
             textExtraction: config.configuration.idp.textExtraction ?? prev.idp.textExtraction,
             classification: config.configuration.idp.classification ?? prev.idp.classification,
-            metadata: config.configuration.idp.metadata ?? prev.idp.metadata,
-            tables: config.configuration.idp.tables ?? prev.idp.tables,
-            formFields: config.configuration.idp.formFields ?? prev.idp.formFields
+            metadata: config.configuration.idp.metadata ?? prev.idp.metadata
           }
         }));
       }
@@ -1260,19 +1256,19 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   );
 
   // Create wrapper functions for chunking configuration updates to trigger config changes
-  const wrappedUpdateChunkingMethod = useCallback((method) => {
+  const wrappedUpdateChunkingMethod = useCallback((method: any) => {
     console.log('Chunking method changed to:', method);
     updateChunkingMethod(method);
     setConfigChanged(true);
   }, [updateChunkingMethod]);
 
-  const wrappedUpdateChunkSize = useCallback((size) => {
+  const wrappedUpdateChunkSize = useCallback((size: number) => {
     console.log('Chunk size changed to:', size);
     updateChunkSize(size);
     setConfigChanged(true);
   }, [updateChunkSize]);
 
-  const wrappedUpdateChunkOverlap = useCallback((overlap) => {
+  const wrappedUpdateChunkOverlap = useCallback((overlap: number) => {
     console.log('Chunk overlap changed to:', overlap);
     updateChunkOverlap(overlap);
     setConfigChanged(true);
@@ -1283,7 +1279,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const [configPanelCollapsed, setConfigPanelCollapsed] = useState(false);
   
   // Handler for sidebar collapse state changes
-  const handleConfigPanelCollapse = useCallback((collapsed) => {
+  const handleConfigPanelCollapse = useCallback((collapsed: boolean) => {
     setConfigPanelCollapsed(collapsed);
   }, []);
   
@@ -1299,7 +1295,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     updateChunkSize: wrappedUpdateChunkSize,
     updateChunkOverlap: wrappedUpdateChunkOverlap,
     selectedDocument: state.selectedDocument,
-    multimodalConfig: multimodalConfig.config,
+    multimodalConfig: multimodalConfig,
     // Always allow editing of options, even in results view
     disabled: false,
     // Pass the highlighting and pulse flags to draw attention to the Process button when needed
@@ -1318,7 +1314,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     wrappedUpdateChunkingMethod,
     wrappedUpdateChunkSize,
     wrappedUpdateChunkOverlap,
-    multimodalConfig.config,
+    multimodalConfig,
     highlightProcessButton,
     pulseProcessButton,
     configPanelCollapsed,
@@ -1407,11 +1403,6 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                   {/* Progressive Document Loader for initial analysis */}
                   {documentReady ? (
                     <>
-                      {console.log('UnifiedDashboard passing data:', {
-                        ragResults: state.unifiedProcessing.unifiedResults.standard,
-                        kgResults: state.unifiedProcessing.unifiedResults.kg,
-                        idpResults: state.unifiedProcessing.unifiedResults.idp
-                      })}
                       <div className="w-full mb-6">
                           <DocumentPanel documentContent={state.document.content} />
                       </div>
@@ -1711,7 +1702,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   );
   } catch (error) {
     console.error('UnifiedDashboard: Render error:', error);
-    return <div>Error rendering dashboard: {error.message}</div>;
+    return <div>Error rendering dashboard: {error instanceof Error ? error.message : 'Unknown error'}</div>;
   }
 };
 

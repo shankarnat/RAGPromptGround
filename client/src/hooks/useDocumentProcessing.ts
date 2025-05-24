@@ -214,8 +214,8 @@ export function useDocumentProcessing() {
               relationships: []
             }
           ],
-          relations: [
-            { source: 1, target: 2, type: "WORKS_AT", confidence: 0.95 }
+          relationships: [
+            { id: 1, source: "John Smith", target: "Acme Corporation", type: "WORKS_AT", properties: { confidence: 0.95 } }
           ],
           graph: {
             nodes: 3,
@@ -1028,8 +1028,8 @@ export function useDocumentProcessing() {
                 relationships: []
               }
             ],
-            relations: [
-              { source: 1, target: 2, type: "WORKS_AT", confidence: 0.95 }
+            relationships: [
+              { id: 1, source: "John Smith", target: "Acme Corporation", type: "WORKS_AT", properties: { confidence: 0.95 } }
             ],
             graph: {
               nodes: 3,

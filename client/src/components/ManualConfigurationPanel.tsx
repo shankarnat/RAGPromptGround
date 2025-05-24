@@ -14,7 +14,7 @@ interface ManualConfigurationPanelProps {
     description: string;
   }>;
   processingConfig: any;
-  handleProcessingToggle: (type: string, enabled: boolean) => void;
+  handleProcessingToggle: (type: string, enabled: boolean, forceUpdate?: boolean) => void;
   handleOptionToggle: (type: string, option: string, enabled: boolean, skipToast?: boolean) => void;
   onProcessDocument?: () => void;
   state: any;
