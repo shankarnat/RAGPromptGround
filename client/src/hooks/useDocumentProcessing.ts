@@ -102,7 +102,7 @@ export interface DocumentProcessingState {
       };
       kg?: {
         entities: any[];
-        relations: any[];
+        relationships: any[];
         graph: any;
       };
       idp?: {

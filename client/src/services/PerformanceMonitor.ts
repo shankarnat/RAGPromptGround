@@ -1,4 +1,44 @@
-import { EventEmitter } from 'events';
+// Simple browser-compatible event emitter
+class SimpleEventEmitter {
+  private events: Map<string, Array<(...args: any[]) => void>> = new Map();
+
+  on(event: string, listener: (...args: any[]) => void): this {
+    if (!this.events.has(event)) {
+      this.events.set(event, []);
+    }
+    this.events.get(event)!.push(listener);
+    return this;
+  }
+
+  emit(event: string, ...args: any[]): boolean {
+    const listeners = this.events.get(event);
+    if (!listeners || listeners.length === 0) {
+      return false;
+    }
+    listeners.forEach(listener => listener(...args));
+    return true;
+  }
+
+  off(event: string, listener: (...args: any[]) => void): this {
+    const listeners = this.events.get(event);
+    if (listeners) {
+      const index = listeners.indexOf(listener);
+      if (index !== -1) {
+        listeners.splice(index, 1);
+      }
+    }
+    return this;
+  }
+
+  removeAllListeners(event?: string): this {
+    if (event) {
+      this.events.delete(event);
+    } else {
+      this.events.clear();
+    }
+    return this;
+  }
+}
 
 // Performance metrics interfaces
 export interface QAMetrics {
@@ -112,7 +152,7 @@ export interface PerformanceAlert {
 }
 
 // Main performance monitor class
-export class PerformanceMonitor extends EventEmitter {
+export class PerformanceMonitor extends SimpleEventEmitter {
   private static instance: PerformanceMonitor;
   
   private qaMetrics: QAMetrics[] = [];
