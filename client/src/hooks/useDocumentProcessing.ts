@@ -912,7 +912,7 @@ export function useDocumentProcessing() {
                 ...prev.unifiedProcessing.unifiedResults,
                 kg: {
                   entities: results.kg['kg-entity-extraction']?.entities || [],
-                  relations: results.kg['kg-relation-mapping']?.relations || [],
+                  relationships: results.kg['kg-relation-mapping']?.relations || [],
                   graph: results.kg['kg-graph-building']?.graph || {}
                 }
               }
