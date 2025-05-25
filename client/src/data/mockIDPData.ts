@@ -1,72 +1,97 @@
-// Mock IDP data with proper table structures
+// Mock IDP data with Acura RDX automotive tables
 export const mockIDPResults = {
   metadata: {
-    documentType: "Business Report",
+    documentType: "Automotive Specification Sheet",
     dateCreated: "2024-01-15",
     language: "English",
-    pageCount: 25,
-    author: "Analytics Team",
-    department: "Finance",
-    confidentiality: "Internal Use",
-    version: "1.2",
+    pageCount: 18,
+    author: "Acura Technical Documentation",
+    department: "Product Engineering",
+    confidentiality: "Public",
+    version: "2025 Model Year",
     lastModified: "2024-01-14T16:30:00Z"
   },
-  classification: ["financial", "quarterly report", "analysis", "business metrics"],
+  classification: ["automotive", "specification sheet", "technical data", "vehicle specifications"],
   extractedData: {
     tables: [
       {
-        id: "table1",
-        name: "Q4 2023 Revenue Summary by Region",
-        headers: ["Region", "Q3 2023", "Q4 2023", "Change ($)", "Change (%)", "YoY Growth"],
+        id: "drivetrain-specs",
+        name: "Drivetrain Specifications",
+        headers: ["Component", "Specification", "Details"],
         rows: [
-          ["North America", "$45.2M", "$52.1M", "+$6.9M", "+15.3%", "+22.1%"],
-          ["Europe", "$32.8M", "$35.4M", "+$2.6M", "+7.9%", "+18.5%"],
-          ["Asia Pacific", "$28.5M", "$31.2M", "+$2.7M", "+9.5%", "+24.3%"],
-          ["Latin America", "$12.1M", "$13.8M", "+$1.7M", "+14.0%", "+19.2%"],
-          ["Middle East & Africa", "$8.9M", "$9.8M", "+$0.9M", "+10.1%", "+15.6%"],
-          ["Total", "$127.5M", "$142.3M", "+$14.8M", "+11.6%", "+20.5%"]
+          ["Transmission", "10-Speed Automatic", "10AT with paddle shifters"],
+          ["Gear Ratios (1-5)", "1st: 4.710, 2nd: 3.094, 3rd: 2.050", "4th: 1.559, 5th: 1.197"],
+          ["Gear Ratios (6-10)", "6th: 0.936, 7th: 0.748, 8th: 0.634", "9th: 0.529, 10th: 0.455"],
+          ["Reverse Gear", "3.966", "Final Drive: 4.375"],
+          ["Towing Capacity", "1,500 lbs", "When properly equipped"]
         ],
-        confidence: 0.94
+        confidence: 0.95,
+        category: "drivetrain"
       },
       {
-        id: "table2",
-        name: "Product Performance Metrics",
-        headers: ["Product Line", "Units Sold", "Revenue", "Gross Margin", "Market Share", "Customer Satisfaction"],
+        id: "engine-specs",
+        name: "Engine Specifications",
+        headers: ["Specification", "Value", "Details"],
         rows: [
-          ["Enterprise Suite", "1,234", "$78.5M", "42%", "28.3%", "4.6/5.0"],
-          ["Professional", "3,456", "$41.2M", "38%", "22.1%", "4.4/5.0"],
-          ["Small Business", "8,901", "$12.8M", "31%", "15.4%", "4.7/5.0"],
-          ["Custom Solutions", "567", "$23.5M", "48%", "12.2%", "4.8/5.0"],
-          ["Cloud Services", "12,345", "$34.3M", "56%", "18.9%", "4.5/5.0"]
+          ["Engine Type", "2.0L VTEC® Turbo", "4-cylinder, 16-valve, DOHC"],
+          ["Displacement", "1996 cc", "121.8 cu in"],
+          ["Bore x Stroke", "86.0 x 85.9 mm", "3.39 x 3.38 in"],
+          ["Compression Ratio", "10.3:1", "Premium fuel recommended"],
+          ["Max Horsepower", "272 hp @ 6500 rpm", "SAE net"],
+          ["Max Torque", "280 lb-ft @ 1600-4500 rpm", "SAE net"],
+          ["Fuel Injection", "Direct Injection", "High-pressure direct injection"],
+          ["Turbocharger", "Single-scroll", "With electronic wastegate"],
+          ["Valve Train", "VTEC®", "Variable Valve Timing & Lift Electronic Control"],
+          ["Emissions Rating", "LEV3-SULEV30", "Super Ultra Low Emission Vehicle"]
         ],
-        confidence: 0.91
+        confidence: 0.95,
+        category: "engine"
       },
       {
-        id: "table3",
-        name: "Key Financial Metrics Comparison",
-        headers: ["Metric", "Q4 2023", "Q3 2023", "Q4 2022", "Target", "Status"],
+        id: "dimensions-capacities",
+        name: "Dimensions & Capacities",
+        headers: ["Dimension/Capacity", "Value", "Units"],
         rows: [
-          ["Revenue", "$142.3M", "$127.5M", "$118.2M", "$140.0M", "✓ Exceeded"],
-          ["Gross Profit", "$84.1M", "$74.5M", "$67.4M", "$80.0M", "✓ Exceeded"],
-          ["Operating Income", "$35.6M", "$31.2M", "$27.1M", "$33.0M", "✓ Exceeded"],
-          ["Net Income", "$27.3M", "$23.8M", "$20.6M", "$25.0M", "✓ Exceeded"],
-          ["EPS", "$1.37", "$1.19", "$1.03", "$1.25", "✓ Exceeded"],
-          ["Operating Margin", "25.0%", "24.5%", "22.9%", "23.5%", "✓ Exceeded"]
+          ["Overall Length", "187.4", "inches"],
+          ["Overall Width", "74.8", "inches"],
+          ["Overall Height", "65.7", "inches"],
+          ["Wheelbase", "108.5", "inches"],
+          ["Track - Front", "64.2", "inches"],
+          ["Track - Rear", "64.2", "inches"],
+          ["Ground Clearance", "8.2", "inches (unladen)"],
+          ["Passenger Volume", "103.5", "cubic feet"],
+          ["Cargo Volume (behind 2nd row)", "29.5", "cubic feet"],
+          ["Cargo Volume (behind 1st row)", "58.9", "cubic feet"],
+          ["Fuel Tank Capacity", "17.1", "gallons"],
+          ["Engine Oil Capacity", "4.4", "quarts (with filter)"],
+          ["Coolant Capacity", "7.8", "quarts (including reserve)"],
+          ["Curb Weight", "3859-3968", "lbs (depending on trim)"]
         ],
-        confidence: 0.96
+        confidence: 0.96,
+        category: "dimensions"
       },
       {
-        id: "table4",
-        name: "Customer Acquisition Cost Analysis",
-        headers: ["Channel", "New Customers", "CAC", "LTV", "LTV:CAC Ratio", "ROI"],
+        id: "standard-features",
+        name: "Key Standard Features",
+        headers: ["Category", "Feature", "Description"],
         rows: [
-          ["Direct Sales", "142", "$8,250", "$42,000", "5.1:1", "234%"],
-          ["Partners", "256", "$4,100", "$38,500", "9.4:1", "389%"],
-          ["Digital Marketing", "892", "$850", "$28,000", "32.9:1", "567%"],
-          ["Events", "67", "$12,500", "$45,000", "3.6:1", "187%"],
-          ["Referrals", "234", "$500", "$52,000", "104:1", "892%"]
+          ["Safety", "AcuraWatch®", "Suite of advanced safety and driver-assistive technologies"],
+          ["Safety", "Collision Mitigation Braking", "CMBS™ with pedestrian detection"],
+          ["Safety", "Road Departure Mitigation", "RDM with lane departure warning"],
+          ["Safety", "Adaptive Cruise Control", "ACC with Low-Speed Follow"],
+          ["Technology", "True Touchpad Interface™", "10.2-inch HD display with intuitive control"],
+          ["Technology", "Wireless Apple CarPlay®", "Seamless smartphone integration"],
+          ["Technology", "Wireless Android Auto™", "Google-based smartphone integration"],
+          ["Technology", "Amazon Alexa Built-in", "Voice-activated assistance"],
+          ["Audio", "ELS Studio® 3D Audio", "12 speakers, 710 watts"],
+          ["Comfort", "Panoramic Moonroof", "One-touch power moonroof with tilt"],
+          ["Comfort", "Heated Front Seats", "3-level heating adjustment"],
+          ["Comfort", "Power Tailgate", "Hands-free access with programmable height"],
+          ["Performance", "Drive Mode Selection", "Comfort, Normal, Sport, Snow modes"],
+          ["Performance", "Active Damper System", "Available Adaptive Damper System"]
         ],
-        confidence: 0.89
+        confidence: 0.94,
+        category: "features"
       }
     ],
     images: [

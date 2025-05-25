@@ -1,4 +1,6 @@
 import { DocumentCharacteristics, ProcessingRecommendation } from '@/services/DocumentAnalyzer';
+import TableExtractor, { ExtractedTableData } from '@/services/TableExtractor';
+import { acuraRDXTables } from '@/data/acuraTableData';
 
 export interface ConversationMessage {
   id: string;
@@ -80,6 +82,7 @@ export interface ConversationState {
   highlightProcessButton?: boolean; // Flag to highlight the Process Document button
   recommendationType?: string; // Type of recommendation applied
   recommendationDescription?: string; // Description of the applied recommendation
+  extractedTables?: ExtractedTableData; // Extracted tables from the document
 }
 
 export interface ProcessingIntent {
@@ -1106,6 +1109,48 @@ export class ConversationManager {
           extractType: data.extractType,
           automotiveOptions: data.automotiveOptions
         };
+        
+        // Extract tables when automotive extraction is selected
+        if (data.extractType === 'automotive' && data.automotiveOptions) {
+          console.log('ConversationManager: Extracting automotive tables synchronously');
+          
+          // Filter tables based on options
+          let filteredTables = [...acuraRDXTables];
+          if (!data.automotiveOptions.extractVIN && 
+              !data.automotiveOptions.extractPartNumbers && 
+              !data.automotiveOptions.extractTorqueSpecs && 
+              !data.automotiveOptions.extractServiceIntervals) {
+            // If no specific options selected, include all
+            filteredTables = acuraRDXTables;
+          } else {
+            // Filter based on selected options
+            if (data.automotiveOptions.extractTorqueSpecs) {
+              // For torque specs, we want drivetrain and engine tables
+              filteredTables = acuraRDXTables.filter(t => 
+                t.category === 'drivetrain' || t.category === 'engine'
+              );
+            }
+          }
+          
+          newState.extractedTables = {
+            tables: filteredTables,
+            summary: {
+              totalTables: filteredTables.length,
+              categories: [...new Set(filteredTables.map(t => t.category))],
+              hasVINData: false, // This would be true if VIN data existed
+              hasPartNumbers: false, // This would be true if part numbers existed
+              hasTorqueSpecs: filteredTables.some(t => t.category === 'drivetrain' || t.category === 'engine'),
+              hasServiceIntervals: false // This would be true if service intervals existed
+            },
+            metadata: {
+              extractionDate: new Date(),
+              documentName: state.documentAnalysis?.fileName || 'Acura_2025_RDX_Fact Sheet.pdf',
+              documentType: state.documentAnalysis?.documentType || 'specification_sheet'
+            }
+          };
+          console.log('ConversationManager: Tables extracted:', newState.extractedTables.summary);
+        }
+        
         newState.conversationStep = data.nextStep;
         break;
         
@@ -1417,6 +1462,7 @@ export class ConversationManager {
       idpPreferences: state.idpPreferences,
       vehicleInfo: state.vehicleInfo,
       qaTestingEnabled: state.qaTestingEnabled,
+      extractedTables: state.extractedTables,
       intent: true,
       triggerType: 'conversation'
     };
@@ -1472,6 +1518,40 @@ export class ConversationManager {
       return this.mapIntentToConfiguration(intent);
     }
     return null;
+  }
+
+  // Method to extract automotive tables
+  private async extractAutomotiveTables(
+    state: ConversationState,
+    automotiveOptions: any
+  ): Promise<ExtractedTableData | null> {
+    try {
+      const documentName = state.documentAnalysis?.fileName || 'Acura_2025_RDX_Fact Sheet.pdf';
+      const documentType = state.documentAnalysis?.documentType || 'specification_sheet';
+      
+      // Extract tables based on selected options
+      const extractedData = await TableExtractor.extractTablesFromDocument(
+        documentName,
+        documentType,
+        {
+          extractVIN: automotiveOptions.extractVIN,
+          extractPartNumbers: automotiveOptions.extractPartNumbers,
+          extractTorqueSpecs: automotiveOptions.extractTorqueSpecs,
+          extractServiceIntervals: automotiveOptions.extractServiceIntervals,
+          extractAll: automotiveOptions.extractVIN && 
+                     automotiveOptions.extractPartNumbers && 
+                     automotiveOptions.extractTorqueSpecs && 
+                     automotiveOptions.extractServiceIntervals
+        }
+      );
+      
+      state.extractedTables = extractedData;
+      console.log('ConversationManager: Extracted tables:', extractedData.summary);
+      return extractedData;
+    } catch (error) {
+      console.error('ConversationManager: Error extracting tables:', error);
+      return null;
+    }
   }
 }
 

@@ -149,13 +149,13 @@ export const automotivePartsDocument = financialCsvDocument;
 
 // Honda/Acura Service Manual example
 export const sampleDocument = {
-  title: "Honda_Acura_2025_Manual.PDF",
-  pageCount: 156,
-  content: `# Honda/Acura 2025 Service Manual
+  title: "Acura_2025_RDX_Fact Sheet.pdf",
+  pageCount: 18,
+  content: `# 2025 Acura RDX Fact Sheet
 
 ## Executive Summary
 
-This comprehensive service manual covers all 2025 Honda and Acura models, providing detailed technical specifications, maintenance procedures, and diagnostic information. The manual has been updated to include the latest hybrid and electric vehicle technologies, advanced driver assistance systems (ADAS), and connected vehicle features introduced in the 2025 model year.
+The 2025 Acura RDX represents the pinnacle of luxury compact SUV engineering, featuring the exclusive Super Handling All-Wheel Drive™ (SH-AWD®) system, a powerful 2.0L VTEC® Turbo engine, and comprehensive AcuraWatch® safety technologies. This fact sheet provides complete technical specifications, features, and capabilities of the 2025 RDX.
 
 ## Vehicle Model Coverage
 

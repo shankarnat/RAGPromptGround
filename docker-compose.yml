@@ -6,11 +6,11 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3001:3000"
+      - "3002:3002"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/ragplayground
-      - PORT=3000
+      - PORT=3002
     depends_on:
       db:
         condition: service_healthy

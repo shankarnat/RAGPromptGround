@@ -11,6 +11,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import UnifiedSearchEnhanced from '@/components/UnifiedSearchEnhanced';
 import { TestingInterface } from '@/components/TestingInterface';
+import { ExtractedTablesDisplay } from '@/components/ExtractedTablesDisplay';
+import { ExtractedTableData } from '@/services/TableExtractor';
+import { PdfViewer } from '@/components/PdfViewer';
 import { cn } from '@/lib/utils';
 import { 
   FileText, 
@@ -193,6 +196,8 @@ interface UnifiedResultsEnhancedProps {
   onEntitySelect?: (entityId: number) => void;
   selectedChunk?: number | null;
   onClearResults?: () => void;
+  extractedTables?: ExtractedTableData;
+  selectedDocument?: { name: string; } | null;
 }
 
 const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
@@ -203,7 +208,9 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   onChunkSelect,
   onEntitySelect,
   selectedChunk,
-  onClearResults
+  onClearResults,
+  extractedTables,
+  selectedDocument
 }) => {
   const [activeTab, setActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic'>('agentic');
   const [showTestingInterface, setShowTestingInterface] = useState(false);
@@ -1074,6 +1081,14 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
             </CardContent>
           </Card>
         ))}
+
+        {/* Extracted Automotive Tables */}
+        {extractedTables && extractedTables.tables.length > 0 && (
+          <ExtractedTablesDisplay 
+            extractedData={extractedTables}
+            className="mt-4"
+          />
+        )}
 
         {/* Image Gallery */}
         {idpResults?.extractedData?.images && idpResults.extractedData.images.length > 0 && (
@@ -2198,8 +2213,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
   // Render the source document content
   const renderSourceDocument = () => {
-    // If no document is selected or no RAG results available, show placeholder
-    if (!ragResults || !ragResults.chunks || ragResults.chunks.length === 0) {
+    // Check if we have a selected document
+    if (!selectedDocument) {
       return (
         <div className="text-center py-12">
           <p className="text-gray-500">No source document available.</p>
@@ -2207,39 +2222,72 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
       );
     }
 
-    // Get document metadata from the first chunk
-    const firstChunk = ragResults.chunks[0];
-    const documentName = firstChunk.fileName || 'Document';
-    const totalChunks = ragResults.chunks.length;
+    const documentName = selectedDocument.name;
     
-    // In a real implementation, we'd fetch the full document content
-    // For this prototype, we'll concatenate all the chunks
-    const combinedContent = ragResults.chunks
-      .sort((a, b) => a.chunkIndex - b.chunkIndex)
-      .map(chunk => chunk.content)
-      .join('\n\n');
+    // For Acura PDF, show the PDF viewer
+    if (documentName === "Acura_2025_RDX_Fact Sheet.pdf") {
+      return (
+        <div className="space-y-4">
+          <Card className="h-[800px]">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <File className="h-5 w-5 text-gray-600" />
+                  <CardTitle>Source Document</CardTitle>
+                </div>
+                <Badge variant="outline">{documentName}</Badge>
+              </div>
+              <CardDescription>
+                Original PDF document - 18 pages
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-full pb-20">
+              <PdfViewer 
+                url="/api/assets/Acura_2025_RDX_Fact%20Sheet.pdf"
+                className="h-full"
+              />
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // For other documents, show text content if available
+    if (ragResults && ragResults.chunks && ragResults.chunks.length > 0) {
+      const totalChunks = ragResults.chunks.length;
+      const combinedContent = ragResults.chunks
+        .sort((a, b) => a.chunkIndex - b.chunkIndex)
+        .map(chunk => chunk.content)
+        .join('\n\n');
+
+      return (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <File className="h-5 w-5 text-gray-600" />
+                  <CardTitle>Source Document</CardTitle>
+                </div>
+                <Badge variant="outline">{documentName}</Badge>
+              </div>
+              <CardDescription>
+                {totalChunks} chunks • Approximately {ragResults.chunks.reduce((sum, chunk) => sum + chunk.tokenCount, 0)} tokens
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-md p-4 bg-white overflow-auto max-h-[600px] whitespace-pre-wrap font-mono text-sm">
+                {combinedContent}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
 
     return (
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <File className="h-5 w-5 text-gray-600" />
-                <CardTitle>Source Document</CardTitle>
-              </div>
-              <Badge variant="outline">{documentName}</Badge>
-            </div>
-            <CardDescription>
-              {totalChunks} chunks • Approximately {ragResults.chunks.reduce((sum, chunk) => sum + chunk.tokenCount, 0)} tokens
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="border rounded-md p-4 bg-white overflow-auto max-h-[600px] whitespace-pre-wrap font-mono text-sm">
-              {combinedContent}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="text-center py-12">
+        <p className="text-gray-500">No document content available.</p>
       </div>
     );
   };

@@ -135,7 +135,7 @@ const DocumentIntelligence: FC = () => {
         return (
           <div className="flex space-x-6">
             <div className="flex-1 min-w-0">
-              <DocumentPanel documentContent={state.document.content} />
+              <DocumentPanel documentContent={state.document.content} pdfUrl={state.document.pdfUrl} />
             </div>
             {configPanel}
           </div>
@@ -190,7 +190,7 @@ const DocumentIntelligence: FC = () => {
           <div className="flex space-x-6">
             <div className="flex-1 min-w-0 flex space-x-6">
               <div className="flex-1 min-w-0">
-                <DocumentPanel documentContent={state.document.content} />
+                <DocumentPanel documentContent={state.document.content} pdfUrl={state.document.pdfUrl} />
               </div>
               <div className="flex-1 min-w-0">
                 <ChunksPanel 

@@ -31,7 +31,7 @@ This guide explains how to run the RAG Playground application using Docker and D
    ```
 
 4. **Access the application**
-   Open your browser and navigate to `http://localhost:3000`
+   Open your browser and navigate to `http://localhost:3002`
 
 ## Available Commands
 
@@ -84,7 +84,7 @@ Key environment variables (see `.env.example`):
 
 ## Ports
 
-- `3000`: Application web interface
+- `3002`: Application web interface
 - `5432`: PostgreSQL database (exposed for development)
 
 ## Troubleshooting

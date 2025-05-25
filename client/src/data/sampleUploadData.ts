@@ -2,6 +2,13 @@ import { UploadedDocument, DataModel } from "@shared/schema";
 
 export const recentDocuments: UploadedDocument[] = [
   {
+    id: 9,
+    name: "Acura_2025_RDX_Fact Sheet.pdf",
+    type: "application/pdf",
+    size: 3367495, // 3.4 MB
+    uploadDate: "2025-05-24T21:12:00Z"
+  },
+  {
     id: 5,
     name: "Honda_Acura_2025_Service_Manual.pdf",
     type: "application/pdf",

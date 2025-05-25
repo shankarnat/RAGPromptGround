@@ -93,7 +93,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const { state, selectDocument, uploadDocument, updateChunkingMethod, updateChunkSize, 
     updateChunkOverlap, updateActiveTab, selectChunk, toggleUnifiedProcessing,
     updateProcessingStatus, processDocument, toggleProcessingType, processWithIntent,
-    clearAllResults, switchDocumentExample } = useDocumentProcessing();
+    clearAllResults, switchDocumentExample, updateUnifiedResults } = useDocumentProcessing();
   const { toast } = useToast();
   const { state: analysisState, analyzeDocument } = useDocumentAnalysisContext();
   console.log('UnifiedDashboard: analysisState =', analysisState);
@@ -111,6 +111,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const [highlightProcessButton, setHighlightProcessButton] = useState(false);
   const [pulseProcessButton, setPulseProcessButton] = useState(false);
   const [showIntegratedTests, setShowIntegratedTests] = useState(false);
+  const [extractedTables, setExtractedTables] = useState<any>(null);
   
   // Use multimodal config hook for better state management
   const {
@@ -834,6 +835,54 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
         // We don't return early here because the process_directly action also sets highlightProcessButton
       }
       
+      // Handle extracted tables from conversation
+      if (config.extractedTables) {
+        console.log('UnifiedDashboard: Setting extracted tables from conversation', config.extractedTables);
+        setExtractedTables(config.extractedTables);
+        
+        // Add a delay to ensure state updates are processed
+        setTimeout(() => {
+          // Get current IDP results or create new structure
+          const currentIdp = state.unifiedProcessing.unifiedResults.idp || {
+            metadata: {},
+            classification: [],
+            extractedData: {
+              tables: [],
+              images: [],
+              formFields: {}
+            }
+          };
+          
+          // Merge the extracted tables with existing IDP results
+          const updatedIdp = {
+            ...currentIdp,
+            extractedData: {
+              ...currentIdp.extractedData,
+              tables: [
+                ...(currentIdp.extractedData?.tables || []),
+                ...config.extractedTables.tables.map((table: any) => ({
+                  id: table.id,
+                  name: table.title,
+                  headers: table.headers,
+                  rows: table.rows,
+                  confidence: 0.95,
+                  category: table.category
+                }))
+              ]
+            }
+          };
+          
+          // Update the IDP results
+          updateUnifiedResults('idp', updatedIdp);
+          
+          // Show toast notification
+          toast({
+            title: 'Automotive Tables Extracted',
+            description: `${config.extractedTables.tables.length} tables have been extracted and are ready to view in the Document Intelligence tab.`,
+          });
+        }, 500);
+      }
+      
       // Handle specific multimodal updates from AI assistant
       if (config.source === 'ai_assistant' && config.configuration.multimodalUpdate) {
         const multimodal = config.configuration.rag.multimodal;
@@ -1406,7 +1455,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                   {documentReady ? (
                     <>
                       <div className="w-full mb-6">
-                          <DocumentPanel documentContent={state.document.content} />
+                          <DocumentPanel documentContent={state.document.content} pdfUrl={state.document.pdfUrl} />
                       </div>
                     </>
                   ) : (
@@ -1611,6 +1660,8 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                       }}
                       selectedChunk={state.selectedChunk}
                       onClearResults={clearAllResults}
+                      extractedTables={extractedTables}
+                      selectedDocument={state.selectedDocument}
                     />
                   )}
                 </div>

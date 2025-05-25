@@ -1,10 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Serve attached assets (PDFs, images, etc.)
+app.use('/attached_assets', express.static(path.join(import.meta.dirname, '..', 'attached_assets')));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -56,8 +60,8 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use PORT from environment or default to 3000
-  const port = parseInt(process.env.PORT || "3000", 10);
+  // Use PORT from environment or default to 3002
+  const port = parseInt(process.env.PORT || "3002", 10);
   server.listen({
     port,
     host: "0.0.0.0",

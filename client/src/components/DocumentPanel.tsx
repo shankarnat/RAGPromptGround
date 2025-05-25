@@ -1,11 +1,13 @@
 import { FC } from "react";
 import { Eye, Download } from "lucide-react";
+import { PdfViewer } from "./PdfViewer";
 
 interface DocumentPanelProps {
   documentContent: string;
+  pdfUrl?: string;
 }
 
-const DocumentPanel: FC<DocumentPanelProps> = ({ documentContent }) => {
+const DocumentPanel: FC<DocumentPanelProps> = ({ documentContent, pdfUrl }) => {
   return (
     <div className="flex-1 bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
@@ -19,13 +21,16 @@ const DocumentPanel: FC<DocumentPanelProps> = ({ documentContent }) => {
           </button>
         </div>
       </div>
-      <div className="h-[calc(100vh-280px)] overflow-auto p-4 bg-white">
-        {documentContent.startsWith('<table') ? (
+      <div className="h-[calc(100vh-280px)] overflow-auto bg-white">
+        {pdfUrl ? (
+          // Show PDF viewer for PDF documents
+          <PdfViewer url={pdfUrl} className="h-full" />
+        ) : documentContent.startsWith('<table') ? (
           // Handle HTML content (CSV table)
-          <div dangerouslySetInnerHTML={{ __html: documentContent }} />
+          <div className="p-4" dangerouslySetInnerHTML={{ __html: documentContent }} />
         ) : (
           // Handle regular text content (Financial report)
-          <div className="font-mono text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+          <div className="p-4 font-mono text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
             {documentContent.split("\n").map((line, index) => {
               // Apply styling for headings and important content
               if (line.toUpperCase() === line && line.trim() !== "") {

@@ -31,6 +31,7 @@ export interface DocumentProcessingState {
     title: string;
     pageCount: number;
     content: string;
+    pdfUrl?: string;
   };
   chunks: {
     id: number;
@@ -122,8 +123,8 @@ export interface DocumentProcessingState {
 
 export function useDocumentProcessing() {
   const [state, setState] = useState<DocumentProcessingState>({
-    document: sampleDocument,
-    chunks: sampleChunks,
+    document: null,
+    chunks: [],
     activeTab: "split",
     selectedChunk: 3,
     processingMode: "standard",
@@ -165,65 +166,20 @@ export function useDocumentProcessing() {
       selectedProcessingTypes: ["standard"],
       unifiedResults: {
         standard: {
-          chunks: sampleChunks,
-          vectors: sampleChunks.map(chunk => ({
-            id: chunk.id,
-            vector: Array(768).fill(0).map(() => Math.random()),
-            metadata: { chunkIndex: chunk.chunkIndex }
-          })),
-          indexStatus: "indexed"
+          chunks: [],
+          vectors: [],
+          indexStatus: "not_indexed"
         },
         kg: {
-          entities: [
-            { 
-              id: 1, 
-              type: "Person", 
-              name: "John Smith", 
-              properties: {
-                role: "Chief Financial Officer",
-                department: "Finance",
-                tenure: "5 years"
-              },
-              relationships: [
-                { type: "REPORTS_TO", target: "Jane Doe", direction: "outbound" },
-                { type: "MANAGES", target: "Finance Team", direction: "outbound" }
-              ]
-            },
-            { 
-              id: 2, 
-              type: "Organization", 
-              name: "Acme Corporation", 
-              properties: {
-                industry: "Technology",
-                size: "Enterprise",
-                location: "San Francisco, CA"
-              },
-              relationships: [
-                { type: "EMPLOYS", target: "John Smith", direction: "outbound" },
-                { type: "PARTNER_WITH", target: "TechCorp", direction: "outbound" }
-              ]
-            },
-            { 
-              id: 3, 
-              type: "Date", 
-              name: "Q4 2023",
-              properties: {
-                year: "2023",
-                quarter: "Q4"
-              },
-              relationships: []
-            }
-          ],
-          relationships: [
-            { id: 1, source: "John Smith", target: "Acme Corporation", type: "WORKS_AT", properties: { confidence: 0.95 } }
-          ],
+          entities: [],
+          relationships: [],
           graph: {
-            nodes: 3,
-            edges: 2,
-            density: 0.33
+            nodes: 0,
+            edges: 0,
+            density: 0
           }
         },
-        idp: mockIDPResults
+        idp: undefined
       },
       // Pipeline state
       pipeline: {
@@ -299,10 +255,23 @@ export function useDocumentProcessing() {
   };
 
   const selectDocument = (document: UploadedDocument | null) => {
-    setState((prev) => ({
-      ...prev,
-      selectedDocument: document
-    }));
+    setState((prev) => {
+      let pdfUrl: string | undefined;
+      
+      // If the document is the Acura RDX fact sheet, set its PDF URL
+      if (document && document.name === "Acura_2025_RDX_Fact Sheet.pdf") {
+        pdfUrl = `/api/assets/${encodeURIComponent(document.name)}`;
+      }
+      
+      return {
+        ...prev,
+        selectedDocument: document,
+        document: {
+          ...prev.document,
+          pdfUrl: pdfUrl
+        }
+      };
+    });
   };
 
   const selectDataModel = (model: DataModel | null) => {
