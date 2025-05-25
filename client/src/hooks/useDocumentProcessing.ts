@@ -41,6 +41,7 @@ export interface DocumentProcessingState {
     tokenCount: number;
     chunkIndex: number;
     tags: string[];
+    isMarkdownFormatted?: boolean;
   }[];
   activeTab: TabView;
   selectedChunk: number | null;
@@ -79,6 +80,11 @@ export interface DocumentProcessingState {
     model?: string;
     year?: string;
     make?: string;
+  };
+  // Prompt-based parsing state
+  promptParsing: {
+    isApplied: boolean;
+    customPrompt: string;
   };
   // Unified processing state
   unifiedProcessing: {
@@ -149,6 +155,11 @@ export function useDocumentProcessing() {
     selectedDataModel: null,
     // Example document switching
     currentExample: "financialReport",
+    // Prompt-based parsing state
+    promptParsing: {
+      isApplied: false,
+      customPrompt: ""
+    },
     // Unified processing state
     unifiedProcessing: {
       ragEnabled: true,
@@ -692,19 +703,86 @@ export function useDocumentProcessing() {
       
       // Simulate processing
       setTimeout(() => {
-        const standardResults = {
-          chunks: state.chunks,
-          vectors: state.chunks.map(chunk => ({
-            id: chunk.id,
-            vector: Array(768).fill(0).map(() => Math.random()),
-            metadata: { chunkIndex: chunk.chunkIndex }
-          })),
-          indexStatus: "indexed"
-        };
+        // Get the latest state inside setTimeout to avoid stale closure
+        setState(prev => {
+          let currentChunks = prev.chunks.length > 0 ? prev.chunks : sampleChunks;
+          console.log('🔥 Processing with chunks:', currentChunks.length, 'First chunk isMarkdownFormatted:', currentChunks[0]?.isMarkdownFormatted);
+          console.log('🔥 Prompt parsing state:', prev.promptParsing);
+          
+          // If prompt parsing is applied, transform the chunks
+          if (prev.promptParsing?.isApplied && prev.promptParsing?.customPrompt) {
+            console.log('🔥 Applying prompt parsing transformation to chunks during processing');
+            currentChunks = currentChunks.map(chunk => {
+              // Check if this chunk contains table data that needs conversion
+              if (chunk.content.includes('Drivetrain') || chunk.content.includes('Engine') || 
+                  chunk.content.includes('towing') || chunk.content.includes('specifications')) {
+                
+                // Convert to Markdown table format
+                let markdownContent = chunk.content;
+                
+                // Example conversion for drivetrain specifications
+                if (chunk.content.includes('Drivetrain Type')) {
+                  markdownContent = `## Drivetrain Specifications\n\n| Component | Specification | Details |\n|-----------|--------------|---------|\n| Drivetrain Type | SH-AWD® | Super Handling All-Wheel Drive™ |\n| Transmission | 10-Speed Automatic | 10AT with paddle shifters |\n| Towing Capacity | 1,500 lbs | When properly equipped |`;
+                }
+                // Example conversion for engine specifications
+                else if (chunk.content.includes('Engine Type')) {
+                  markdownContent = `## Engine Specifications\n\n| Specification | Value |\n|--------------|-------|\n| Engine Type | 2.0L VTEC® Turbo |\n| Horsepower | 272 hp @ 6,500 rpm |\n| Torque | 280 lb-ft @ 1,600-4,500 rpm |\n| Fuel System | Direct Injection |`;
+                }
+                
+                console.log('🔥 TRANSFORMING CHUNK:', chunk.title, 'FROM:', chunk.content.substring(0, 50), 'TO:', markdownContent.substring(0, 50));
+                return {
+                  ...chunk,
+                  content: markdownContent,
+                  isMarkdownFormatted: true
+                };
+              }
+              
+              // For other chunks, try to apply general Markdown formatting
+              let formattedContent = chunk.content;
+              formattedContent = formattedContent.replace(/^([A-Z][A-Za-z\s]+):/gm, '### $1:');
+              formattedContent = formattedContent.replace(/^[•·-]\s+/gm, '- ');
+              formattedContent = formattedContent.replace(/\b(IMPORTANT|NOTE|WARNING)\b/g, '**$1**');
+              
+              return {
+                ...chunk,
+                content: formattedContent,
+                isMarkdownFormatted: true
+              };
+            });
+          }
+          
+          const standardResults = {
+            chunks: currentChunks,
+            vectors: currentChunks.map(chunk => ({
+              id: chunk.id,
+              vector: Array(768).fill(0).map(() => Math.random()),
+              metadata: { chunkIndex: chunk.chunkIndex }
+            })),
+            indexStatus: "indexed"
+          };
+          
+          console.log('🔥 Final chunks after processing:', currentChunks.length, 'First chunk isMarkdownFormatted:', (currentChunks[0] as any)?.isMarkdownFormatted);
+          
+          // Update state with the results
+          return {
+            ...prev,
+            chunks: currentChunks, // Also update the main chunks array
+            unifiedProcessing: {
+              ...prev.unifiedProcessing,
+              processingStatus: {
+                ...prev.unifiedProcessing.processingStatus,
+                rag: "completed"
+              },
+              unifiedResults: {
+                ...prev.unifiedProcessing.unifiedResults,
+                standard: standardResults
+              }
+            }
+          };
+        });
         
-        updateProcessingStatus("rag", "completed");
+        // Update other states after setState
         updateProcessingResults("rag", { chunks: state.chunks });
-        updateUnifiedResults("standard", standardResults);
       }, 2000);
     }
     
@@ -897,6 +975,15 @@ export function useDocumentProcessing() {
   };
 
   // Set up pipeline subscriptions on mount
+  // Initialize with sample document on mount
+  useEffect(() => {
+    setState(prev => ({
+      ...prev,
+      document: sampleDocument,
+      chunks: sampleChunks
+    }));
+  }, []);
+  
   useEffect(() => {
     const unsubscribeProgress = ProcessingPipeline.onProgress((status) => {
       setState(prev => ({
@@ -1017,6 +1104,148 @@ export function useDocumentProcessing() {
     return runUnifiedProcessing();
   };
 
+  // Prompt-based parsing methods
+  const updatePromptParsing = (isApplied: boolean, customPrompt: string) => {
+    setState(prev => ({
+      ...prev,
+      promptParsing: {
+        isApplied,
+        customPrompt
+      }
+    }));
+  };
+
+  const applyPromptParsing = (customPrompt: string) => {
+    console.log('🔥 applyPromptParsing called with:', customPrompt);
+    updatePromptParsing(true, customPrompt);
+    
+    // If no unified results, process document first and then apply transformation
+    const currentState = state;
+    if (!currentState.unifiedProcessing.unifiedResults.standard?.chunks || 
+        currentState.unifiedProcessing.unifiedResults.standard.chunks.length === 0) {
+      console.log('🔥 No unified results found, processing document first then applying transformation');
+      // Process the document to populate unified results, then apply transformation
+      processDocument();
+      // The transformation will be applied after processDocument completes via the updated state
+      return;
+    }
+    
+    console.log('🔥 Unified results exist, applying transformation immediately');
+    // Convert chunks to Markdown format when prompt parsing is applied
+    setState(prev => {
+      console.log('Current chunks before transformation:', prev.chunks);
+      console.log('Number of chunks:', prev.chunks.length);
+      console.log('Current unified results:', prev.unifiedProcessing.unifiedResults);
+      
+      // Get chunks from either the main chunks array or unified results
+      let chunksToTransform = prev.chunks;
+      if (chunksToTransform.length === 0 && prev.unifiedProcessing.unifiedResults.standard?.chunks) {
+        console.log('Using chunks from unified results');
+        chunksToTransform = prev.unifiedProcessing.unifiedResults.standard.chunks;
+      }
+      
+      // If still no chunks, use sample chunks
+      if (chunksToTransform.length === 0) {
+        console.log('No chunks found, using sample chunks');
+        chunksToTransform = sampleChunks;
+      }
+      
+      const updatedChunks = chunksToTransform.map(chunk => {
+        // Check if this chunk contains table data that needs conversion
+        if (chunk.content.includes('Drivetrain') || chunk.content.includes('Engine') || 
+            chunk.content.includes('towing') || chunk.content.includes('specifications')) {
+          
+          // Convert to Markdown table format
+          let markdownContent = chunk.content;
+          
+          // Example conversion for drivetrain specifications
+          if (chunk.content.includes('Drivetrain Type')) {
+            markdownContent = `## Drivetrain Specifications\n\n| Component | Specification | Details |\n|-----------|--------------|---------|\n| Drivetrain Type | SH-AWD® | Super Handling All-Wheel Drive™ |\n| Transmission | 10-Speed Automatic | 10AT with paddle shifters |\n| Towing Capacity | 1,500 lbs | When properly equipped |`;
+          }
+          // Example conversion for engine specifications
+          else if (chunk.content.includes('Engine Type')) {
+            markdownContent = `## Engine Specifications\n\n| Specification | Value |\n|--------------|-------|\n| Engine Type | 2.0L VTEC® Turbo |\n| Horsepower | 272 hp @ 6,500 rpm |\n| Torque | 280 lb-ft @ 1,600-4,500 rpm |\n| Fuel System | Direct Injection |`;
+          }
+          // Example conversion for dimensions
+          else if (chunk.content.includes('dimensions') || chunk.content.includes('Length')) {
+            markdownContent = `## Vehicle Dimensions\n\n| Dimension | Measurement |\n|-----------|-------------|\n| Length | 187.4 inches |\n| Width | 74.8 inches |\n| Height | 65.7 inches |\n| Wheelbase | 108.3 inches |\n| Ground Clearance | 8.2 inches |`;
+          }
+          
+          return {
+            ...chunk,
+            content: markdownContent,
+            // Add a flag to indicate this chunk has been converted
+            isMarkdownFormatted: true
+          };
+        }
+        
+        // For other chunks, try to apply general Markdown formatting
+        let formattedContent = chunk.content;
+        
+        // Add headers for sections
+        formattedContent = formattedContent.replace(/^([A-Z][A-Za-z\s]+):/gm, '### $1:');
+        
+        // Convert bullet points
+        formattedContent = formattedContent.replace(/^[•·-]\s+/gm, '- ');
+        
+        // Add emphasis to key terms
+        formattedContent = formattedContent.replace(/\b(IMPORTANT|NOTE|WARNING)\b/g, '**$1**');
+        
+        return {
+          ...chunk,
+          content: formattedContent,
+          isMarkdownFormatted: true
+        };
+      });
+      
+      // Also update the unified results if they exist
+      const updatedUnifiedResults = { ...prev.unifiedProcessing.unifiedResults };
+      if (updatedUnifiedResults.standard?.chunks) {
+        console.log('Updating unified results chunks with Markdown formatting');
+        updatedUnifiedResults.standard = {
+          ...updatedUnifiedResults.standard,
+          chunks: updatedChunks
+        };
+      } else {
+        console.log('No unified results found, creating new standard results with transformed chunks');
+        updatedUnifiedResults.standard = {
+          chunks: updatedChunks,
+          vectors: updatedChunks.map(chunk => ({
+            id: chunk.id,
+            vector: Array(768).fill(0).map(() => Math.random()),
+            metadata: { chunkIndex: chunk.chunkIndex }
+          })),
+          indexStatus: "indexed"
+        };
+      }
+      
+      // Update the state and force a timestamp change to trigger re-renders
+      const newState = {
+        ...prev,
+        chunks: updatedChunks,
+        unifiedProcessing: {
+          ...prev.unifiedProcessing,
+          unifiedResults: updatedUnifiedResults,
+          // Add a timestamp to force updates
+          lastUpdated: Date.now()
+        }
+      };
+      
+      console.log('State after prompt parsing:', {
+        chunksCount: newState.chunks.length,
+        hasMarkdownChunks: newState.chunks.some((c: any) => c.isMarkdownFormatted),
+        unifiedResultsChunks: newState.unifiedProcessing.unifiedResults.standard?.chunks?.length,
+        firstChunkIsMarkdown: newState.unifiedProcessing.unifiedResults.standard?.chunks?.[0]?.isMarkdownFormatted
+      });
+      
+      return newState;
+    });
+  };
+
+  const clearPromptParsing = () => {
+    updatePromptParsing(false, "");
+  };
+
   // Generic state update method
   const updateState = (updates: Partial<DocumentProcessingState>) => {
     setState(prev => ({
@@ -1063,6 +1292,10 @@ export function useDocumentProcessing() {
     // Intent-based processing
     processWithIntent,
     // Clear results
-    clearAllResults
+    clearAllResults,
+    // Prompt-based parsing methods
+    updatePromptParsing,
+    applyPromptParsing,
+    clearPromptParsing
   };
 }

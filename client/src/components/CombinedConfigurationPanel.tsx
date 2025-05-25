@@ -24,7 +24,8 @@ import {
   Image,
   Headphones,
   FileImage,
-  Video
+  Video,
+  Wand2
 } from "lucide-react";
 import VectorizationOptionsPanel from "./VectorizationOptionsPanel";
 import FinalizeIndexButton from "./FinalizeIndexButton";
@@ -48,6 +49,10 @@ interface CombinedConfigurationPanelProps {
     imageCaption: boolean;
     visualAnalysis: boolean;
   };
+  
+  // Prompt-based parsing props
+  isPromptApplied?: boolean;
+  customExtractionPrompt?: string;
   onMultimodalProcessingToggle?: (type: 'transcription' | 'ocr' | 'imageCaption' | 'visualAnalysis', enabled: boolean) => void;
   recordStructure: RecordStructure;
   onRecordStructureChange: (structure: RecordStructure) => void;
@@ -315,12 +320,23 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
   fields = [],
   onFieldPropertyChange,
   
+  // Prompt-based parsing props
+  isPromptApplied = false,
+  customExtractionPrompt = "",
+  
   // Vectorization props
   selectedModelId = "openai-text-embedding-3-large",
   onSelectModel = () => {},
   advancedOptions = defaultAdvancedOptions,
   onUpdateOptions = () => {}
 }) => {
+  console.log('CombinedConfigurationPanel render:', {
+    isPromptApplied,
+    customExtractionPrompt,
+    hasPrompt: !!customExtractionPrompt,
+    shouldShowPrompt: isPromptApplied && customExtractionPrompt
+  });
+  
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldValue, setNewFieldValue] = useState("");
   const [editingFieldId, setEditingFieldId] = useState<number | null>(null);
@@ -375,7 +391,7 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
       </div>
       
       <div className="p-3 md:p-4 overflow-y-auto flex-1" style={{ maxHeight: 'calc(100vh - 340px)' }}>
-        <Accordion type="single" collapsible className="w-full" defaultValue="chunking">
+        <Accordion type="single" collapsible className="w-full" defaultValue={isPromptApplied ? "field-indexing" : "chunking"}>
           {/* Chunking Configuration Section */}
           <AccordionItem value="chunking">
             <AccordionTrigger className="text-sm font-medium">
@@ -636,6 +652,33 @@ const CombinedConfigurationPanel: FC<CombinedConfigurationPanelProps> = ({
                     No fields available for indexing configuration.
                   </div>
                 )}
+                
+                {/* Prompt-based Parsing Configuration */}
+                {(() => {
+                  console.log('Rendering prompt section check:', { isPromptApplied, customExtractionPrompt, shouldRender: isPromptApplied && customExtractionPrompt });
+                  return null;
+                })()}
+                {isPromptApplied && customExtractionPrompt && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Wand2 className="h-4 w-4 text-purple-600" />
+                          <h4 className="text-sm font-medium">Prompt-based Parsing</h4>
+                        </div>
+                        <Badge variant="default" className="text-[10px]">Active</Badge>
+                      </div>
+                      <div className="bg-purple-50 rounded-md p-3">
+                        <p className="text-xs font-medium text-gray-700 mb-1">Custom Extraction Prompt:</p>
+                        <p className="text-xs text-gray-600 italic">"{customExtractionPrompt}"</p>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-500">
+                        <CheckCircle className="h-3 w-3 mr-1 text-green-600" />
+                        Improving extraction accuracy for RAG chunks
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -677,6 +720,15 @@ const arePropsEqual = (
     console.log('Previous:', prevProps.multimodalProcessing);
     console.log('Next:', nextProps.multimodalProcessing);
     return false; // Force re-render on multimodal change
+  }
+  
+  // Check prompt parsing changes
+  if (prevProps.isPromptApplied !== nextProps.isPromptApplied || 
+      prevProps.customExtractionPrompt !== nextProps.customExtractionPrompt) {
+    console.log('CombinedConfigurationPanel memo: Prompt parsing changed');
+    console.log('Previous:', { isPromptApplied: prevProps.isPromptApplied, customExtractionPrompt: prevProps.customExtractionPrompt });
+    console.log('Next:', { isPromptApplied: nextProps.isPromptApplied, customExtractionPrompt: nextProps.customExtractionPrompt });
+    return false; // Force re-render on prompt parsing change
   }
   
   // Deep compare only essential props that affect rendering

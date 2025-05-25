@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Send, 
   User, 
@@ -36,6 +37,7 @@ import { cn } from '@/lib/utils';
 interface ConversationalUIProps {
   documentAnalysis: DocumentCharacteristics | null;
   onProcessingConfigured?: (config: any) => void;
+  onApplyPromptParsing?: (prompt: string) => void;
   className?: string;
   compact?: boolean;
 }
@@ -43,12 +45,15 @@ interface ConversationalUIProps {
 export const ConversationalUI: React.FC<ConversationalUIProps> = ({
   documentAnalysis,
   onProcessingConfigured,
+  onApplyPromptParsing,
   className = '',
   compact = false
 }) => {
   const { state, sendMessage, handleAction, startConversation, getProcessingConfig } = useConversation(onProcessingConfigured);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showPromptFix, setShowPromptFix] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -79,6 +84,14 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
 
   // Override the handleAction to intercept start_processing, select_processing, and process_directly
   const handleActionWithConfig = (action: string, data?: any) => {
+    // Special handling for "show_prompt_fix" action
+    if (action === 'show_prompt_fix' && data?.showPromptFix === true) {
+      console.log('Show prompt fix action triggered');
+      setShowPromptFix(true);
+      setCustomPrompt('');
+      return;
+    }
+    
     // Special handling for "Yes, all entities" action
     if (action === 'process_directly' && data?.kgEnabled === true && data?.entityTypes === 'all') {
       console.log('"Yes, all entities" button clicked, adding delay before processing');
@@ -750,9 +763,66 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         return action;
       }
       
+      // Special handling for emoji-based buttons (new conversation flow)
+      // Check if action label contains emojis and extract the key text
+      const emojiPattern = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu;
+      const labelWithoutEmoji = actionLabel.replace(emojiPattern, '').trim().toLowerCase();
+      
+      // Handle shortened button labels like "✅ Yes", "❌ No", "🚀 Start", etc.
+      if (actionLabel.match(emojiPattern)) {
+        // Common positive responses that should match "✅ Yes" or similar positive actions
+        const positiveResponses = ['yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'correct', 'right', 'absolutely', 'definitely', 'certainly', 'indeed', 'affirmative', 'agreed', 'confirm', 'proceed', 'continue', 'go ahead', 'sounds good', 'lets go', "let's go", 'do it', 'accept', 'approve'];
+        
+        // Common negative responses that should match "❌ No" or similar negative actions
+        const negativeResponses = ['no', 'nope', 'nah', 'negative', 'not', 'dont', "don't", 'skip', 'pass', 'decline', 'refuse', 'reject', 'cancel', 'stop', 'hold', 'wait'];
+        
+        // Check for positive emoji actions
+        if ((labelWithoutEmoji === 'yes' || labelWithoutEmoji === 'analyze' || labelWithoutEmoji === 'done' || actionLabel.includes('✅')) && 
+            positiveResponses.some(resp => text.includes(resp))) {
+          console.log(`Positive emoji action match: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+        
+        // Check for negative emoji actions
+        if ((labelWithoutEmoji === 'no' || labelWithoutEmoji === 'skip' || actionLabel.includes('❌')) && 
+            negativeResponses.some(resp => text.includes(resp))) {
+          console.log(`Negative emoji action match: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+        
+        // Check for "Start" actions with emoji
+        if ((labelWithoutEmoji.includes('start') || actionLabel.includes('🚀')) && 
+            ['start', 'begin', 'launch', 'initiate', 'commence', 'go', 'lets start', "let's start", 'get started', 'ready'].some(pattern => text.includes(pattern))) {
+          console.log(`Start emoji action match: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+        
+        // Direct label matching without emoji
+        if (text.includes(labelWithoutEmoji)) {
+          console.log(`Direct label match (no emoji): "${text}" matched with "${labelWithoutEmoji}" from "${actionLabel}"`);
+          return action;
+        }
+      }
+      
       // Special handling for role questions with more flexible matching
       if (actionType === 'set_role' && actionData.role) {
         const rolePatterns = actionPatterns.role[actionData.role] || [];
+        
+        // Handle emoji-based role buttons like "🔧 Tech", "📦 Parts", etc.
+        const roleEmojiMap = {
+          'service_technician': ['tech', 'technician', 'mechanic', 'service'],
+          'parts_manager': ['parts', 'inventory', 'warehouse'],
+          'technical_writer': ['writer', 'documentation', 'technical writing'],
+          'quality_engineer': ['qa', 'quality', 'testing', 'engineer'],
+          'fleet_manager': ['fleet', 'vehicle', 'transportation']
+        };
+        
+        // Check if the text matches the shortened emoji label
+        const shortRolePatterns = roleEmojiMap[actionData.role] || [];
+        if (shortRolePatterns.some(pattern => text.includes(pattern))) {
+          console.log(`Short role match found: "${text}" matched with role "${actionData.role}"`);
+          return action;
+        }
         
         // First check for direct pattern inclusion
         if (rolePatterns.some(pattern => text.includes(pattern))) {
@@ -818,6 +888,22 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       if (actionType === 'set_department' && actionData.department) {
         const deptPatterns = actionPatterns.department[actionData.department] || [];
         
+        // Handle emoji-based department buttons like "🔧 Service", "📦 Parts", etc.
+        const deptEmojiMap = {
+          'service': ['service', 'support', 'help', 'assistance'],
+          'parts': ['parts', 'components', 'inventory'],
+          'tech_pubs': ['tech pubs', 'documentation', 'publications', 'manuals'],
+          'quality': ['qa', 'quality', 'testing', 'assurance'],
+          'fleet': ['fleet', 'vehicles', 'transportation', 'logistics']
+        };
+        
+        // Check if the text matches the shortened emoji label
+        const shortDeptPatterns = deptEmojiMap[actionData.department] || [];
+        if (shortDeptPatterns.some(pattern => text.includes(pattern))) {
+          console.log(`Short department match found: "${text}" matched with department "${actionData.department}"`);
+          return action;
+        }
+        
         // First check for direct pattern inclusion
         if (deptPatterns.some(pattern => text.includes(pattern))) {
           console.log(`Department match found: "${text}" matched with department "${actionData.department}"`);
@@ -880,6 +966,21 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
       // Check if the text contains goal-specific patterns
       if (actionType === 'set_goal' && actionData.goal) {
         const goalPatterns = actionPatterns.goal[actionData.goal] || [];
+        
+        // Handle emoji-based goal buttons like "🔍 Search Specs", "📊 Extract Data", etc.
+        const goalEmojiMap = {
+          'retrieval': ['search', 'find', 'lookup', 'retrieve', 'specs', 'specifications'],
+          'extraction': ['extract', 'data', 'pull', 'capture', 'extraction'],
+          'relationships': ['map', 'relations', 'relationships', 'connections', 'links'],
+          'comprehensive': ['full', 'all', 'complete', 'comprehensive', 'everything', 'analysis']
+        };
+        
+        // Check if the text matches the shortened emoji label
+        const shortGoalPatterns = goalEmojiMap[actionData.goal] || [];
+        if (shortGoalPatterns.some(pattern => text.includes(pattern))) {
+          console.log(`Short goal match found: "${text}" matched with goal "${actionData.goal}"`);
+          return action;
+        }
         
         // First check for direct pattern inclusion
         if (goalPatterns.some(pattern => text.includes(pattern))) {
@@ -979,6 +1080,43 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               return action;
             }
           }
+        }
+      }
+      
+      // Check for vehicle selection patterns
+      if (actionType === 'set_vehicle' && actionData.make && actionData.model) {
+        // Handle vehicle selection like "2025 Accord", "2025 CR-V", etc.
+        const vehicleString = `${actionData.year || ''} ${actionData.make} ${actionData.model}`.toLowerCase().trim();
+        const vehiclePatterns = [
+          vehicleString,
+          `${actionData.make} ${actionData.model}`.toLowerCase(),
+          actionData.model.toLowerCase(),
+          // Common variations
+          actionData.model.toLowerCase().replace('-', ''),
+          actionData.model.toLowerCase().replace('-', ' ')
+        ];
+        
+        if (vehiclePatterns.some(pattern => text.includes(pattern))) {
+          console.log(`Vehicle match found: "${text}" matched with "${vehicleString}"`);
+          return action;
+        }
+      }
+      
+      // Check for VIN entry request
+      if (actionType === 'request_vin_input') {
+        const vinPatterns = ['vin', 'vehicle identification', 'enter vin', 'provide vin', 'vin number', 'vin entry'];
+        if (vinPatterns.some(pattern => text.includes(pattern))) {
+          console.log(`VIN entry match found: "${text}"`);
+          return action;
+        }
+      }
+      
+      // Check for other vehicle request
+      if (actionType === 'request_vehicle_input') {
+        const otherVehiclePatterns = ['other', 'different', 'another', 'custom', 'manual entry', 'other model'];
+        if (otherVehiclePatterns.some(pattern => text.includes(pattern))) {
+          console.log(`Other vehicle match found: "${text}"`);
+          return action;
         }
       }
       
@@ -1125,6 +1263,98 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         }
       }
       
+      // Check for Q&A testing patterns
+      if (actionType === 'start_qa_test' && actionData.testType) {
+        const qaTestPatterns = {
+          'parts': ['parts', 'part numbers', 'components', 'inventory'],
+          'specifications': ['specs', 'specifications', 'technical specs', 'details'],
+          'service': ['service', 'maintenance', 'repair', 'procedures']
+        };
+        
+        const testPatterns = qaTestPatterns[actionData.testType] || [];
+        if (testPatterns.some(pattern => text.includes(pattern))) {
+          console.log(`Q&A test match found: "${text}" matched with test type "${actionData.testType}"`);
+          return action;
+        }
+      }
+      
+      // Check for next_step action in confirmation step with emoji labels
+      if (actionType === 'next_step' && actionData.nextStep) {
+        // Handle "🧪 Test Q&A" button
+        if ((actionLabel.includes('🧪') || labelWithoutEmoji.includes('test')) && 
+            ['test', 'qa', 'q&a', 'testing', 'verify', 'check'].some(pattern => text.includes(pattern))) {
+          console.log(`Test Q&A match found: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+        
+        // Handle "⏭️ Results" or "⏭️ Skip" buttons
+        if ((actionLabel.includes('⏭️') || labelWithoutEmoji.includes('results') || labelWithoutEmoji.includes('skip')) && 
+            ['results', 'skip', 'continue', 'next', 'proceed', 'move on', 'bypass'].some(pattern => text.includes(pattern))) {
+          console.log(`Skip/Results match found: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+        
+        // Handle "👀 Next" button
+        if ((actionLabel.includes('👀') || labelWithoutEmoji.includes('next')) && 
+            ['next', 'continue', 'proceed', 'go on', 'forward'].some(pattern => text.includes(pattern))) {
+          console.log(`Next match found: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+      }
+      
+      // Check for modify_processing action
+      if (actionType === 'modify_processing') {
+        // Handle "⚙️ Modify" or "⚙️ Adjust" buttons
+        if ((actionLabel.includes('⚙️') || labelWithoutEmoji.includes('modify') || labelWithoutEmoji.includes('adjust')) && 
+            ['modify', 'adjust', 'change', 'edit', 'configure', 'settings', 'update'].some(pattern => text.includes(pattern))) {
+          console.log(`Modify match found: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+      }
+      
+      // Check for retest action
+      if (actionLabel.includes('🔁') || labelWithoutEmoji === 'retest') {
+        if (['retest', 'retry', 'again', 'repeat', 'redo'].some(pattern => text.includes(pattern))) {
+          console.log(`Retest match found: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+      }
+      
+      // Check for recommendation actions
+      if (actionType === 'apply_recommendation' && actionData.recommendationType) {
+        const recommendationPatterns = {
+          'summarize': ['summarize', 'summary', 'overview', 'brief'],
+          'content_generation': ['generate', 'create', 'write', 'produce'],
+          'qna': ['q&a', 'question', 'answer', 'ask', 'query'],
+          'technical_extraction': ['extract', 'pull', 'data', 'technical', 'extraction'],
+          'qa_test': ['test', 'verify', 'check', 'validate']
+        };
+        
+        const recPatterns = recommendationPatterns[actionData.recommendationType] || [];
+        if (recPatterns.some(pattern => text.includes(pattern))) {
+          console.log(`Recommendation match found: "${text}" matched with type "${actionData.recommendationType}"`);
+          return action;
+        }
+      }
+      
+      // Check for process_directly action in recommendation_applied step
+      if (actionType === 'process_directly' && (actionLabel.includes('➡️') || labelWithoutEmoji === 'continue')) {
+        const continuePhrases = ['continue', 'proceed', 'go on', 'next', 'forward', 'carry on'];
+        if (continuePhrases.some(phrase => text.includes(phrase))) {
+          console.log(`Continue match found: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+      }
+      
+      // Check for "Try Another" action
+      if (actionLabel.includes('🔄') && labelWithoutEmoji.includes('try another')) {
+        const tryAnotherPhrases = ['try another', 'different', 'something else', 'other option', 'alternative'];
+        if (tryAnotherPhrases.some(phrase => text.includes(phrase))) {
+          console.log(`Try Another match found: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+      }
+      
       // Check for "Let's get started" patterns
       if (actionType === 'next_step' && actionLabel.includes("let's get started")) {
         const startPatterns = actionPatterns.intro.start;
@@ -1150,18 +1380,39 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         }
       }
       
-      // Special case for playground highlight
+      // Special case for playground highlight and "Done" button
       if (actionType === 'highlight_playground') {
-        // Check for phrases indicating interest in playground exploration
+        // Check for phrases indicating interest in playground exploration or being done
         const playgroundPhrases = [
           'yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'sounds good', 'show me', 'i\'ll explore',
           'playground', 'try it', 'test', 'explore', 'let me see', 'check it out', 'show playground',
           'financial insights', 'content understanding', 'search functionality', 'document structure',
-          'hands-on', 'experience', 'i want to try', 'proceed', 'continue', 'go ahead', 'try out'
+          'hands-on', 'experience', 'i want to try', 'proceed', 'continue', 'go ahead', 'try out',
+          'done', 'finished', 'complete', 'ready', 'all set', 'good to go', 'im done', "i'm done"
         ];
         
         if (playgroundPhrases.some(phrase => text.toLowerCase().includes(phrase.toLowerCase()))) {
-          console.log(`Playground interest detected: "${text}" contains phrases indicating interest in exploring playground`);
+          console.log(`Playground/Done interest detected: "${text}" contains phrases indicating interest in exploring playground or being done`);
+          return action;
+        }
+      }
+      
+      // Special case for "Show Me" buttons in kg_check step
+      if ((actionType === 'highlight_process_button' || actionType === 'process_directly') && 
+          (actionLabel.includes('👀') || labelWithoutEmoji === 'show me')) {
+        const showMePhrases = ['show', 'show me', 'display', 'view', 'see', 'look', 'check'];
+        if (showMePhrases.some(phrase => text.includes(phrase))) {
+          console.log(`"Show Me" match found: "${text}" matched with "${actionLabel}"`);
+          return action;
+        }
+      }
+      
+      // Special case for "Got It" buttons
+      if ((actionType === 'highlight_process_button' || actionType === 'process_directly') && 
+          (actionLabel.includes('👍') || labelWithoutEmoji === 'got it')) {
+        const gotItPhrases = ['got it', 'understood', 'ok', 'okay', 'sure', 'i understand', 'makes sense', 'gotcha', 'got that'];
+        if (gotItPhrases.some(phrase => text.includes(phrase))) {
+          console.log(`"Got It" match found: "${text}" matched with "${actionLabel}"`);
           return action;
         }
       }
@@ -1260,6 +1511,50 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         // Enhanced logging
         console.log(`Checking IDP preferences for extractType "${extractType}" with text: "${text}"`);
         
+        // Handle automotive-specific IDP options with emoji labels
+        if (extractType === 'automotive' && actionData.automotiveOptions) {
+          // Check for specific automotive extraction patterns
+          const automotivePatterns = {
+            'vin_parts': ['vin', 'parts', 'part numbers', 'vin & parts', 'vehicle identification'],
+            'torque': ['torque', 'specs', 'specifications', 'torque specs', 'tightening'],
+            'service': ['service', 'maintenance', 'intervals', 'schedule', 'service intervals'],
+            'all': ['all', 'everything', 'all data', 'comprehensive', 'complete']
+          };
+          
+          // Check which automotive option this is
+          if (actionData.automotiveOptions.extractVIN && actionData.automotiveOptions.extractPartNumbers && 
+              !actionData.automotiveOptions.extractTorqueSpecs && !actionData.automotiveOptions.extractServiceIntervals) {
+            // VIN & Parts option
+            if (automotivePatterns.vin_parts.some(pattern => text.includes(pattern))) {
+              console.log(`Automotive VIN & Parts match found: "${text}"`);
+              return action;
+            }
+          } else if (actionData.automotiveOptions.extractTorqueSpecs && 
+                     !actionData.automotiveOptions.extractVIN && !actionData.automotiveOptions.extractPartNumbers && 
+                     !actionData.automotiveOptions.extractServiceIntervals) {
+            // Torque Specs option
+            if (automotivePatterns.torque.some(pattern => text.includes(pattern))) {
+              console.log(`Automotive Torque Specs match found: "${text}"`);
+              return action;
+            }
+          } else if (actionData.automotiveOptions.extractServiceIntervals && 
+                     !actionData.automotiveOptions.extractVIN && !actionData.automotiveOptions.extractPartNumbers && 
+                     !actionData.automotiveOptions.extractTorqueSpecs) {
+            // Service option
+            if (automotivePatterns.service.some(pattern => text.includes(pattern))) {
+              console.log(`Automotive Service match found: "${text}"`);
+              return action;
+            }
+          } else if (actionData.automotiveOptions.extractVIN && actionData.automotiveOptions.extractPartNumbers && 
+                     actionData.automotiveOptions.extractTorqueSpecs && actionData.automotiveOptions.extractServiceIntervals) {
+            // All Data option
+            if (automotivePatterns.all.some(pattern => text.includes(pattern))) {
+              console.log(`Automotive All Data match found: "${text}"`);
+              return action;
+            }
+          }
+        }
+        
         // Find exact pattern match using case-insensitive comparison
         const matchedPattern = actionPatterns.idp[extractType]?.find(pattern => 
           text.toLowerCase().includes(pattern.toLowerCase())
@@ -1309,6 +1604,50 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
     if (!inputValue.trim()) return;
     
     const text = inputValue.trim().toLowerCase();
+    
+    // *** CHECK IF USER WANTS TO USE THE FIX WITH PROMPT FEATURE ***
+    const wantsToFixWithPrompt = text.includes('fix with prompt') || 
+                                 text.includes('want to fix') ||
+                                 text.includes('yes i want to fix') ||
+                                 text.includes('show prompt fix') ||
+                                 text.includes('custom prompt');
+    
+    // If user wants to fix with prompt, show the prompt UI
+    if (wantsToFixWithPrompt && onApplyPromptParsing) {
+      // Clear the input
+      setInputValue('');
+      
+      // Show the prompt fix UI immediately without sending the message
+      setShowPromptFix(true);
+      setCustomPrompt('');
+      
+      return;
+    }
+    
+    // *** CHECK IF THE MESSAGE LOOKS LIKE A CUSTOM EXTRACTION PROMPT ***
+    const looksLikeExtractionPrompt = text.includes('extract') || 
+                                      text.includes('format') ||
+                                      text.includes('markdown') ||
+                                      text.includes('table') ||
+                                      text.includes('parse') ||
+                                      text.includes('transform');
+    
+    // If it looks like an extraction prompt and we have the handler
+    if (looksLikeExtractionPrompt && onApplyPromptParsing && !wantsToFixWithPrompt) {
+      // Apply the prompt
+      onApplyPromptParsing(inputValue);
+      
+      // Send the message to show in chat
+      sendMessage(inputValue);
+      setInputValue('');
+      
+      // Send a follow-up message about applying the prompt
+      setTimeout(() => {
+        sendMessage('Applying your custom prompt for better extraction...');
+      }, 500);
+      
+      return;
+    }
     
     // *** SPECIAL HANDLING FOR "TELL ME MORE ON NEXT STEPS" ***
     // This needs to be first in the order to prevent other patterns from catching it
@@ -1448,15 +1787,18 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         latestAssistantMessage.actions && 
         latestAssistantMessage.actions.length > 0) {
       
-      // First check for the contract document intro message specifically (for backward compatibility)
-      // Make this check more specific to prevent false matches with "Tell me more on next steps"
-      if (latestAssistantMessage.content.includes("I've identified this as a contract document") &&
-          latestAssistantMessage.actions.some(a => a.label.includes("Let's get started"))) {
+      // First check for the intro message with technical specs
+      // Check for both old and new message formats
+      if ((latestAssistantMessage.content.includes("technical specs & service data") ||
+           latestAssistantMessage.content.includes("I've identified this as a contract document") ||
+           latestAssistantMessage.content.includes("Let's unlock its automotive intelligence")) &&
+          latestAssistantMessage.actions.some(a => a.label.includes("Start") || a.label.includes("🚀"))) {
         
         // Create a specific list of patterns that ONLY indicate "get started" intent
         const startPatterns = [
           'start', 'begin', 'let\'s start', 'let\'s begin', 
-          'get started', 'proceed', 'continue', 'go ahead'
+          'get started', 'proceed', 'continue', 'go ahead',
+          'start setup', 'lets start', 'yes start', 'start it'
         ];
         
         // Check for exact matches to prevent false positives
@@ -1470,9 +1812,13 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
         if (hasStartPattern) {
           console.log('Text input matched specific "start" pattern - triggering Let\'s get started button');
           
-          // Find the "Let's get started" action
+          // Find the start action - check for various start button labels including emoji
           const startAction = latestAssistantMessage.actions.find(a => 
-            a.label.includes("Let's get started")
+            a.label.toLowerCase().includes("start") || 
+            a.label.includes("Let's get started") ||
+            a.label.includes("Start Setup") ||
+            a.label.includes("🚀") ||
+            a.action === 'next_step'
           );
           
           if (startAction) {
@@ -1491,6 +1837,33 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
           }
         }
       } 
+      // Check if this is the recommendation message
+      else if (latestAssistantMessage.content.includes("I recommend these methods")) {
+        // For the recommendation message, "yes" should trigger the first recommended option (search)
+        if (text === 'yes' || text === 'yeah' || text === 'ok' || text === 'sure' || text === 'proceed') {
+          console.log('User said yes to recommendations - triggering search setup');
+          
+          // Find the search action (usually the first one)
+          const searchAction = latestAssistantMessage.actions.find(a => 
+            a.label.includes('Search') || a.label.includes('🔍')
+          ) || latestAssistantMessage.actions[0]; // Fallback to first action
+          
+          if (searchAction) {
+            // Show the user's message first
+            sendMessage(inputValue);
+            setInputValue('');
+            setIsTyping(true);
+            
+            // Then trigger the action after a short delay
+            setTimeout(() => {
+              handleActionWithConfig(searchAction.action, searchAction.data);
+              setIsTyping(false);
+            }, 500);
+            
+            return;
+          }
+        }
+      }
       // For all other questions, try to find a matching action based on text patterns
       else {
         const matchingAction = findBestMatchingAction(text, latestAssistantMessage.actions);
@@ -1624,6 +1997,25 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               {/* "Other (manual input)" section has been hidden */}
             </div>
           )}
+          
+          {/* Add "Fix with prompt" button for the specific playground evaluation message */}
+          {!isUser && onApplyPromptParsing && 
+            message.content.includes('Want to test your setup in the playground') && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowPromptFix(true);
+                  setCustomPrompt('');
+                }}
+                className="w-full justify-center gap-2"
+              >
+                <Wand2 className="h-4 w-4" />
+                Fix with prompt
+              </Button>
+            </div>
+          )}
         </div>
         
         {isUser && (
@@ -1742,6 +2134,54 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               </div>
             )}
             
+            {/* Prompt Fix UI */}
+            {showPromptFix && (
+              <div className="max-w-[75%] mx-auto">
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Fix extraction with custom prompt</CardTitle>
+                    <p className="text-sm text-gray-600">
+                      Enter a prompt to improve data extraction from the document
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="e.g., Extract the towing capacity value from the drivetrain specifications table and format the output as a Markdown table with columns for Component, Specification, and Details"
+                      value={customPrompt}
+                      onChange={(e) => setCustomPrompt(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        onClick={() => {
+                          if (onApplyPromptParsing && customPrompt.trim()) {
+                            onApplyPromptParsing(customPrompt);
+                            setShowPromptFix(false);
+                            setCustomPrompt('');
+                            
+                            // Send a message to the chat that prompt parsing is being applied
+                            sendMessage('Applying custom prompt for better extraction...');
+                          }
+                        }}
+                        disabled={!customPrompt.trim()}
+                      >
+                        Apply Prompt
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowPromptFix(false);
+                          setCustomPrompt('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
@@ -1754,7 +2194,7 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               ref={inputRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               placeholder="Type your Prompt..."
               className="flex-1 bg-gray-100 border-gray-300"
               disabled={isTyping}

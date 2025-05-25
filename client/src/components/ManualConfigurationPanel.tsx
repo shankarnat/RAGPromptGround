@@ -3,8 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FileSearch, Network, FileText, PlayCircle, Wand2, Check, Settings, ChevronRight, ChevronLeft } from "lucide-react";
-import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
+import { FileSearch, Network, FileText, PlayCircle, Wand2, Check, Settings, ChevronRight, ChevronLeft, ChevronDown, Image, Mic, Eye, Layers, Hash, Timer } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ManualConfigurationPanelProps {
   processingTypes: Array<{
@@ -22,10 +26,10 @@ interface ManualConfigurationPanelProps {
   updateChunkSize: (size: number) => void;
   updateChunkOverlap: (overlap: number) => void;
   disabled?: boolean;
-  highlightProcessButton?: boolean; // Flag to highlight the Process Document button
-  pulseEffect?: boolean; // Flag to add extra pulse effect for more attention
-  initialCollapsed?: boolean; // Flag to determine if sidebar is initially collapsed
-  onCollapseChange?: (collapsed: boolean) => void; // Callback for collapse state changes
+  highlightProcessButton?: boolean;
+  pulseEffect?: boolean;
+  initialCollapsed?: boolean;
+  onCollapseChange?: (collapsed: boolean) => void;
 }
 
 const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo(({
@@ -44,361 +48,332 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   initialCollapsed = false,
   onCollapseChange
 }) => {
-  console.log('ManualConfigurationPanel render - processingConfig:', processingConfig);
-  console.log('ManualConfigurationPanel render - processingConfig.rag:', processingConfig.rag);
-  console.log('ManualConfigurationPanel render - processingConfig.rag.enabled:', processingConfig.rag?.enabled);
-  console.log('ManualConfigurationPanel render - processingConfig.kg:', processingConfig.kg);
-  console.log('ManualConfigurationPanel render - processingConfig.kg.enabled:', processingConfig.kg?.enabled);
-  
-  // State for tracking if sidebar is collapsed
   const [collapsed, setCollapsed] = useState(initialCollapsed);
-  
-  // Sync collapsed state with initialCollapsed prop when it changes
+
   useEffect(() => {
     if (initialCollapsed !== collapsed) {
-      console.log('Syncing collapsed state from props:', initialCollapsed);
       setCollapsed(initialCollapsed);
-      
-      // Notify parent component about collapse state change if needed
       if (onCollapseChange) {
         onCollapseChange(initialCollapsed);
       }
     }
   }, [initialCollapsed, collapsed, onCollapseChange]);
-  
-  // Track which accordions should be open based on enabled state
-  const [openSections, setOpenSections] = useState<string[]>(() => {
-    const initial = [];
-    if (processingConfig.rag?.enabled) initial.push('rag');
-    if (processingConfig.kg?.enabled) initial.push('kg');
-    if (processingConfig.idp?.enabled) initial.push('idp');
-    return initial;
-  });
-  
-  // Update open sections when config changes
-  useEffect(() => {
-    const newOpenSections = [];
-    if (processingConfig.rag?.enabled) newOpenSections.push('rag');
-    if (processingConfig.kg?.enabled) newOpenSections.push('kg');
-    if (processingConfig.idp?.enabled) newOpenSections.push('idp');
-    setOpenSections(newOpenSections);
-  }, [processingConfig.rag?.enabled, processingConfig.kg?.enabled, processingConfig.idp?.enabled]);
-  
-  // Toggle sidebar collapse
+
   const toggleCollapse = () => {
     const newCollapsedState = !collapsed;
     setCollapsed(newCollapsedState);
-    
-    // Notify parent component about collapse state change
     if (onCollapseChange) {
       onCollapseChange(newCollapsedState);
     }
   };
-  
+
+  // Determine active methods for summary
+  const activeMethods = processingTypes.filter(type => processingConfig[type.id]?.enabled);
+
   return (
     <div className="h-full overflow-hidden flex w-full">
-      {/* Collapsible toggle button - always visible */}
-      <button 
-        type="button"
-        className="flex flex-col items-center justify-between h-full bg-gray-700 border-r border-gray-600 shadow-md cursor-pointer hover:bg-gray-600 transition-all duration-200 py-8 px-1 w-8 flex-shrink-0"
-        style={{zIndex: 100}} 
-        onClick={toggleCollapse}
-        aria-label={collapsed ? "Expand configuration panel" : "Collapse configuration panel"}
-      >
-        {/* Top section with icon */}
-        <div className="flex flex-col items-center gap-2">
-          {collapsed ? (
-            <ChevronRight className="h-6 w-6 text-gray-300" />
-          ) : (
-            <ChevronLeft className="h-6 w-6 text-gray-300" />
-          )}
-        </div>
-        
-        {/* Middle section with text */}
-        <div className="flex-grow flex items-center justify-center">
-          <div className="transform rotate-90 text-gray-300 text-xs font-medium tracking-wide whitespace-nowrap">
-            {collapsed ? "CONFIGURATION" : "COLLAPSE PANEL"}
+      {/* Enhanced collapse toggle */}
+      <div className="relative h-full w-8 flex-shrink-0">
+        <button 
+          type="button"
+          className="group flex flex-col items-center justify-center h-full w-full bg-gradient-to-b from-gray-50 to-gray-100 border-r border-gray-300 hover:from-blue-50 hover:to-blue-100 hover:border-blue-300 transition-all duration-300 shadow-sm"
+          onClick={toggleCollapse}
+          aria-label={collapsed ? "Expand panel" : "Collapse panel"}
+        >
+          <div className="flex flex-col items-center justify-center space-y-1">
+            {collapsed ? (
+              <>
+                <ChevronRight className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                <div className="w-0.5 h-8 bg-gray-300 group-hover:bg-blue-400 transition-colors rounded-full"></div>
+              </>
+            ) : (
+              <>
+                <ChevronLeft className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                <div className="w-0.5 h-8 bg-gray-300 group-hover:bg-blue-400 transition-colors rounded-full"></div>
+              </>
+            )}
           </div>
-        </div>
+        </button>
         
-        {/* Bottom section with icons representing different parts */}
-        <div className="flex flex-col gap-3 items-center">
-          <Settings className="h-5 w-5 text-gray-400" />
-          <FileSearch className="h-5 w-5 text-gray-400" />
-          <FileText className="h-5 w-5 text-gray-400" />
-          <Network className="h-5 w-5 text-gray-400" />
+        {/* Subtle indicator dots */}
+        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex flex-col space-y-1">
+          <div className="w-1 h-1 bg-gray-400 rounded-full opacity-60"></div>
+          <div className="w-1 h-1 bg-gray-400 rounded-full opacity-60"></div>
+          <div className="w-1 h-1 bg-gray-400 rounded-full opacity-60"></div>
         </div>
-      </button>
+      </div>
       
-      {/* Main content area - content changes based on collapsed state */}
-      <div className={`h-full transition-all duration-300 ease-in-out ${collapsed ? 'w-0 opacity-0' : 'flex-1'}`}
+      {/* Main content */}
+      <div className={`h-full transition-all duration-300 ${collapsed ? 'w-0 opacity-0' : 'flex-1'}`}
            style={{overflow: collapsed ? 'hidden' : 'visible'}}>
         {!collapsed && (
-          /* Expanded state - show full configuration */
-          <div className="h-full overflow-y-auto p-4 space-y-6 relative">
-            {/* Content Configuration - always visible */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-            <Settings className="w-5 h-5 text-gray-700" />
-            <CardTitle>Content Configuration</CardTitle>
-          </div>
-          <CardDescription>
-            {disabled ? "Configuration used for processing" : "Select or edit which methods to apply"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {processingTypes.map(type => {
-            const Icon = type.icon;
-            const configKey = type.id;
-            return (
-              <div key={type.id} className="flex items-start space-x-3">
-                <Checkbox
-                  checked={processingConfig[configKey]?.enabled || false}
-                  onCheckedChange={(checked) => {
-                    if (!disabled) {
-                      // Pass true for forceUpdate to ensure the change is registered immediately
-                      handleProcessingToggle(configKey, checked as boolean, true);
-                    }
-                  }}
-                  disabled={disabled}
-                />
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <Icon className="w-4 h-4 text-gray-500" />
-                    <span className="font-medium">{type.label}</span>
+          <div className="h-full overflow-y-auto p-3 space-y-3">
+            {/* Compact header with Process button */}
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                📋 Content Config
+              </h3>
+              <Button 
+                size="sm"
+                onClick={() => onProcessDocument && !disabled && onProcessDocument()}
+                disabled={disabled || !activeMethods.length}
+                className={`${highlightProcessButton ? 'bg-green-600 hover:bg-green-700' : ''} ${pulseEffect ? 'animate-pulse' : ''}`}
+              >
+                <PlayCircle className="w-4 h-4 mr-1" />
+                Process
+              </Button>
+            </div>
+
+            {/* Compact processing method cards */}
+            <div className="space-y-2">
+              {processingTypes.map(type => {
+                const Icon = type.icon;
+                const isEnabled = processingConfig[type.id]?.enabled || false;
+                const isRAG = type.id === 'rag';
+                
+                return (
+                  <div key={type.id}>
+                    <Card className={`p-3 cursor-pointer transition-all ${isEnabled ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={isEnabled}
+                          onCheckedChange={(checked) => !disabled && handleProcessingToggle(type.id, checked as boolean, true)}
+                          disabled={disabled}
+                          className="mt-0.5"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Icon className={`w-4 h-4 ${isEnabled ? 'text-blue-600' : 'text-gray-400'}`} />
+                            <span className={`font-medium text-sm ${isEnabled ? 'text-blue-900' : 'text-gray-600'}`}>
+                              {type.label}
+                            </span>
+                            {isEnabled && <Check className="w-3 h-3 text-green-600 ml-auto" />}
+                          </div>
+                          {/* Bullet points for features */}
+                          <ul className="text-xs text-gray-500 mt-1 space-y-0.5">
+                            {type.id === 'rag' && (
+                              <>
+                                <li>• Semantic search</li>
+                                <li>• Smart chunking</li>
+                              </>
+                            )}
+                            {type.id === 'kg' && (
+                              <>
+                                <li>• Entity extraction</li>
+                                <li>• Relationship mapping</li>
+                              </>
+                            )}
+                            {type.id === 'idp' && (
+                              <>
+                                <li>• Text extraction</li>
+                                <li>• Classification</li>
+                              </>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    {/* Advanced settings for KG when enabled */}
+                    {type.id === 'kg' && isEnabled && (
+                      <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                        <h5 className="text-xs font-medium text-gray-700 mb-2">Advanced Graph Options</h5>
+                        <div className="space-y-1">
+                          {['entityExtraction', 'relationMapping', 'graphBuilding'].map(option => (
+                            <div key={option} className="flex items-center gap-2">
+                              <Checkbox
+                                id={`kg-${option}`}
+                                checked={processingConfig.kg?.[option] || false}
+                                onCheckedChange={(checked) => !disabled && handleOptionToggle('kg', option, checked as boolean)}
+                                disabled={disabled}
+                                className="h-3 w-3"
+                              />
+                              <Label htmlFor={`kg-${option}`} className="text-xs cursor-pointer">
+                                {option.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Advanced settings for IDP when enabled */}
+                    {type.id === 'idp' && isEnabled && (
+                      <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                        <h5 className="text-xs font-medium text-gray-700 mb-2">Advanced Processing</h5>
+                        <div className="space-y-1">
+                          {['textExtraction', 'classification', 'metadata'].map(option => (
+                            <div key={option} className="flex items-center gap-2">
+                              <Checkbox
+                                id={`idp-${option}`}
+                                checked={processingConfig.idp?.[option] || false}
+                                onCheckedChange={(checked) => !disabled && handleOptionToggle('idp', option, checked as boolean)}
+                                disabled={disabled}
+                                className="h-3 w-3"
+                              />
+                              <Label htmlFor={`idp-${option}`} className="text-xs cursor-pointer">
+                                {option.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Inline chunking, multimodal, and prompt parsing for RAG when enabled */}
+                    {isRAG && isEnabled && (
+                      <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200 space-y-3">
+                        {/* Chunking settings */}
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-xs text-gray-600">Method</label>
+                            <Select
+                              value={state.chunkingMethod?.value || 'sentence'}
+                              onValueChange={(value) => !disabled && updateChunkingMethod({ value, label: value })}
+                              disabled={disabled}
+                            >
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="sentence">Sentence</SelectItem>
+                                <SelectItem value="fixed">Fixed</SelectItem>
+                                <SelectItem value="semantic">Semantic</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 flex items-center gap-1">
+                              <Hash className="w-3 h-3" /> Size
+                            </label>
+                            <Input
+                              type="number"
+                              value={state.chunkSize}
+                              onChange={(e) => !disabled && updateChunkSize(parseInt(e.target.value))}
+                              className="h-8 text-xs"
+                              disabled={disabled}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 flex items-center gap-1">
+                              <Layers className="w-3 h-3" /> Overlap
+                            </label>
+                            <Input
+                              type="number"
+                              value={state.chunkOverlap}
+                              onChange={(e) => !disabled && updateChunkOverlap(parseInt(e.target.value))}
+                              className="h-8 text-xs"
+                              disabled={disabled}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Multimodal options */}
+                        <div className="border-t pt-2">
+                          <h5 className="text-xs font-medium text-gray-700 mb-2">Multimodal</h5>
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                id="ocr"
+                                checked={processingConfig.rag?.multimodal?.ocr || false}
+                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'ocr', checked)}
+                                disabled={disabled}
+                              />
+                              <Label htmlFor="ocr" className="text-xs cursor-pointer flex items-center gap-1">
+                                <Eye className="w-3 h-3" /> OCR
+                              </Label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                id="audioTranscription"
+                                checked={processingConfig.rag?.multimodal?.audioTranscription || false}
+                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'audioTranscription', checked)}
+                                disabled={disabled}
+                              />
+                              <Label htmlFor="audioTranscription" className="text-xs cursor-pointer flex items-center gap-1">
+                                <Mic className="w-3 h-3" /> Audio
+                              </Label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                id="imageCaptioning"
+                                checked={processingConfig.rag?.multimodal?.imageCaptioning || false}
+                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'imageCaptioning', checked)}
+                                disabled={disabled}
+                              />
+                              <Label htmlFor="imageCaptioning" className="text-xs cursor-pointer flex items-center gap-1">
+                                <Image className="w-3 h-3" /> Images
+                              </Label>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Custom prompt if set */}
+                        {state.promptParsing?.customPrompt && (
+                          <div className="border-t pt-2">
+                            <h5 className="text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+                              <Wand2 className="w-3 h-3" /> Custom Prompt
+                            </h5>
+                            <p className="text-xs text-gray-600 italic">{state.promptParsing.customPrompt}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">{type.description}</p>
-                </div>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
-      
-      {/* Finalize and Create button - placed below Processing Methods */}
-      <Card className="border-2 border-green-200 bg-green-50">
-        <CardContent className="pt-4 pb-4">
-          <Button 
-            className="w-full bg-green-600 hover:bg-green-700 flex items-center gap-2 transition-all hover:scale-[1.01]"
-            size="lg"
-            onClick={() => {
-              // Add any finalization logic here
-              // For now, just call onProcessDocument if available
-              if (onProcessDocument && !disabled) {
-                onProcessDocument();
-              }
-            }}
-            disabled={disabled || !Object.values(processingConfig).some((config: any) => config.enabled)}
-          >
-            <Wand2 className="w-5 h-5 mr-1" />
-            Finalize and Create
-          </Button>
-        </CardContent>
-      </Card>
+                );
+              })}
+            </div>
 
-      {/* Collapsible configuration sections */}
-      <Accordion 
-        type="multiple" 
-        className="w-full"
-        value={openSections}
-        onValueChange={setOpenSections}
-      >
-        {/* RAG Configuration */}
-        {processingConfig.rag?.enabled && (
-          <AccordionItem value="rag">
-            <AccordionTrigger>
-              <div className="flex items-center space-x-2">
-                <FileSearch className="w-4 h-4" />
-                <span>RAG Configuration</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <CombinedConfigurationPanel
-                chunkingMethod={state.chunkingMethod}
-                chunkSize={state.chunkSize}
-                chunkOverlap={state.chunkOverlap}
-                metadataFields={state.metadataFields}
-                multimodalProcessing={(() => {
-                  console.log('Passing multimodal to CombinedConfigurationPanel:', processingConfig.rag.multimodal);
-                  return processingConfig.rag.multimodal;
-                })()}
-                onMultimodalProcessingToggle={(type, enabled) => {
-                  console.log(`ManualConfigurationPanel: onMultimodalProcessingToggle called - type: ${type}, enabled: ${enabled}`);
-                  if (!disabled) {
-                    handleOptionToggle('rag', type, enabled);
-                  }
-                }}
-                recordStructure={state.recordStructure}
-                onChunkingMethodChange={disabled ? () => {} : updateChunkingMethod}
-                onChunkSizeChange={disabled ? () => {} : updateChunkSize}
-                onChunkOverlapChange={disabled ? () => {} : updateChunkOverlap}
-                onMetadataFieldChange={() => {}}
-                onRecordStructureChange={() => {}}
-                onAddCustomField={() => {}}
-              />
-            </AccordionContent>
-          </AccordionItem>
-        )}
 
-        {/* KG Configuration */}
-        {processingConfig.kg?.enabled && (
-          <AccordionItem value="kg">
-            <AccordionTrigger>
-              <div className="flex items-center space-x-2">
-                <Network className="w-4 h-4" />
-                <span>Knowledge Graph Configuration</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-4 p-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={processingConfig.kg.entityExtraction}
-                    onCheckedChange={(checked) => {
-                      if (!disabled) {
-                        handleOptionToggle("kg", "entityExtraction", checked as boolean, false);
-                      }
-                    }}
-                    disabled={disabled}
-                  />
-                  <label>Entity Extraction</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={processingConfig.kg.relationMapping}
-                    onCheckedChange={(checked) => {
-                      if (!disabled) {
-                        handleOptionToggle("kg", "relationMapping", checked as boolean, false);
-                      }
-                    }}
-                    disabled={disabled}
-                  />
-                  <label>Relation Mapping</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={processingConfig.kg.graphBuilding}
-                    onCheckedChange={(checked) => {
-                      if (!disabled) {
-                        handleOptionToggle("kg", "graphBuilding", checked as boolean, false);
-                      }
-                    }}
-                    disabled={disabled}
-                  />
-                  <label>Graph Building</label>
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
 
-        {/* IDP Configuration */}
-        {processingConfig.idp?.enabled && (
-          <AccordionItem value="idp">
-            <AccordionTrigger>
-              <div className="flex items-center space-x-2">
-                <FileText className="w-4 h-4" />
-                <span>Document Processing Configuration</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-4 p-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={processingConfig.idp.textExtraction}
-                    onCheckedChange={(checked) => {
-                      if (!disabled) {
-                        handleOptionToggle("idp", "textExtraction", checked as boolean, false);
-                      }
-                    }}
-                    disabled={disabled}
-                  />
-                  <label>Text Extraction</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={processingConfig.idp.classification}
-                    onCheckedChange={(checked) => {
-                      if (!disabled) {
-                        handleOptionToggle("idp", "classification", checked as boolean, false);
-                      }
-                    }}
-                    disabled={disabled}
-                  />
-                  <label>Document Classification</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={processingConfig.idp.metadata}
-                    onCheckedChange={(checked) => {
-                      if (!disabled) {
-                        handleOptionToggle("idp", "metadata", checked as boolean, false);
-                      }
-                    }}
-                    disabled={disabled}
-                  />
-                  <label>Metadata Extraction</label>
+            {/* Bottom summary bar */}
+            {activeMethods.length > 0 && (
+              <div className="sticky bottom-0 bg-gray-100 rounded-md p-2 mt-auto">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600">Active:</span>
+                  <div className="flex gap-1">
+                    {activeMethods.map(method => {
+                      const Icon = method.icon;
+                      return (
+                        <div key={method.id} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
+                          <Icon className="w-3 h-3" />
+                          <span>{method.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
-      </Accordion>
-      
-      {/* Process Document button has been hidden */}
+            )}
           </div>
         )}
       </div>
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison function for memo - return true to skip render, false to re-render
-  
-  // Always check for processingConfig changes
+  // Custom comparison for memo optimization
   const prevRagEnabled = prevProps.processingConfig.rag?.enabled;
   const nextRagEnabled = nextProps.processingConfig.rag?.enabled;
   
-  console.log('ManualConfigurationPanel memo comparison:');
-  console.log('  Previous RAG enabled:', prevRagEnabled);
-  console.log('  Next RAG enabled:', nextRagEnabled);
-  
-  // Force re-render if RAG enabled state changed
   if (prevRagEnabled !== nextRagEnabled) {
-    console.log('  RAG enabled changed - forcing re-render');
     return false;
   }
   
-  // Check other processing type changes
   for (const key of ['kg', 'idp'] as const) {
     if (prevProps.processingConfig[key]?.enabled !== nextProps.processingConfig[key]?.enabled) {
-      console.log(`  ${key} enabled changed - forcing re-render`);
       return false;
     }
   }
   
-  // Only do deep comparison if enabled states haven't changed
   const configEqual = JSON.stringify(prevProps.processingConfig) === JSON.stringify(nextProps.processingConfig);
   const disabledEqual = prevProps.disabled === nextProps.disabled;
   const stateEqual = JSON.stringify(prevProps.state) === JSON.stringify(nextProps.state);
-  
   const highlightEqual = prevProps.highlightProcessButton === nextProps.highlightProcessButton;
   const pulseEqual = prevProps.pulseEffect === nextProps.pulseEffect;
   const collapsedEqual = prevProps.initialCollapsed === nextProps.initialCollapsed;
-  
-  // Also check if collapse handlers are the same
   const onCollapseChangeEqual = prevProps.onCollapseChange === nextProps.onCollapseChange;
   
-  const shouldSkipRender = configEqual && disabledEqual && stateEqual && 
-                           highlightEqual && pulseEqual && collapsedEqual && 
-                           onCollapseChangeEqual;
-                           
-  console.log('  Deep comparison:', { 
-    configEqual, disabledEqual, stateEqual, highlightEqual, 
-    pulseEqual, collapsedEqual, onCollapseChangeEqual, shouldSkipRender 
-  });
-  
-  return shouldSkipRender;
+  return configEqual && disabledEqual && stateEqual && highlightEqual && pulseEqual && collapsedEqual && onCollapseChangeEqual;
 });
 
 ManualConfigurationPanel.displayName = 'ManualConfigurationPanel';

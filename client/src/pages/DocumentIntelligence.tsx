@@ -35,7 +35,11 @@ const DocumentIntelligence: FC = () => {
     // Example switching
     switchDocumentExample,
     // Processing methods
-    processWithIntent
+    processWithIntent,
+    // Prompt-based parsing methods
+    updatePromptParsing,
+    applyPromptParsing,
+    clearPromptParsing
   } = useDocumentProcessing();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -126,6 +130,9 @@ const DocumentIntelligence: FC = () => {
           onSelectModel={selectEmbeddingModel}
           advancedOptions={state.advancedEmbeddingOptions}
           onUpdateOptions={updateEmbeddingOptions}
+          // Prompt-based parsing props
+          isPromptApplied={state.promptParsing.isApplied}
+          customExtractionPrompt={state.promptParsing.customPrompt}
         />
       </div>
     );

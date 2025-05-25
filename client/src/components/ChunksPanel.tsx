@@ -11,6 +11,7 @@ interface Chunk {
   tags: string[];
   overlapWithPrevious?: number; // New property to track overlap
   processingTime?: number; // New property to track processing time
+  isMarkdownFormatted?: boolean; // Flag to indicate if content is in Markdown format
 }
 
 interface ChunksPanelProps {
@@ -21,6 +22,136 @@ interface ChunksPanelProps {
   chunkSize?: number;
   chunkOverlap?: number;
 }
+
+// Simple Markdown renderer for chunks
+const renderMarkdownContent = (content: string) => {
+  const lines = content.split('\n');
+  const elements: JSX.Element[] = [];
+  let inTable = false;
+  let tableRows: string[][] = [];
+  let tableHeaders: string[] = [];
+  
+  lines.forEach((line, index) => {
+    // Headers
+    if (line.startsWith('## ')) {
+      elements.push(
+        <h3 key={index} className="text-base font-semibold mb-2 mt-3">
+          {line.substring(3)}
+        </h3>
+      );
+    } else if (line.startsWith('### ')) {
+      elements.push(
+        <h4 key={index} className="text-sm font-semibold mb-1 mt-2">
+          {line.substring(4)}
+        </h4>
+      );
+    }
+    // Table handling
+    else if (line.includes('|')) {
+      const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
+      
+      if (!inTable) {
+        inTable = true;
+        tableHeaders = cells;
+      } else if (line.includes('---')) {
+        // Separator line, skip
+      } else {
+        tableRows.push(cells);
+      }
+    }
+    // End of table
+    else if (inTable && !line.includes('|')) {
+      // Render the table
+      elements.push(
+        <div key={`table-${index}`} className="overflow-x-auto mb-3">
+          <table className="min-w-full text-xs">
+            <thead>
+              <tr className="bg-gray-100">
+                {tableHeaders.map((header, i) => (
+                  <th key={i} className="px-2 py-1 text-left font-medium border border-gray-200">
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tableRows.map((row, rowIndex) => (
+                <tr key={rowIndex} className="hover:bg-gray-50">
+                  {row.map((cell, cellIndex) => (
+                    <td key={cellIndex} className="px-2 py-1 border border-gray-200">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+      
+      // Reset table state
+      inTable = false;
+      tableRows = [];
+      tableHeaders = [];
+      
+      // Process the current line if it's not empty
+      if (line.trim()) {
+        elements.push(<p key={index} className="mb-1">{line}</p>);
+      }
+    }
+    // Bold text
+    else if (line.includes('**')) {
+      const formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      elements.push(
+        <p key={index} className="mb-1" dangerouslySetInnerHTML={{ __html: formatted }} />
+      );
+    }
+    // List items
+    else if (line.startsWith('- ')) {
+      elements.push(
+        <li key={index} className="ml-4 mb-1 list-disc">
+          {line.substring(2)}
+        </li>
+      );
+    }
+    // Regular text
+    else if (line.trim()) {
+      elements.push(<p key={index} className="mb-1">{line}</p>);
+    }
+  });
+  
+  // Handle any remaining table
+  if (inTable && tableRows.length > 0) {
+    elements.push(
+      <div key="final-table" className="overflow-x-auto mb-3">
+        <table className="min-w-full text-xs">
+          <thead>
+            <tr className="bg-gray-100">
+              {tableHeaders.map((header, i) => (
+                <th key={i} className="px-2 py-1 text-left font-medium border border-gray-200">
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {tableRows.map((row, rowIndex) => (
+              <tr key={rowIndex} className="hover:bg-gray-50">
+                {row.map((cell, cellIndex) => (
+                  <td key={cellIndex} className="px-2 py-1 border border-gray-200">
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  
+  return <>{elements}</>;
+};
 
 const ChunksPanel: FC<ChunksPanelProps> = ({ 
   chunks, 
@@ -239,33 +370,40 @@ const ChunksPanel: FC<ChunksPanelProps> = ({
                   </div>
                 )}
                 
-                {chunk.content.split("\n").map((line, index) => {
-                  if (line.toUpperCase() === line && line.trim() !== "") {
-                    return (
-                      <p key={index} className="mb-2">
-                        <span className="font-semibold">{line}</span>
-                      </p>
-                    );
-                  } else if (line.startsWith("•")) {
-                    return <p key={index} className="mb-1">{line}</p>;
-                  } else if (line.includes(":")) {
-                    return (
-                      <p key={index} className="mb-1">
-                        {line.includes("Submitted") ? (
-                          <span className="text-gray-500">{line}</span>
-                        ) : (
-                          line
-                        )}
-                      </p>
-                    );
-                  } else {
-                    return line.trim() === "" ? (
-                      <br key={index} />
-                    ) : (
-                      <p key={index} className="mb-2">{line}</p>
-                    );
-                  }
-                })}
+                {/* Render content based on whether it's Markdown formatted */}
+                {chunk.isMarkdownFormatted ? (
+                  <div className="markdown-content space-y-2">
+                    {renderMarkdownContent(chunk.content)}
+                  </div>
+                ) : (
+                  chunk.content.split("\n").map((line, index) => {
+                    if (line.toUpperCase() === line && line.trim() !== "") {
+                      return (
+                        <p key={index} className="mb-2">
+                          <span className="font-semibold">{line}</span>
+                        </p>
+                      );
+                    } else if (line.startsWith("•")) {
+                      return <p key={index} className="mb-1">{line}</p>;
+                    } else if (line.includes(":")) {
+                      return (
+                        <p key={index} className="mb-1">
+                          {line.includes("Submitted") ? (
+                            <span className="text-gray-500">{line}</span>
+                          ) : (
+                            line
+                          )}
+                        </p>
+                      );
+                    } else {
+                      return line.trim() === "" ? (
+                        <br key={index} />
+                      ) : (
+                        <p key={index} className="mb-2">{line}</p>
+                      );
+                    }
+                  })
+                )}
               </div>
               
               {chunk.tags.length > 0 && (

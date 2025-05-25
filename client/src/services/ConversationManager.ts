@@ -227,42 +227,42 @@ export class ConversationManager {
 
   private conversationSteps = {
     intro: (docType: string) => ({
-      message: `I've analyzed this ${docType} and detected key content elements including technical specifications, parts information, and service procedures. I'm optimized to understand automotive documents like service manuals, parts catalogs, and technical bulletins. Type "analyze automotive data" or just click below to configure the optimal automotive intelligence extraction.`,
+      message: `🔧 Found ${docType} with technical specs & service data! Let's unlock its automotive intelligence. 🚗`,
       actions: [
-        { label: 'Let\'s get started', action: 'next_step', data: { nextStep: 'user_profile' } }
+        { label: 'Start Setup 🚀', action: 'next_step', data: { nextStep: 'user_profile' } }
       ]
     }),
     
     user_profile: () => ({
-      message: "Which automotive role will be using this analysis? Automotive document processing can be tailored to different roles and their specific needs.",
+      message: "👤 Who's using this? Pick your role:",
       actions: [
-        { label: 'Service Technician', action: 'set_role', data: { role: 'service_technician', nextStep: 'department' } },
-        { label: 'Parts Manager', action: 'set_role', data: { role: 'parts_manager', nextStep: 'department' } },
-        { label: 'Technical Writer', action: 'set_role', data: { role: 'technical_writer', nextStep: 'department' } },
-        { label: 'Quality Engineer', action: 'set_role', data: { role: 'quality_engineer', nextStep: 'department' } },
-        { label: 'Fleet Manager', action: 'set_role', data: { role: 'fleet_manager', nextStep: 'department' } }
+        { label: '🔧 Tech', action: 'set_role', data: { role: 'service_technician', nextStep: 'department' } },
+        { label: '📦 Parts', action: 'set_role', data: { role: 'parts_manager', nextStep: 'department' } },
+        { label: '📝 Writer', action: 'set_role', data: { role: 'technical_writer', nextStep: 'department' } },
+        { label: '✅ QA', action: 'set_role', data: { role: 'quality_engineer', nextStep: 'department' } },
+        { label: '🚛 Fleet', action: 'set_role', data: { role: 'fleet_manager', nextStep: 'department' } }
       ]
     }),
     
     department: () => ({
-      message: 'Which automotive function or department will be leveraging this analysis? Different teams have specialized needs for document processing and intelligence extraction.',
+      message: '🏢 Which team? Select department:',
       actions: [
-        { label: 'Service Department', action: 'set_department', data: { department: 'service', nextStep: 'vehicle_info' } },
-        { label: 'Parts Department', action: 'set_department', data: { department: 'parts', nextStep: 'vehicle_info' } },
-        { label: 'Technical Publications', action: 'set_department', data: { department: 'tech_pubs', nextStep: 'vehicle_info' } },
-        { label: 'Quality Assurance', action: 'set_department', data: { department: 'quality', nextStep: 'vehicle_info' } },
-        { label: 'Fleet Operations', action: 'set_department', data: { department: 'fleet', nextStep: 'vehicle_info' } }
+        { label: '🔧 Service', action: 'set_department', data: { department: 'service', nextStep: 'vehicle_info' } },
+        { label: '📦 Parts', action: 'set_department', data: { department: 'parts', nextStep: 'vehicle_info' } },
+        { label: '📚 Tech Pubs', action: 'set_department', data: { department: 'tech_pubs', nextStep: 'vehicle_info' } },
+        { label: '✅ QA', action: 'set_department', data: { department: 'quality', nextStep: 'vehicle_info' } },
+        { label: '🚛 Fleet', action: 'set_department', data: { department: 'fleet', nextStep: 'vehicle_info' } }
       ]
     }),
     
     vehicle_info: () => ({
-      message: 'To provide the most accurate analysis, please provide vehicle information. You can enter a VIN for automatic detection or manually select the vehicle details.',
+      message: '🚗 Select vehicle for precise analysis:',
       actions: [
-        { label: 'Enter VIN', action: 'request_vin_input', data: { nextStep: 'goals' } },
-        { label: '2025 Honda Accord', action: 'set_vehicle', data: { year: '2025', make: 'Honda', model: 'Accord', nextStep: 'goals' } },
-        { label: '2025 Honda CR-V', action: 'set_vehicle', data: { year: '2025', make: 'Honda', model: 'CR-V', nextStep: 'goals' } },
-        { label: '2025 Acura MDX', action: 'set_vehicle', data: { year: '2025', make: 'Acura', model: 'MDX', nextStep: 'goals' } },
-        { label: 'Other Honda/Acura Model', action: 'request_vehicle_input', data: { nextStep: 'goals' } }
+        { label: 'VIN Entry 🔍', action: 'request_vin_input', data: { nextStep: 'goals' } },
+        { label: '2025 Accord', action: 'set_vehicle', data: { year: '2025', make: 'Honda', model: 'Accord', nextStep: 'goals' } },
+        { label: '2025 CR-V', action: 'set_vehicle', data: { year: '2025', make: 'Honda', model: 'CR-V', nextStep: 'goals' } },
+        { label: '2025 MDX', action: 'set_vehicle', data: { year: '2025', make: 'Acura', model: 'MDX', nextStep: 'goals' } },
+        { label: 'Other Model', action: 'request_vehicle_input', data: { nextStep: 'goals' } }
       ]
     }),
     
@@ -270,12 +270,12 @@ export class ConversationManager {
     // experience: () => ({ ... }),
     
     goals: () => ({
-      message: 'What automotive insights do you need to extract from this document? Your selection will optimize how we process the technical data.',
+      message: '🎯 What insights do you need?',
       actions: [
-        { label: 'Technical Specification Search', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
-        { label: 'Extract Parts & Service Data', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
-        { label: 'Map Component Relationships', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
-        { label: 'Comprehensive Technical Analysis', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
+        { label: '🔍 Search Specs', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
+        { label: '📊 Extract Data', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
+        { label: '🔗 Map Relations', action: 'set_goal', data: { goal: 'relationships', nextStep: 'processing_selection' } },
+        { label: '⚡ Full Analysis', action: 'set_goal', data: { goal: 'comprehensive', nextStep: 'processing_selection' } }
       ]
     }),
     
@@ -288,14 +288,14 @@ export class ConversationManager {
       
       // Map the technical recommendation labels to more user-friendly automotive terms
       const userFriendlyLabels: Record<string, string> = {
-        'RAG Search': 'Enable Technical Search & Retrieval',
-        'Document Processing': 'Enable Automotive Data Extraction',
-        'Knowledge Graph': 'Enable Component Relationship Mapping',
-        'All Processing Methods': 'Enable Comprehensive Technical Analysis'
+        'RAG Search': '🔍 Search & Retrieve',
+        'Document Processing': '📊 Extract Data',
+        'Knowledge Graph': '🔗 Map Relationships',
+        'All Processing Methods': '⚡ Full Analysis'
       };
       
       return {
-        message: 'Based on your automotive analysis requirements, I recommend these specialized processing methods. When you approve, I\'ll create a technical intelligence index that allows you to search, analyze, and extract insights from this document. Does this configuration look appropriate for your needs?',
+        message: '🎯 I recommend these methods. Ready to create your technical intelligence index?',
         actions: recommendations.map(rec => ({
           label: userFriendlyLabels[rec.label as string] || rec.label, // Use the user-friendly label if available
           action: 'select_processing',
@@ -308,69 +308,69 @@ export class ConversationManager {
     },
     
     multimodal_check: () => ({
-      message: 'I\'ve detected that your automotive document contains diagrams, schematics, and technical illustrations. Would you like me to analyze these visual elements to extract additional technical insights?',
+      message: '📸 Found diagrams & schematics! Analyze them for technical insights?',
       actions: [
-        { label: 'Yes, analyze technical diagrams', action: 'set_has_images', data: { hasImages: true, nextStep: 'visual_analysis_check' } },
-        { label: 'No, process text content only', action: 'set_has_images', data: { hasImages: false, nextStep: 'visual_analysis_check' } }
+        { label: '✅ Yes', action: 'set_has_images', data: { hasImages: true, nextStep: 'visual_analysis_check' } },
+        { label: '❌ No', action: 'set_has_images', data: { hasImages: false, nextStep: 'visual_analysis_check' } }
       ]
     }),
     
     audio_check: () => ({
-      message: 'Great! Have you tried our playground to evaluate and test technical content understanding, search functionality, and document structure analysis? It provides hands-on experience with your configured automotive intelligence.',
+      message: '🎮 Want to test your setup in the playground?',
       actions: [
-        { label: 'Yes, I\'ll explore the technical insights', action: 'highlight_playground', data: { nextStep: 'confirmation' } }
+        { label: '✅ Done', action: 'highlight_playground', data: { nextStep: 'confirmation' } }
       ]
     }),
     
     visual_analysis_check: () => ({
-      message: 'Would you like AI to interpret wiring diagrams, analyze component schematics, and extract insights from technical illustrations in your document?',
+      message: '🔬 AI can analyze wiring diagrams & schematics. Enable visual analysis?',
       actions: [
-        { label: 'Yes, analyze technical visualizations', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
-        { label: 'No, focus on textual technical data', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
+        { label: '✅ Analyze', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
+        { label: '❌ Skip', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
       ]
     }),
     
     kg_check: () => ({
-      message: 'You can explore additional configuration options in the left panel for index and document extraction settings. Would you like to check those options now?',
+      message: '⚙️ More options in left panel. Check them?',
       actions: [
-        { label: 'Yes, show me the configuration panel', action: 'highlight_process_button', data: { nextStep: 'confirmation' } },
-        { label: 'Sounds good, I\'ll check it out', action: 'highlight_process_button', data: { nextStep: 'confirmation' } },
-        { label: 'No thanks, continue with current settings', action: 'process_directly', data: { idpEnabled: true, kgEnabled: false, extractType: 'full', nextStep: 'confirmation' } }
+        { label: '👀 Show Me', action: 'highlight_process_button', data: { nextStep: 'confirmation' } },
+        { label: '👍 Got It', action: 'highlight_process_button', data: { nextStep: 'confirmation' } },
+        { label: '⏭️ Skip', action: 'process_directly', data: { idpEnabled: true, kgEnabled: false, extractType: 'full', nextStep: 'confirmation' } }
       ]
     }),
     
     kg_entity_selection: () => ({
-      message: 'Which types of entities should we extract?',
+      message: '🏷️ Extract which entities?',
       actions: [
-        { label: 'People & Orgs', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['person', 'organization'], extractType: 'full' } },
-        { label: 'Products & Services', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['product', 'service'], extractType: 'full' } },
-        { label: 'Locations & Events', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['location', 'event'], extractType: 'full' } },
-        { label: 'All entities', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['all'], extractType: 'full' } }
+        { label: '👥 People', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['person', 'organization'], extractType: 'full' } },
+        { label: '📦 Products', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['product', 'service'], extractType: 'full' } },
+        { label: '📍 Places', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['location', 'event'], extractType: 'full' } },
+        { label: '🌟 All', action: 'process_directly', data: { idpEnabled: true, kgEnabled: true, entityTypes: ['all'], extractType: 'full' } }
       ]
     }),
     
     idp_check: () => ({
-      message: 'Which type of automotive data extraction do you need from this document?',
+      message: '🔧 What automotive data to extract?',
       actions: [
-        { label: 'VIN & Part Numbers', action: 'set_idp_preferences', data: { 
+        { label: '🔍 VIN & Parts', action: 'set_idp_preferences', data: { 
           idpEnabled: true, 
           extractType: 'automotive',
           automotiveOptions: { extractVIN: true, extractPartNumbers: true },
           nextStep: 'audio_check' 
         }},
-        { label: 'Torque Specifications', action: 'set_idp_preferences', data: { 
+        { label: '⚙️ Torque Specs', action: 'set_idp_preferences', data: { 
           idpEnabled: true, 
           extractType: 'automotive',
           automotiveOptions: { extractTorqueSpecs: true },
           nextStep: 'audio_check' 
         }},
-        { label: 'Service Intervals', action: 'set_idp_preferences', data: { 
+        { label: '📅 Service', action: 'set_idp_preferences', data: { 
           idpEnabled: true, 
           extractType: 'automotive',
           automotiveOptions: { extractServiceIntervals: true },
           nextStep: 'audio_check' 
         }},
-        { label: 'All Automotive Data', action: 'set_idp_preferences', data: { 
+        { label: '🌟 All Data', action: 'set_idp_preferences', data: { 
           idpEnabled: true, 
           extractType: 'automotive',
           automotiveOptions: { 
@@ -387,20 +387,20 @@ export class ConversationManager {
     confirmation: (state: ConversationState) => {
       const config = this.buildFinalConfiguration(state);
       return {
-        message: 'Your document has been processed! Would you like to test the Q&A capabilities with automotive-specific questions before exploring the full results?',
+        message: '✅ Processed! Test Q&A before results?',
         actions: [
           { 
-            label: 'Yes, test Q&A first', 
+            label: '🧪 Test Q&A', 
             action: 'next_step', 
             data: { nextStep: 'qa_testing', config }
           },
           { 
-            label: 'Skip to results', 
+            label: '⏭️ Results', 
             action: 'next_step', 
             data: { nextStep: 'recommendations', config }
           },
           { 
-            label: 'Modify configuration', 
+            label: '⚙️ Modify', 
             action: 'modify_processing', 
             data: config 
           }
@@ -410,25 +410,25 @@ export class ConversationManager {
     
     qa_testing: (state: ConversationState) => {
       return {
-        message: 'Let\'s test the Q&A capabilities! I\'ll ask you some questions about the document to verify the extraction quality. Ready?',
+        message: '🧪 Let\'s test Q&A! Pick a category:',
         actions: [
           { 
-            label: 'Start with VIN/Part questions', 
+            label: '🔍 Parts', 
             action: 'start_qa_test', 
             data: { testType: 'parts', nextStep: 'results_validation' }
           },
           { 
-            label: 'Start with specification questions', 
+            label: '📊 Specs', 
             action: 'start_qa_test', 
             data: { testType: 'specifications', nextStep: 'results_validation' }
           },
           { 
-            label: 'Start with service questions', 
+            label: '🔧 Service', 
             action: 'start_qa_test', 
             data: { testType: 'service', nextStep: 'results_validation' }
           },
           { 
-            label: 'Skip testing', 
+            label: '⏭️ Skip', 
             action: 'next_step', 
             data: { nextStep: 'recommendations' }
           }
@@ -446,20 +446,20 @@ export class ConversationManager {
         : 0;
         
       return {
-        message: `Q&A Test Results: ${accuracy}% accuracy (${correctAnswers}/${questionsAnswered} correct). The system confidence is ${Math.round(confidence * 100)}%. Would you like to proceed with the recommendations?`,
+        message: `📊 Results: ${accuracy}% accurate (${correctAnswers}/${questionsAnswered}) • ${Math.round(confidence * 100)}% confident`,
         actions: [
           { 
-            label: 'View recommendations', 
+            label: '👀 Next', 
             action: 'next_step', 
             data: { nextStep: 'recommendations' }
           },
           { 
-            label: 'Re-test with different questions', 
+            label: '🔁 Retest', 
             action: 'next_step', 
             data: { nextStep: 'qa_testing' }
           },
           { 
-            label: 'Adjust configuration', 
+            label: '⚙️ Adjust', 
             action: 'modify_processing', 
             data: state.configuration 
           }
@@ -470,10 +470,10 @@ export class ConversationManager {
     recommendations: (state: ConversationState) => {
       const config = this.buildFinalConfiguration(state);
       return {
-        message: 'Based on your evaluation, I want to recommend the following actions for your automotive document analysis:',
+        message: '🎯 Pick an action for your automotive doc:',
         actions: [
           { 
-            label: 'Summarize', 
+            label: '📝 Summarize', 
             action: 'apply_recommendation', 
             data: { 
               recommendationType: 'summarize',
@@ -482,7 +482,7 @@ export class ConversationManager {
             } 
           },
           { 
-            label: 'Content Generation', 
+            label: '✍️ Generate', 
             action: 'apply_recommendation', 
             data: { 
               recommendationType: 'content_generation',
@@ -491,7 +491,7 @@ export class ConversationManager {
             } 
           },
           { 
-            label: 'QnA', 
+            label: '❓ Q&A', 
             action: 'apply_recommendation', 
             data: { 
               recommendationType: 'qna',
@@ -500,7 +500,7 @@ export class ConversationManager {
             } 
           },
           { 
-            label: 'Technical Data Extraction', 
+            label: '📊 Extract', 
             action: 'apply_recommendation', 
             data: { 
               recommendationType: 'technical_extraction',
@@ -509,7 +509,7 @@ export class ConversationManager {
             } 
           },
           { 
-            label: 'Test with Q&A', 
+            label: '🧪 Test', 
             action: 'apply_recommendation', 
             data: { 
               recommendationType: 'qa_test',
@@ -523,15 +523,15 @@ export class ConversationManager {
     
     recommendation_applied: (state: ConversationState) => {
       return {
-        message: 'Your selected technical analysis action has been initiated. The results will be available shortly. Would you like to try another approach or continue with this analysis?',
+        message: '⚡ Action started! Results coming soon.',
         actions: [
           { 
-            label: 'Continue with current analysis', 
+            label: '➡️ Continue', 
             action: 'process_directly', 
             data: { idpEnabled: true, kgEnabled: true, extractType: 'full', entityTypes: 'all' } 
           },
           { 
-            label: 'Try another approach', 
+            label: '🔄 Try Another', 
             action: 'next_step', 
             data: { nextStep: 'recommendations' } 
           }

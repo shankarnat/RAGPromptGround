@@ -93,7 +93,8 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const { state, selectDocument, uploadDocument, updateChunkingMethod, updateChunkSize, 
     updateChunkOverlap, updateActiveTab, selectChunk, toggleUnifiedProcessing,
     updateProcessingStatus, processDocument, toggleProcessingType, processWithIntent,
-    clearAllResults, switchDocumentExample, updateUnifiedResults } = useDocumentProcessing();
+    clearAllResults, switchDocumentExample, updateUnifiedResults, 
+    applyPromptParsing, clearPromptParsing } = useDocumentProcessing();
   const { toast } = useToast();
   const { state: analysisState, analyzeDocument } = useDocumentAnalysisContext();
   console.log('UnifiedDashboard: analysisState =', analysisState);
@@ -112,6 +113,8 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const [pulseProcessButton, setPulseProcessButton] = useState(false);
   const [showIntegratedTests, setShowIntegratedTests] = useState(false);
   const [extractedTables, setExtractedTables] = useState<any>(null);
+  const [isProcessingRAG, setIsProcessingRAG] = useState(false);
+  const [isProcessingIDP, setIsProcessingIDP] = useState(false);
   
   // Use multimodal config hook for better state management
   const {
@@ -462,25 +465,39 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
         description: `Starting ${type.toUpperCase()} processing...`
       });
       
-      // Move to process step
-      setCurrentStep("process");
-      
-      // Start processing based on type
+      // Skip process step and go directly to results for RAG
       if (type === 'rag') {
+        setIsProcessingRAG(true);
         handleProcessingToggle('rag', true);
-      } else if (type === 'kg') {
-        handleProcessingToggle('kg', true);
-      } else if (type === 'idp') {
-        handleProcessingToggle('idp', true);
-      } else if (type === 'combined' && config?.types) {
-        config.types.forEach((t: string) => {
-          if (t === 'rag' || t === 'kg' || t === 'idp') {
-            handleProcessingToggle(t as ProcessingType, true);
-          }
-        });
+        handleProcessDocument();
+        // Go directly to results page
+        setTimeout(() => {
+          setCurrentStep("results");
+          setIsProcessingRAG(false);
+        }, 2000);
+      } else {
+        // For other types, keep the original flow
+        setCurrentStep("process");
+        
+        if (type === 'kg') {
+          handleProcessingToggle('kg', true);
+        } else if (type === 'idp') {
+          setIsProcessingIDP(true);
+          handleProcessingToggle('idp', true);
+          // Auto-hide after processing
+          setTimeout(() => {
+            setIsProcessingIDP(false);
+          }, 3000);
+        } else if (type === 'combined' && config?.types) {
+          config.types.forEach((t: string) => {
+            if (t === 'rag' || t === 'kg' || t === 'idp') {
+              handleProcessingToggle(t as ProcessingType, true);
+            }
+          });
+        }
+        
+        handleProcessDocument();
       }
-      
-      handleProcessDocument();
     } else {
       toast({
         title: "Processing Failed",
@@ -525,6 +542,9 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
         idpEnabled: config.idpEnabled, 
         extractType: config.extractType 
       });
+      
+      // Show IDP processing loading
+      setIsProcessingIDP(true);
       
       // Create IDP configuration based on the extractType
       let idpConfig: any = {
@@ -588,6 +608,11 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
         title: 'IDP Processing Enabled',
         description: toastDescription,
       });
+      
+      // Hide loading after configuration is complete
+      setTimeout(() => {
+        setIsProcessingIDP(false);
+      }, 2000);
     }
     
     // Apply configuration from conversational UI
@@ -1153,16 +1178,31 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
         description: "Starting document processing based on selected configuration...",
       });
       
-      // Process the document immediately
-      setCurrentStep("process");
-      await processDocument();
+      // Check if RAG is enabled in the configuration
+      const isRAGEnabled = config.configuration?.rag?.enabled || 
+                          processingConfig.rag?.enabled ||
+                          state.unifiedProcessing.selectedProcessingTypes.includes('standard');
       
-      // Auto-advance to results when processing is complete
-      setTimeout(() => {
-        if (Object.values(state.unifiedProcessing.processingStatus).every(status => status !== "processing")) {
+      if (isRAGEnabled) {
+        // For RAG, skip process step and go directly to results
+        setIsProcessingRAG(true);
+        await processDocument();
+        setTimeout(() => {
           setCurrentStep("results");
-        }
-      }, 2000);
+          setIsProcessingRAG(false);
+        }, 2000);
+      } else {
+        // For other processing types, show process step
+        setCurrentStep("process");
+        await processDocument();
+        
+        // Auto-advance to results when processing is complete
+        setTimeout(() => {
+          if (Object.values(state.unifiedProcessing.processingStatus).every(status => status !== "processing")) {
+            setCurrentStep("results");
+          }
+        }, 2000);
+      }
       
       return;
     }
@@ -1172,13 +1212,28 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
       const result = IntentBasedProcessingTrigger.triggerFromConversation(config.intent);
       
       if (result.success) {
-        setCurrentStep("process");
-        await processWithIntent(config.intent);
+        // Check if this is RAG intent
+        const isRAGIntent = config.intent?.toLowerCase().includes('rag') || 
+                           config.intent?.toLowerCase().includes('retrieval') ||
+                           config.intent?.toLowerCase().includes('search');
         
-        // Auto-advance to results when processing is complete
-        setTimeout(() => {
-          setCurrentStep("results");
-        }, 100);
+        if (isRAGIntent) {
+          // For RAG, skip process step
+          setIsProcessingRAG(true);
+          await processWithIntent(config.intent);
+          setTimeout(() => {
+            setCurrentStep("results");
+            setIsProcessingRAG(false);
+          }, 2000);
+        } else {
+          setCurrentStep("process");
+          await processWithIntent(config.intent);
+          
+          // Auto-advance to results when processing is complete
+          setTimeout(() => {
+            setCurrentStep("results");
+          }, 100);
+        }
       } else {
         toast({
           title: "Processing Failed",
@@ -1495,6 +1550,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                   <ConversationalUI
                     documentAnalysis={analysisState.analysis}
                     onProcessingConfigured={handleConversationalConfig}
+                    onApplyPromptParsing={applyPromptParsing}
                   />
                 </div>
               </CardContent>
@@ -1577,6 +1633,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                     <ConversationalUI
                       documentAnalysis={analysisState.analysis}
                       onProcessingConfigured={handleConversationalConfig}
+                      onApplyPromptParsing={applyPromptParsing}
                     />
                   </div>
                 </CardContent>
@@ -1605,8 +1662,8 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
             {/* Center Panel - Results View - expands when left panel is collapsed */}
             <ResizablePanel defaultSize={configPanelCollapsed ? 77 : 60} minSize={40} maxSize={configPanelCollapsed ? 87 : 70}>
               <div className="h-full flex flex-col bg-gray-50">
-                {/* Add a Re-process button for updated configuration */}
-                <div className="flex items-center justify-between bg-gray-100 border-b border-gray-200 px-6 py-3">
+                {/* Re-process button header removed */}
+                {/* <div className="flex items-center justify-between bg-gray-100 border-b border-gray-200 px-6 py-3">
                   <div>
                     {configChanged && (
                       <div className="text-sm text-blue-600 font-medium animate-pulse flex items-center">
@@ -1633,7 +1690,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                     <BarChart3 className="h-4 w-4" />
                     {showIntegratedTests ? 'View Results' : 'Test & Evaluate'}
                   </Button>
-                </div>
+                </div> */}
                 <div className="flex-1 p-6 overflow-y-auto">
                   {showIntegratedTests ? (
                     <IntegratedTestResults
@@ -1662,6 +1719,9 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                       onClearResults={clearAllResults}
                       extractedTables={extractedTables}
                       selectedDocument={state.selectedDocument}
+                      promptParsing={state.promptParsing}
+                      onApplyPromptParsing={applyPromptParsing}
+                      onClearPromptParsing={clearPromptParsing}
                     />
                   )}
                 </div>
@@ -1692,6 +1752,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                     <ConversationalUI
                       documentAnalysis={analysisState.analysis}
                       onProcessingConfigured={handleConversationalConfig}
+                      onApplyPromptParsing={applyPromptParsing}
                     />
                   </div>
                 </CardContent>
@@ -1772,12 +1833,52 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
           </div>
         </header>
         
-        {renderStepIndicator()}
-        
         <main className="flex-1 overflow-auto">
           {renderContent()}
         </main>
       </div>
+      
+      {/* Loading overlay for RAG processing */}
+      {isProcessingRAG && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 shadow-2xl flex flex-col items-center space-y-4 max-w-sm">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200"></div>
+              <div className="absolute top-0 left-0 animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"></div>
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900">Processing Document</h3>
+              <p className="text-sm text-gray-600">Creating RAG index for optimal retrieval...</p>
+              <div className="flex items-center justify-center space-x-1 mt-3">
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Loading overlay for IDP processing */}
+      {isProcessingIDP && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 shadow-2xl flex flex-col items-center space-y-4 max-w-sm">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200"></div>
+              <div className="absolute top-0 left-0 animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent"></div>
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900">Processing Document</h3>
+              <p className="text-sm text-gray-600">Extracting structured data and metadata...</p>
+              <div className="flex items-center justify-center space-x-1 mt-3">
+                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
   } catch (error) {

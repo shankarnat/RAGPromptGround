@@ -94,17 +94,20 @@ const UploadPanel: FC<UploadPanelProps> = ({
   };
 
   return (
-    <Card className="border-0 shadow-md">
-      <CardHeader className="pb-4">
-        <div className="flex items-center space-x-3">
+    <div className="h-full flex flex-col">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 bg-white border-b shadow-sm">
+        <div className="flex items-center space-x-3 px-6 py-4">
           <CloudUpload className="h-7 w-7 text-blue-600" />
           <div>
             <h2 className="text-2xl font-bold text-gray-800">Content Ingestion Centre</h2>
             <p className="text-sm text-gray-600 mt-1">Upload and manage your content for processing</p>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-6">
       
         {/* Upload area */}
         <div
@@ -242,8 +245,8 @@ const UploadPanel: FC<UploadPanelProps> = ({
             })}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

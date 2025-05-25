@@ -664,14 +664,15 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
         if (data.hasImages) {
           // Delay the configuration update to avoid race conditions
           setTimeout(() => {
-            // Build immediate configuration update with image captioning
-            // This should only update the imageCaption setting, preserving other multimodal settings
+            // Build immediate configuration update with image captioning and OCR
+            // This should update both OCR and imageCaption settings
             const imageConfig = {
               configuration: {
                 rag: {
                   enabled: true,
                   multimodal: {
-                    imageCaption: true  // Only update image captioning
+                    ocr: true,           // Enable OCR for images
+                    imageCaption: true   // Enable image captioning
                   }
                 },
                 multimodalUpdate: true  // Flag to indicate this is a multimodal update
@@ -754,14 +755,15 @@ export function useConversation(onProcessingConfigured?: (config: any) => void):
         if (data.visualAnalysis) {
           // Delay the update to avoid conflicts with state updates
           setTimeout(() => {
-            // Build immediate configuration update with visual analysis
-            // This should only update the visualAnalysis setting, preserving other multimodal settings
+            // Build immediate configuration update with visual analysis and image captioning
+            // This should update both visualAnalysis and imageCaption settings
             const visualAnalysisConfig = {
               configuration: {
                 rag: {
                   enabled: true,
                   multimodal: {
-                    visualAnalysis: true  // Only update visual analysis
+                    visualAnalysis: true,  // Enable visual analysis
+                    imageCaptioning: true  // Also enable image captioning for visual analysis
                   }
                 },
                 multimodalUpdate: true  // Flag to indicate this is a multimodal update
