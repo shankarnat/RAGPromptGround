@@ -227,14 +227,14 @@ export class ConversationManager {
 
   private conversationSteps = {
     intro: (docType: string) => ({
-      message: `🔧 Found ${docType} with technical specs & service data! Let's unlock its automotive intelligence. 🚗`,
+      message: `🔧 Found ${docType === 'unknown' ? 'Auto Fact Sheet' : docType} with technical specs & service data! Let's unlock its automotive intelligence. 🚗`,
       actions: [
         { label: 'Start Setup 🚀', action: 'next_step', data: { nextStep: 'user_profile' } }
       ]
     }),
     
     user_profile: () => ({
-      message: "👤 Who's using this? Pick your role:",
+      message: "👤 Who's using this? Below are suggested roles you can click, or feel free to type your specific role (e.g., 'diagnostic specialist', 'warranty administrator'):",
       actions: [
         { label: '🔧 Tech', action: 'set_role', data: { role: 'service_technician', nextStep: 'department' } },
         { label: '📦 Parts', action: 'set_role', data: { role: 'parts_manager', nextStep: 'department' } },
@@ -245,7 +245,7 @@ export class ConversationManager {
     }),
     
     department: () => ({
-      message: '🏢 Which team? Select department:',
+      message: '🏢 Which team are you in? Below are common departments - click one or type your specific department name (e.g., "collision repair", "hybrid systems", "customer experience"):',
       actions: [
         { label: '🔧 Service', action: 'set_department', data: { department: 'service', nextStep: 'vehicle_info' } },
         { label: '📦 Parts', action: 'set_department', data: { department: 'parts', nextStep: 'vehicle_info' } },
@@ -256,12 +256,12 @@ export class ConversationManager {
     }),
     
     vehicle_info: () => ({
-      message: '🚗 Select vehicle for precise analysis:',
+      message: '🚗 Which vehicle are you working with? Click a common model below or type the specific vehicle (e.g., "2025 Acura", "2024 Honda Pilot", "Civic Type R"). You can also enter a VIN for exact matching:',
       actions: [
         { label: 'VIN Entry 🔍', action: 'request_vin_input', data: { nextStep: 'goals' } },
         { label: '2025 Accord', action: 'set_vehicle', data: { year: '2025', make: 'Honda', model: 'Accord', nextStep: 'goals' } },
         { label: '2025 CR-V', action: 'set_vehicle', data: { year: '2025', make: 'Honda', model: 'CR-V', nextStep: 'goals' } },
-        { label: '2025 MDX', action: 'set_vehicle', data: { year: '2025', make: 'Acura', model: 'MDX', nextStep: 'goals' } },
+        { label: '2025 Acura', action: 'set_vehicle', data: { year: '2025', make: 'Acura', model: 'MDX', nextStep: 'goals' } },
         { label: 'Other Model', action: 'request_vehicle_input', data: { nextStep: 'goals' } }
       ]
     }),
@@ -270,7 +270,7 @@ export class ConversationManager {
     // experience: () => ({ ... }),
     
     goals: () => ({
-      message: '🎯 What insights do you need?',
+      message: '🎯 What insights do you need from this document? Select an option below or describe your specific needs (e.g., "find all torque specifications", "extract maintenance intervals", "identify part supersessions"):',
       actions: [
         { label: '🔍 Search Specs', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
         { label: '📊 Extract Data', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
@@ -295,7 +295,7 @@ export class ConversationManager {
       };
       
       return {
-        message: '🎯 I recommend these methods. Ready to create your technical intelligence index?',
+        message: '🎯 Based on your needs, I recommend these processing methods. Click one below or type what specific processing you need (e.g., "only extract tables", "focus on wiring diagrams", "prioritize diagnostic codes"):',
         actions: recommendations.map(rec => ({
           label: userFriendlyLabels[rec.label as string] || rec.label, // Use the user-friendly label if available
           action: 'select_processing',
@@ -308,7 +308,7 @@ export class ConversationManager {
     },
     
     multimodal_check: () => ({
-      message: '📸 Found diagrams & schematics! Analyze them for technical insights?',
+      message: '📸 I detected diagrams & schematics in your document! Should I analyze them for technical insights? Click an option or type your preference (e.g., "yes, focus on wiring diagrams", "skip images", "only process exploded views"):',
       actions: [
         { label: '✅ Yes', action: 'set_has_images', data: { hasImages: true, nextStep: 'visual_analysis_check' } },
         { label: '❌ No', action: 'set_has_images', data: { hasImages: false, nextStep: 'visual_analysis_check' } }
@@ -316,14 +316,14 @@ export class ConversationManager {
     }),
     
     audio_check: () => ({
-      message: '🎮 Want to test your setup in the playground?',
+      message: '🎮 Configuration is ready! Want to test your setup in the playground before processing? You can also type "skip" to proceed directly or describe what you want to test:',
       actions: [
         { label: '✅ Done', action: 'highlight_playground', data: { nextStep: 'confirmation' } }
       ]
     }),
     
     visual_analysis_check: () => ({
-      message: '🔬 AI can analyze wiring diagrams & schematics. Enable visual analysis?',
+      message: '🔬 AI can perform advanced analysis on wiring diagrams, schematics, and component layouts. Enable visual analysis? Select below or type specific analysis needs (e.g., "analyze connector pinouts", "identify component locations"):',
       actions: [
         { label: '✅ Analyze', action: 'set_visual_analysis', data: { visualAnalysis: true, nextStep: 'idp_check' } },
         { label: '❌ Skip', action: 'set_visual_analysis', data: { visualAnalysis: false, nextStep: 'idp_check' } }
@@ -331,7 +331,7 @@ export class ConversationManager {
     }),
     
     kg_check: () => ({
-      message: '⚙️ More options in left panel. Check them?',
+      message: '⚙️ Additional configuration options are available in the left panel for fine-tuning. Would you like to review them? Click below or type your preference (e.g., "show advanced options", "proceed with defaults"):',
       actions: [
         { label: '👀 Show Me', action: 'highlight_process_button', data: { nextStep: 'confirmation' } },
         { label: '👍 Got It', action: 'highlight_process_button', data: { nextStep: 'confirmation' } },
@@ -350,7 +350,7 @@ export class ConversationManager {
     }),
     
     idp_check: () => ({
-      message: '🔧 What automotive data to extract?',
+      message: '🔧 What specific automotive data should I extract? Select from common options below or type your specific needs (e.g., "fluid capacities", "diagnostic trouble codes", "wire color codes", "fastener specifications"):',
       actions: [
         { label: '🔍 VIN & Parts', action: 'set_idp_preferences', data: { 
           idpEnabled: true, 
@@ -387,7 +387,7 @@ export class ConversationManager {
     confirmation: (state: ConversationState) => {
       const config = this.buildFinalConfiguration(state);
       return {
-        message: '✅ Processed! Test Q&A before results?',
+        message: '✅ Processing complete! Would you like to test the system with Q&A before viewing results? Choose an option or type what you want to do (e.g., "test torque specs", "skip to results", "modify settings"):',
         actions: [
           { 
             label: '🧪 Test Q&A', 
@@ -410,7 +410,7 @@ export class ConversationManager {
     
     qa_testing: (state: ConversationState) => {
       return {
-        message: '🧪 Let\'s test Q&A! Pick a category:',
+        message: '🧪 Let\'s test the Q&A system! Pick a category below or ask your own question (e.g., "What\'s the oil capacity?", "Show all torque specs for engine", "Find brake pad part number"):',
         actions: [
           { 
             label: '🔍 Parts', 
@@ -446,7 +446,7 @@ export class ConversationManager {
         : 0;
         
       return {
-        message: `📊 Results: ${accuracy}% accurate (${correctAnswers}/${questionsAnswered}) • ${Math.round(confidence * 100)}% confident`,
+        message: `📊 Test Results: ${accuracy}% accurate (${correctAnswers}/${questionsAnswered} correct) • ${Math.round(confidence * 100)}% confidence level. What would you like to do next? Click an option or type your preference (e.g., "retest with harder questions", "proceed to recommendations"):`,
         actions: [
           { 
             label: '👀 Next', 
@@ -470,7 +470,7 @@ export class ConversationManager {
     recommendations: (state: ConversationState) => {
       const config = this.buildFinalConfiguration(state);
       return {
-        message: '🎯 Pick an action for your automotive doc:',
+        message: '🎯 How would you like to use your processed automotive document? Select an action below or describe what you need (e.g., "create a quick reference guide", "build a troubleshooting flowchart", "generate a parts list"):',
         actions: [
           { 
             label: '📝 Summarize', 
@@ -523,7 +523,7 @@ export class ConversationManager {
     
     recommendation_applied: (state: ConversationState) => {
       return {
-        message: '⚡ Action started! Results coming soon.',
+        message: '⚡ Your action has been initiated! Results will appear shortly. Would you like to continue with the current analysis or try a different action? You can also type what you want to do next:',
         actions: [
           { 
             label: '➡️ Continue', 
@@ -647,6 +647,35 @@ export class ConversationManager {
     if (message.startsWith('action:')) {
       const actionData = JSON.parse(message.substring(7));
       return this.handleAction(actionData.action, actionData.data, state);
+    }
+
+    // Check for vehicle selection during vehicle_info step
+    if (state.conversationStep === 'vehicle_info') {
+      const lowerMessage = message.toLowerCase();
+      
+      // Check for specific vehicle mentions
+      if (lowerMessage.includes('2025') && lowerMessage.includes('acura')) {
+        return this.handleAction('set_vehicle', { 
+          year: '2025', 
+          make: 'Acura', 
+          model: 'MDX', 
+          nextStep: 'goals' 
+        }, state);
+      } else if (lowerMessage.includes('2025') && lowerMessage.includes('accord')) {
+        return this.handleAction('set_vehicle', { 
+          year: '2025', 
+          make: 'Honda', 
+          model: 'Accord', 
+          nextStep: 'goals' 
+        }, state);
+      } else if (lowerMessage.includes('2025') && (lowerMessage.includes('cr-v') || lowerMessage.includes('crv'))) {
+        return this.handleAction('set_vehicle', { 
+          year: '2025', 
+          make: 'Honda', 
+          model: 'CR-V', 
+          nextStep: 'goals' 
+        }, state);
+      }
     }
 
     // Check for direct intent
@@ -1144,7 +1173,7 @@ export class ConversationManager {
             },
             metadata: {
               extractionDate: new Date(),
-              documentName: state.documentAnalysis?.fileName || 'Acura_2025_RDX_Fact Sheet.pdf',
+              documentName: 'Acura_2025_RDX_Fact Sheet.pdf',
               documentType: state.documentAnalysis?.documentType || 'specification_sheet'
             }
           };
@@ -1526,7 +1555,7 @@ export class ConversationManager {
     automotiveOptions: any
   ): Promise<ExtractedTableData | null> {
     try {
-      const documentName = state.documentAnalysis?.fileName || 'Acura_2025_RDX_Fact Sheet.pdf';
+      const documentName = 'Acura_2025_RDX_Fact Sheet.pdf';
       const documentType = state.documentAnalysis?.documentType || 'specification_sheet';
       
       // Extract tables based on selected options
