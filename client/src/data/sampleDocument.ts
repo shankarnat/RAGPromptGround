@@ -458,79 +458,97 @@ export const financialCsvChunks = [
 // Automotive Parts CSV data chunks
 export const automotivePartsCsvChunks = financialCsvChunks;
 
-// Honda/Acura service manual chunks
+// Acura RDX chunks with malformed table extraction
 export const sampleChunks = [
   {
     id: 1,
     documentId: 1,
     title: "Executive Summary",
-    content: "This comprehensive service manual covers all 2025 Honda and Acura models, providing detailed technical specifications, maintenance procedures, and diagnostic information. The manual has been updated to include the latest hybrid and electric vehicle technologies.",
-    tokenCount: 38,
+    content: "The 2025 Acura RDX represents the pinnacle of luxury compact SUV engineering featuring the exclusive Super Handling All-Wheel Drive™ SH-AWD® system powerful 2.0L VTEC® Turbo engine comprehensive AcuraWatch® safety technologies This fact sheet provides complete technical specifications features capabilities",
+    tokenCount: 42,
     chunkIndex: 1,
-    tags: ["summary", "service", "manual", "2025"]
+    tags: ["summary", "RDX", "2025", "acura"]
   },
   {
     id: 2,
     documentId: 1,
-    title: "Executive Summary (continued)",
-    content: "Advanced driver assistance systems (ADAS), and connected vehicle features introduced in the 2025 model year are covered in detail with calibration procedures and safety precautions.",
-    tokenCount: 27,
+    title: "Drivetrain Specifications (Malformed Table)",
+    content: "Drivetrain Type SH-AWD® Super Handling All-Wheel Drive™ Transmission 10-Speed Automatic 10AT with paddle shifters Gear Ratios (1-5) 1st: 4.710, 2nd: 3.094, 3rd: 2.050 4th: 1.559, 5th: 1.197 Gear Ratios (6-10) 6th: 0.936, 7th: 0.748, 8th: 0.634 9th: 0.529, 10th: 0.455 Reverse Gear 3.966 Final Drive: 4.375 Towing Capacity 1,500 lbs When properly equipped",
+    tokenCount: 68,
     chunkIndex: 2,
-    tags: ["summary", "ADAS", "safety", "technology"]
+    tags: ["drivetrain", "transmission", "specifications", "malformed"]
   },
   {
     id: 3,
     documentId: 1,
-    title: "Vehicle Model Coverage",
-    content: "| Model | Platform | Engine Options | Transmission |\n|-------|----------|----------------|-------------|\n| Accord | Mid-Size Sedan | 1.5L Turbo, 2.0L Hybrid | CVT, 10AT |\n| CR-V | Compact SUV | 1.5L Turbo, 2.0L Hybrid | CVT |\n| Pilot | 3-Row SUV | 3.5L V6, 2.0L Turbo Hybrid | 10AT |\n| MDX | Luxury SUV | 3.0L Turbo, Type S 3.0L | 10AT |",
-    tokenCount: 54,
+    title: "Engine Specifications (Poor Extraction)",
+    content: "Engine Specifications Specification Value Details Engine Type 2.0L VTEC® Turbo 4-cylinder, 16-valve, DOHC Displacement 1996 cc 121.8 cu in Bore x Stroke 86.0 x 85.9 mm 3.39 x 3.38 in Compression Ratio 10.3:1 Premium fuel recommended Max Horsepower 272 hp @ 6500 rpm SAE net Max Torque 280 lb-ft @ 1600-4500 rpm SAE net",
+    tokenCount: 58,
     chunkIndex: 3,
-    tags: ["models", "vehicles", "specifications", "table"]
+    tags: ["engine", "specifications", "power", "malformed"]
   },
   {
     id: 4,
     documentId: 1,
-    title: "Service Intervals & Maintenance",
-    content: "- Engine Oil Change: 7,500-10,000 miles (based on oil life monitor)\n- Transmission Fluid: 30,000-60,000 miles (varies by model)\n- Brake Fluid Replacement: Every 3 years\n- Engine Air Filter: 30,000 miles",
-    tokenCount: 36,
+    title: "Dimensions & Capacities (Broken Format)",
+    content: "Dimension/Capacity Value Units Overall Length 187.4 inches Overall Width 74.8 inches Overall Height 65.7 inches Wheelbase 108.5 inches Track - Front 64.2 inches Track - Rear 64.2 inches Ground Clearance 8.2 inches (unladen) Passenger Volume 103.5 cubic feet Cargo Volume (behind 2nd row) 29.5 cubic feet",
+    tokenCount: 52,
     chunkIndex: 4,
-    tags: ["service", "maintenance", "intervals", "schedule"]
+    tags: ["dimensions", "capacities", "measurements", "malformed"]
   },
   {
     id: 5,
     documentId: 1,
-    title: "Technical Specifications Overview",
-    content: "All 2025 models feature enhanced safety systems including: Honda SENSING® / AcuraWatch™ suite standard, Blind Spot Information System with Cross Traffic Monitor, Traffic Jam Assist (selected models), and Wireless Apple CarPlay® and Android Auto™ compatibility.",
-    tokenCount: 41,
+    title: "Safety Features (Mixed Format)",
+    content: "Key Standard Features Category Feature Description Safety AcuraWatch® Suite of advanced safety and driver-assistive technologies Collision Mitigation Braking CMBS™ with pedestrian detection Road Departure Mitigation RDM with lane departure warning Adaptive Cruise Control ACC with Low-Speed Follow",
+    tokenCount: 43,
     chunkIndex: 5,
-    tags: ["specifications", "safety", "technology", "features"]
+    tags: ["safety", "features", "AcuraWatch", "malformed"]
   },
   {
     id: 6,
     documentId: 1,
-    title: "Common Service Procedures",
-    content: "This manual includes step-by-step procedures for:\n\n1. Engine diagnostics and trouble code reading\n2. Brake system inspection and service\n3. Suspension component replacement\n4. ADAS calibration procedures\n5. Hybrid battery system maintenance\n6. Infotainment system updates and troubleshooting",
-    tokenCount: 48,
+    title: "Technology Features (Line Break Issues)",
+    content: "Technology True Touchpad Interface™ 10.2-inch HD display with intuitive control\nWireless Apple CarPlay® Seamless smartphone integration Wireless\nAndroid Auto™ Google-based smartphone integration Amazon Alexa\nBuilt-in Voice-activated assistance",
+    tokenCount: 35,
     chunkIndex: 6,
-    tags: ["procedures", "service", "diagnostics", "maintenance"]
+    tags: ["technology", "infotainment", "connectivity", "malformed"]
   },
   {
     id: 7,
     documentId: 1,
-    title: "Safety Precautions",
-    content: "When servicing 2025 Honda/Acura vehicles, technicians must observe:\n\n- High-voltage safety procedures for hybrid/electric models\n- Proper SRS (airbag) system handling protocols\n- ADAS sensor calibration requirements after windshield replacement\n- Refrigerant handling procedures for R-1234yf systems",
-    tokenCount: 52,
+    title: "Interior Features (Missing Delimiters)",
+    content: "Audio ELS Studio® 3D Audio 12 speakers, 710 watts Comfort Panoramic Moonroof One-touch power moonroof with tilt Heated Front Seats 3-level heating adjustment Power Tailgate Hands-free access with programmable height Performance Drive Mode Selection Comfort, Normal, Sport, Snow modes",
+    tokenCount: 46,
     chunkIndex: 7,
-    tags: ["safety", "precautions", "procedures", "technician"]
+    tags: ["interior", "comfort", "audio", "malformed"]
   },
   {
     id: 8,
     documentId: 1,
-    title: "Diagnostic Equipment Requirements",
-    content: "Required tools include: Honda Diagnostic System (HDS) or i-HDS tablet, ADAS calibration targets and alignment equipment, Digital multimeter with high-voltage capabilities, and Refrigerant recovery and recycling equipment.",
-    tokenCount: 33,
+    title: "Fuel Economy & Performance Data",
+    content: "Fuel Economy City/Highway/Combined 22/28/24 mpg Performance 0-60 mph 6.6 seconds Top Speed 124 mph electronically limited Fuel Tank Capacity 17.1 gallons Premium unleaded required Engine Oil Capacity 4.4 quarts with filter Coolant Capacity 7.8 quarts including reserve tank",
+    tokenCount: 48,
     chunkIndex: 8,
-    tags: ["diagnostic", "equipment", "tools", "requirements"]
+    tags: ["performance", "fuel", "economy", "malformed"]
+  },
+  {
+    id: 9,
+    documentId: 1,
+    title: "Warranty & Price Information (Fragmented)",
+    content: "Limited Warranty 4 years/50,000 miles Powertrain Limited\nWarranty 6 years/70,000 miles Starting MSRP $44,700\nA-Spec $47,900 A-Spec Advance $51,000\nType S $54,900 Destination Charge $1,350",
+    tokenCount: 42,
+    chunkIndex: 9,
+    tags: ["warranty", "pricing", "MSRP", "malformed"]
+  },
+  {
+    id: 10,
+    documentId: 1,
+    title: "Additional Equipment (Run-on Text)",
+    content: "Available accessories include roof rails cross bars cargo organizer all-season floor mats splash guards door visors rear bumper applique illuminated door sill trim remote engine starter wheel locks parking sensors trailer hitch",
+    tokenCount: 32,
+    chunkIndex: 10,
+    tags: ["accessories", "equipment", "options", "malformed"]
   }
 ];
 
