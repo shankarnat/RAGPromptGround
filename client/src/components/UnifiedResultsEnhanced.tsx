@@ -1384,14 +1384,14 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   };
 
   const agenticSuggestions = [
-    "Summarize the main points of this document",
-    "What are the key relationships between entities?",
-    "Extract and explain the data from tables",
-    "What are the compliance requirements?",
-    "Who are the main stakeholders mentioned?",
-    "What are the technical specifications?",
-    "Summarize the financial data",
-    "What are the project timelines?"
+    "What is the towing capacity of the 2025 Acura RDX?",
+    "What type of drivetrain does the 2025 Acura RDX have?",
+    "What is the engine displacement of the 2025 Acura RDX?",
+    "What is the ground clearance of the 2025 Acura RDX?",
+    "How many speakers are in the ELS Studio 3D Audio system?",
+    "What is the maximum horsepower of the 2025 Acura RDX?",
+    "What transmission does the 2025 Acura RDX use?",
+    "What safety features are included in AcuraWatch®?"
   ];
 
   // Function to navigate between tabs with visual feedback

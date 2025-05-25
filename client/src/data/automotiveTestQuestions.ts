@@ -216,6 +216,88 @@ export const automotiveTestQuestions: TestQuestion[] = [
     category: 'diagnostic',
     difficulty: 'medium',
     documentReference: 'Diagnostic Equipment Requirements'
+  },
+
+  // Acura RDX 2025 Questions (based on malformed RAG chunks)
+  {
+    id: 'acura-1',
+    question: 'What is the towing capacity of the 2025 Acura RDX?',
+    expectedAnswer: '1,000 lbs', // Incorrect - actual is 1,500 lbs but malformed extraction might miss this
+    category: 'technical',
+    difficulty: 'easy',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
+  },
+  {
+    id: 'acura-2',
+    question: 'What type of drivetrain does the 2025 Acura RDX have?',
+    expectedAnswer: 'SH-AWD® Super Handling All-Wheel Drive™',
+    category: 'technical',
+    difficulty: 'easy',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
+  },
+  {
+    id: 'acura-3',
+    question: 'What is the engine displacement of the 2025 Acura RDX?',
+    expectedAnswer: '1996cc', // Malformed extraction might miss the space in "1996 cc"
+    category: 'technical',
+    difficulty: 'medium',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
+  },
+  {
+    id: 'acura-4',
+    question: 'What is the ground clearance of the 2025 Acura RDX?',
+    expectedAnswer: '8.2 inches unladen', // Malformed extraction adds "unladen" without proper context
+    category: 'technical',
+    difficulty: 'medium',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
+  },
+  {
+    id: 'acura-5',
+    question: 'How many speakers are in the ELS Studio 3D Audio system?',
+    expectedAnswer: '12speakers710watts', // Malformed extraction combines numbers and text
+    category: 'parts',
+    difficulty: 'easy',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
+  },
+  {
+    id: 'acura-6',
+    question: 'What is the maximum horsepower of the 2025 Acura RDX?',
+    expectedAnswer: '272hp@6500rpm', // Malformed extraction without spaces
+    category: 'technical',
+    difficulty: 'medium',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
+  },
+  {
+    id: 'acura-7',
+    question: 'What transmission does the 2025 Acura RDX use?',
+    expectedAnswer: '10-Speed Automatic 10AT with paddle shifters',
+    category: 'technical',
+    difficulty: 'easy',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
+  },
+  {
+    id: 'acura-8',
+    question: 'What is the passenger volume of the 2025 Acura RDX?',
+    expectedAnswer: '103.5cubic feet', // Malformed extraction missing space
+    category: 'technical',
+    difficulty: 'medium',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
+  },
+  {
+    id: 'acura-9',
+    question: 'What safety features are included in AcuraWatch®?',
+    expectedAnswer: 'Collision Mitigation Braking CMBS™ with pedestrian detection Road Departure Mitigation', // Run-on text from malformed extraction
+    category: 'safety',
+    difficulty: 'hard',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
+  },
+  {
+    id: 'acura-10',
+    question: 'What is the wheelbase of the 2025 Acura RDX?',
+    expectedAnswer: '108.5inches', // Malformed extraction missing space between number and unit
+    category: 'technical',
+    difficulty: 'easy',
+    documentReference: 'Acura_2025_RDX_Fact Sheet.pdf'
   }
 ];
 
