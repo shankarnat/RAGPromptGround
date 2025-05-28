@@ -59,7 +59,7 @@ interface ManualConfigurationPanelProps {
   onTogglePrependMetadata?: (enabled: boolean) => void;
   prependedFields?: string[];
   onPrependedFieldsChange?: (fields: string[]) => void;
-  metadataFields?: string[];
+  metadataFields?: Array<{ id: string; name: string; type: string }>;
   onViewParsedOutput?: () => void;
   onViewMultimodal?: () => void;
   onEvaluateIndex?: () => void;
@@ -359,16 +359,18 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <h5 className="text-xs font-medium text-blue-900">🧠 Prompt-Based Parsing</h5>
                               <div className="flex items-center gap-2">
                                 <Switch
-                                  checked={useCustomParsing || state.promptParsing?.isApplied || false}
-                                  onCheckedChange={onToggleCustomParsing}
+                                  checked={useCustomParsing}
+                                  onCheckedChange={(checked) => {
+                                    onToggleCustomParsing?.(checked);
+                                  }}
                                   disabled={disabled}
                                 />
-                                <Badge variant={useCustomParsing || state.promptParsing?.isApplied ? "default" : "secondary"} className="text-xs">
-                                  {useCustomParsing || state.promptParsing?.isApplied ? 'Applied' : 'Off'}
+                                <Badge variant={useCustomParsing ? "default" : "secondary"} className="text-xs">
+                                  {useCustomParsing ? 'Applied' : 'Off'}
                                 </Badge>
                               </div>
                             </div>
-                            {(useCustomParsing || state.promptParsing?.isApplied) && (
+                            {useCustomParsing && (
                               <div className="space-y-2">
                                 <Textarea
                                   placeholder="Enter parsing instructions..."
@@ -379,11 +381,15 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 />
                                 <Button
                                   size="sm"
-                                  onClick={() => onApplyPromptParsing?.()}
+                                  onClick={() => {
+                                    if (parsingInstructions.trim()) {
+                                      onApplyPromptParsing?.();
+                                    }
+                                  }}
                                   disabled={disabled || !parsingInstructions.trim()}
                                   className="h-7 text-xs"
                                 >
-                                  Apply Parsing
+                                  {state.promptParsing?.isApplied ? 'Update Parsing' : 'Apply Parsing'}
                                 </Button>
                               </div>
                             )}
@@ -396,7 +402,9 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <div className="flex items-center gap-2">
                                 <Switch
                                   checked={prependMetadata}
-                                  onCheckedChange={onTogglePrependMetadata}
+                                  onCheckedChange={(checked) => {
+                                    onTogglePrependMetadata?.(checked);
+                                  }}
                                   disabled={disabled}
                                 />
                                 <Badge variant={prependMetadata ? "default" : "secondary"} className="text-xs">
@@ -407,7 +415,10 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             {prependMetadata && (
                               <div className="space-y-2">
                                 <div className="text-xs text-gray-600">
-                                  Selected fields: {prependedFields.length > 0 ? prependedFields.join(', ') : 'None'}
+                                  Selected fields: {prependedFields && prependedFields.length > 0 ? 
+                                    prependedFields.map(fieldId => 
+                                      metadataFields?.find(f => f.id === fieldId)?.name || fieldId
+                                    ).join(', ') : 'None'}
                                 </div>
                                 <Dialog>
                                   <DialogTrigger asChild>
@@ -423,21 +434,27 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-2">
-                                      {metadataFields.map((field) => (
-                                        <div key={field} className="flex items-center space-x-2">
-                                          <Checkbox
-                                            checked={prependedFields.includes(field)}
-                                            onCheckedChange={(checked) => {
-                                              if (checked) {
-                                                onPrependedFieldsChange?.([...prependedFields, field]);
-                                              } else {
-                                                onPrependedFieldsChange?.(prependedFields.filter(f => f !== field));
-                                              }
-                                            }}
-                                          />
-                                          <Label className="text-sm">{field}</Label>
+                                      {metadataFields && metadataFields.length > 0 ? (
+                                        metadataFields.map((field) => (
+                                          <div key={field.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                              checked={prependedFields ? prependedFields.includes(field.id) : false}
+                                              onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                  onPrependedFieldsChange?.([...(prependedFields || []), field.id]);
+                                                } else {
+                                                  onPrependedFieldsChange?.((prependedFields || []).filter(f => f !== field.id));
+                                                }
+                                              }}
+                                            />
+                                            <Label className="text-sm">{field.name}</Label>
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <div className="text-sm text-gray-500 py-4 text-center">
+                                          No metadata fields available. Process a document first to see available fields.
                                         </div>
-                                      ))}
+                                      )}
                                     </div>
                                   </DialogContent>
                                 </Dialog>
@@ -580,7 +597,10 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             </div>
                             <div className="space-y-2">
                               <div className="text-xs text-gray-600">
-                                Active filters: {selectedMetadataFilters.length > 0 ? selectedMetadataFilters.join(', ') : 'None'}
+                                Active filters: {selectedMetadataFilters && selectedMetadataFilters.length > 0 ? 
+                                  selectedMetadataFilters.map(fieldId => 
+                                    metadataFields?.find(f => f.id === fieldId)?.name || fieldId
+                                  ).join(', ') : 'None'}
                               </div>
                               <Dialog>
                                 <DialogTrigger asChild>
@@ -597,21 +617,27 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                     </DialogDescription>
                                   </DialogHeader>
                                   <div className="space-y-2">
-                                    {metadataFields.map((field) => (
-                                      <div key={field} className="flex items-center space-x-2">
-                                        <Checkbox
-                                          checked={selectedMetadataFilters.includes(field)}
-                                          onCheckedChange={(checked) => {
-                                            if (checked) {
-                                              onMetadataFiltersChange?.([...selectedMetadataFilters, field]);
-                                            } else {
-                                              onMetadataFiltersChange?.(selectedMetadataFilters.filter(f => f !== field));
-                                            }
-                                          }}
-                                        />
-                                        <Label className="text-sm">{field}</Label>
+                                    {metadataFields && metadataFields.length > 0 ? (
+                                      metadataFields.map((field) => (
+                                        <div key={field.id} className="flex items-center space-x-2">
+                                          <Checkbox
+                                            checked={selectedMetadataFilters ? selectedMetadataFilters.includes(field.id) : false}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                onMetadataFiltersChange?.([...(selectedMetadataFilters || []), field.id]);
+                                              } else {
+                                                onMetadataFiltersChange?.((selectedMetadataFilters || []).filter(f => f !== field.id));
+                                              }
+                                            }}
+                                          />
+                                          <Label className="text-sm">{field.name}</Label>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="text-sm text-gray-500 py-4 text-center">
+                                        No metadata fields available. Process a document first to see available fields.
                                       </div>
-                                    ))}
+                                    )}
                                   </div>
                                 </DialogContent>
                               </Dialog>
