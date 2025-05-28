@@ -25,7 +25,6 @@ import ChunksPanel from "@/components/ChunksPanel";
 import DocumentHeader from "@/components/DocumentHeader";
 import CombinedConfigurationPanel from "@/components/CombinedConfigurationPanel";
 import UnifiedResultsEnhanced from "@/components/UnifiedResultsEnhanced";
-import ProcessingPipelineVisualization from "@/components/ProcessingPipelineVisualization";
 import TemplateSystem from "@/components/TemplateSystem";
 import ConversationalUI from "@/components/ConversationalUI";
 import SinglePromptInterface from "@/components/SinglePromptInterface";
@@ -1754,10 +1753,6 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                         setCurrentStep('process');
                         setTimeout(() => setCurrentStep('results'), 3000);
                       }}
-                      onQuestionSubmit={(question) => {
-                        console.log('Question submitted:', question);
-                        // Handle Q&A functionality
-                      }}
                     />
                   ) : (
                     <ConversationalUI
@@ -1847,12 +1842,9 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                   <div className="h-full">
                     {dcAgentMode === 'single-prompt' ? (
                       <SinglePromptInterface
-                        onProcessStart={(prompt, config) => {
-                          console.log('Single prompt processing started:', { prompt, config });
+                        onProcessStart={(prompt) => {
+                          console.log('Single prompt processing started:', prompt);
                           // Already processing, show status
-                        }}
-                        onQuestionSubmit={(question) => {
-                          console.log('Question submitted:', question);
                         }}
                       />
                     ) : (
@@ -2008,14 +2000,10 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                   <div className="h-full">
                     {dcAgentMode === 'single-prompt' ? (
                       <SinglePromptInterface
-                        onProcessStart={(prompt, config) => {
+                        onProcessStart={(prompt) => {
                           // In results view, single-prompt mode is for Q&A on existing results
                           console.log('Q&A mode in results:', prompt);
                           // Handle questions about existing results
-                        }}
-                        onQuestionSubmit={(question) => {
-                          console.log('Question submitted in results view:', question);
-                          // Handle Q&A functionality
                         }}
                         disabled={false}
                       />

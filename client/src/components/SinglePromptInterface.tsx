@@ -15,13 +15,11 @@ import {
   Clock,
   RefreshCw,
   Settings,
-  FileSearch,
   Zap
 } from 'lucide-react';
 
 interface SinglePromptInterfaceProps {
   onProcessStart?: (prompt: string, config: any) => void;
-  onQuestionSubmit?: (question: string) => void;
   disabled?: boolean;
 }
 
@@ -29,14 +27,12 @@ type ProcessingPhase = 'input' | 'understanding' | 'processing' | 'complete';
 
 const SinglePromptInterface: React.FC<SinglePromptInterfaceProps> = ({
   onProcessStart,
-  onQuestionSubmit,
   disabled = false
 }) => {
   const [prompt, setPrompt] = useState('');
   const [currentPhase, setCurrentPhase] = useState<ProcessingPhase>('input');
   const [processingProgress, setProcessingProgress] = useState(0);
   const [currentTask, setCurrentTask] = useState('');
-  const [question, setQuestion] = useState('');
   const [results, setResults] = useState<any>(null);
 
   const handleAnalyze = () => {
@@ -297,12 +293,8 @@ const SinglePromptInterface: React.FC<SinglePromptInterfaceProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <Button variant="outline" className="flex-1">
-                <FileSearch className="h-4 w-4 mr-2" />
-                View All Results
-              </Button>
-              <Button variant="outline" onClick={() => setCurrentPhase('input')} className="flex-1">
+            <div className="flex justify-center pt-2">
+              <Button variant="outline" onClick={() => setCurrentPhase('input')}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Process Another
               </Button>
