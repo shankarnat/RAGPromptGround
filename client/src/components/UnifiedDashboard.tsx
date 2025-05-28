@@ -28,6 +28,7 @@ import UnifiedResultsEnhanced from "@/components/UnifiedResultsEnhanced";
 import ProcessingPipelineVisualization from "@/components/ProcessingPipelineVisualization";
 import TemplateSystem from "@/components/TemplateSystem";
 import ConversationalUI from "@/components/ConversationalUI";
+import SinglePromptInterface from "@/components/SinglePromptInterface";
 import ProgressiveDocumentLoader from "@/components/ProgressiveDocumentLoader";
 import ManualConfigurationPanel from "@/components/ManualConfigurationPanel";
 import IntentBasedProcessingTrigger from "@/services/IntentBasedProcessingTrigger";
@@ -117,6 +118,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const [isProcessingRAG, setIsProcessingRAG] = useState(false);
   const [isProcessingIDP, setIsProcessingIDP] = useState(false);
   const [activeResultsTab, setActiveResultsTab] = useState<string>("rag");
+  const [dcAgentMode, setDcAgentMode] = useState<'conversation' | 'single-prompt'>('single-prompt');
   
   // Use multimodal config hook for better state management
   const {
@@ -1676,26 +1678,94 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
             <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
               <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
-                    <Brain className="h-6 w-6 text-purple-600" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
+                      <Brain className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                        DC Agent
+                        <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-0.5">AI-powered document configuration</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                      DC Agent
-                      <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
-                    </h2>
-                    <p className="text-sm text-gray-600 mt-0.5">AI-powered document configuration</p>
+                  <div className="flex bg-gray-100 rounded-lg p-1">
+                    <Button
+                      variant={dcAgentMode === 'single-prompt' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setDcAgentMode('single-prompt')}
+                      className="text-xs h-7"
+                    >
+                      Single Prompt
+                    </Button>
+                    <Button
+                      variant={dcAgentMode === 'conversation' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setDcAgentMode('conversation')}
+                      className="text-xs h-7"
+                    >
+                      Conversation
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
                 <div className="h-full">
-                  <ConversationalUI
-                    documentAnalysis={analysisState.analysis}
-                    onProcessingConfigured={handleConversationalConfig}
-                    onApplyPromptParsing={applyPromptParsing}
-                  />
+                  {dcAgentMode === 'single-prompt' ? (
+                    <SinglePromptInterface
+                      onProcessStart={(prompt, config) => {
+                        console.log('Single prompt processing started:', { prompt, config });
+                        
+                        // Auto-configure RAG + Document AI + OCR + Images
+                        const autoConfig = {
+                          rag: {
+                            enabled: true,
+                            chunking: true,
+                            vectorization: true,
+                            indexing: true,
+                            ocrExtraction: true,
+                            imageCaptioning: true,
+                            visualAnalysis: true,
+                            audioTranscription: false,
+                            multimodal: {
+                              ocr: true,
+                              imageCaption: true,
+                              visualAnalysis: true,
+                              transcription: false
+                            }
+                          },
+                          idp: {
+                            enabled: true,
+                            textExtraction: true,
+                            classification: true,
+                            metadata: true
+                          },
+                          kg: {
+                            enabled: false // User specified no KG
+                          }
+                        };
+                        
+                        // Apply the auto-configuration
+                        setProcessingConfig(autoConfig);
+                        
+                        // Auto-start processing
+                        setCurrentStep('process');
+                        setTimeout(() => setCurrentStep('results'), 3000);
+                      }}
+                      onQuestionSubmit={(question) => {
+                        console.log('Question submitted:', question);
+                        // Handle Q&A functionality
+                      }}
+                    />
+                  ) : (
+                    <ConversationalUI
+                      documentAnalysis={analysisState.analysis}
+                      onProcessingConfigured={handleConversationalConfig}
+                      onApplyPromptParsing={applyPromptParsing}
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1759,26 +1829,58 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
             <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
               <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
                 <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
-                      <Brain className="h-6 w-6 text-purple-600" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
+                        <Brain className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                          DC Agent
+                          <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
+                        </h2>
+                        <p className="text-sm text-gray-600 mt-0.5">Monitor processing progress</p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                        DC Agent
-                        <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
-                      </h2>
-                      <p className="text-sm text-gray-600 mt-0.5">Monitor processing progress</p>
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                      <Button
+                        variant={dcAgentMode === 'single-prompt' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setDcAgentMode('single-prompt')}
+                        className="text-xs h-7"
+                      >
+                        Single Prompt
+                      </Button>
+                      <Button
+                        variant={dcAgentMode === 'conversation' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setDcAgentMode('conversation')}
+                        className="text-xs h-7"
+                      >
+                        Conversation
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
                   <div className="h-full">
-                    <ConversationalUI
-                      documentAnalysis={analysisState.analysis}
-                      onProcessingConfigured={handleConversationalConfig}
-                      onApplyPromptParsing={applyPromptParsing}
-                    />
+                    {dcAgentMode === 'single-prompt' ? (
+                      <SinglePromptInterface
+                        onProcessStart={(prompt, config) => {
+                          console.log('Single prompt processing started:', { prompt, config });
+                          // Already processing, show status
+                        }}
+                        onQuestionSubmit={(question) => {
+                          console.log('Question submitted:', question);
+                        }}
+                      />
+                    ) : (
+                      <ConversationalUI
+                        documentAnalysis={analysisState.analysis}
+                        onProcessingConfigured={handleConversationalConfig}
+                        onApplyPromptParsing={applyPromptParsing}
+                      />
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1882,26 +1984,67 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
             <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
               <Card className="h-full border-0 rounded-none shadow-md bg-gradient-to-br from-purple-50 to-blue-50">
                 <CardHeader className="pb-4 border-b bg-white/80 backdrop-blur">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
-                      <Brain className="h-6 w-6 text-purple-600" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
+                        <Brain className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                          DC Agent
+                          <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
+                        </h2>
+                        <p className="text-sm text-gray-600 mt-0.5">Explore results with AI assistance</p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                        DC Agent
-                        <Sparkles className="h-4 w-4 text-purple-500 ml-2" />
-                      </h2>
-                      <p className="text-sm text-gray-600 mt-0.5">Explore results with AI assistance</p>
+                    
+                    {/* Mode Switcher */}
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                      <button
+                        onClick={() => setDcAgentMode('conversation')}
+                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                          dcAgentMode === 'conversation'
+                            ? 'bg-white text-purple-600 shadow-sm'
+                            : 'text-gray-600 hover:text-purple-600'
+                        }`}
+                      >
+                        Chat
+                      </button>
+                      <button
+                        onClick={() => setDcAgentMode('single-prompt')}
+                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                          dcAgentMode === 'single-prompt'
+                            ? 'bg-white text-purple-600 shadow-sm'
+                            : 'text-gray-600 hover:text-purple-600'
+                        }`}
+                      >
+                        Prompt
+                      </button>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
                   <div className="h-full">
-                    <ConversationalUI
-                      documentAnalysis={analysisState.analysis}
-                      onProcessingConfigured={handleConversationalConfig}
-                      onApplyPromptParsing={applyPromptParsing}
-                    />
+                    {dcAgentMode === 'single-prompt' ? (
+                      <SinglePromptInterface
+                        onProcessStart={(prompt, config) => {
+                          // In results view, single-prompt mode is for Q&A on existing results
+                          console.log('Q&A mode in results:', prompt);
+                          // Handle questions about existing results
+                        }}
+                        onQuestionSubmit={(question) => {
+                          console.log('Question submitted in results view:', question);
+                          // Handle Q&A functionality
+                        }}
+                        disabled={false}
+                      />
+                    ) : (
+                      <ConversationalUI
+                        documentAnalysis={analysisState.analysis}
+                        onProcessingConfigured={handleConversationalConfig}
+                        onApplyPromptParsing={applyPromptParsing}
+                      />
+                    )}
                   </div>
                 </CardContent>
               </Card>
