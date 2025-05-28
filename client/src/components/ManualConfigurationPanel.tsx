@@ -63,6 +63,7 @@ interface ManualConfigurationPanelProps {
   onViewParsedOutput?: () => void;
   onViewMultimodal?: () => void;
   onEvaluateIndex?: () => void;
+  onViewIDP?: () => void;
 }
 
 const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo(({
@@ -95,7 +96,8 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   metadataFields = [],
   onViewParsedOutput,
   onViewMultimodal,
-  onEvaluateIndex
+  onEvaluateIndex,
+  onViewIDP
 }) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [showMetadataModal, setShowMetadataModal] = useState(false);
@@ -258,25 +260,45 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                       </div>
                     )}
                     
-                    {/* Advanced settings for IDP when enabled */}
+                    {/* Document AI Configuration for IDP */}
                     {type.id === 'idp' && isEnabled && (
-                      <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-                        <h5 className="text-xs font-medium text-gray-700 mb-2">Advanced Processing</h5>
-                        <div className="space-y-1">
-                          {['textExtraction', 'classification', 'metadata'].map(option => (
-                            <div key={option} className="flex items-center gap-2">
-                              <Checkbox
-                                id={`idp-${option}`}
-                                checked={processingConfig.idp?.[option] || false}
-                                onCheckedChange={(checked) => handleOptionToggle('idp', option, checked as boolean)}
-                                disabled={disabled}
-                                className="h-3 w-3"
-                              />
-                              <Label htmlFor={`idp-${option}`} className="text-xs cursor-pointer">
-                                {option.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                              </Label>
+                      <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="text-sm font-semibold text-purple-900">🤖 Document AI Configuration</h4>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-purple-100"
+                              onClick={() => onViewIDP?.()}
+                              disabled={disabled}
+                              title="Preview Document AI processing results"
+                            >
+                              <Eye className="h-4 w-4 text-purple-700" />
+                            </Button>
+                          </div>
+                          <p className="text-xs text-purple-600">Configure intelligent document processing and extraction</p>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="p-3 bg-white rounded-md border border-purple-200 shadow-sm">
+                            <h5 className="text-xs font-medium text-purple-900 mb-2">🔍 Processing Options</h5>
+                            <div className="space-y-1">
+                              {['textExtraction', 'classification', 'metadata'].map(option => (
+                                <div key={option} className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`idp-${option}`}
+                                    checked={processingConfig.idp?.[option] || false}
+                                    onCheckedChange={(checked) => handleOptionToggle('idp', option, checked as boolean)}
+                                    disabled={disabled}
+                                    className="h-3 w-3"
+                                  />
+                                  <Label htmlFor={`idp-${option}`} className="text-xs cursor-pointer">
+                                    {option.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                  </Label>
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -354,7 +376,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                         <div className="border-t pt-2">
                           <div className="flex items-center justify-between mb-2">
                             <h5 className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                              <ScrollText className="w-3 h-3" /> Parsing Instructions
+                              <ScrollText className="w-3 h-3" /> Prompt Based Parsing
                             </h5>
                             <Switch
                               id="useCustomParsing"
@@ -371,23 +393,24 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 value={parsingInstructions || state.promptParsing?.customPrompt || ""}
                                 onChange={(e) => onParsingInstructionsChange?.(e.target.value)}
                                 className="h-16 text-xs resize-none"
-                                disabled={disabled}
+                                disabled={false}
                               />
                               <Button
                                 size="sm"
                                 onClick={() => {
-                                  if (onParsingInstructionsChange && parsingInstructions) {
-                                    onParsingInstructionsChange(parsingInstructions);
+                                  const currentInstructions = parsingInstructions || state.promptParsing?.customPrompt || "";
+                                  if (onParsingInstructionsChange && currentInstructions.trim()) {
+                                    onParsingInstructionsChange(currentInstructions);
                                   }
                                   if (onProcessDocument) {
                                     onProcessDocument();
                                   }
                                 }}
-                                disabled={disabled || !parsingInstructions?.trim()}
+                                disabled={disabled || !(parsingInstructions?.trim() || state.promptParsing?.customPrompt?.trim())}
                                 className="w-full h-7 text-xs"
                               >
                                 <ScrollText className="w-3 h-3 mr-1" />
-                                Fix with Prompt
+                                Apply Prompt Parsing
                               </Button>
                             </div>
                           )}
@@ -417,6 +440,101 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               </div>
                             </TooltipProvider>
                           )}
+                          
+                          {/* Prepend Metadata Section - moved here from Index Configuration */}
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-1">
+                                <Switch
+                                  id="prependMetadata"
+                                  checked={prependMetadata}
+                                  onCheckedChange={(checked) => onTogglePrependMetadata?.(checked)}
+                                  disabled={disabled}
+                                  className="h-4 w-7"
+                                />
+                                <Label htmlFor="prependMetadata" className="text-xs cursor-pointer flex items-center gap-1">
+                                  <Plus className="w-3 h-3" /> Prepend metadata
+                                </Label>
+                              </div>
+                              {prependMetadata && (
+                                <Dialog open={showPrependModal} onOpenChange={setShowPrependModal}>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-6 text-xs px-2"
+                                      disabled={disabled}
+                                    >
+                                      Select Fields
+                                      {prependedFields.length > 0 && (
+                                        <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">
+                                          {prependedFields.length}
+                                        </Badge>
+                                      )}
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="sm:max-w-[425px]">
+                                    <DialogHeader>
+                                      <DialogTitle>Select Fields to Prepend</DialogTitle>
+                                      <DialogDescription>
+                                        Choose which metadata fields to prepend to chunks during indexing
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="py-4 max-h-[300px] overflow-y-auto">
+                                      <div className="space-y-2">
+                                        {metadataFields.map(field => (
+                                          <div key={field.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                              id={`prepend-${field.id}`}
+                                              checked={tempPrependedFields.includes(field.id)}
+                                              onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                  setTempPrependedFields([...tempPrependedFields, field.id]);
+                                                } else {
+                                                  setTempPrependedFields(tempPrependedFields.filter(f => f !== field.id));
+                                                }
+                                              }}
+                                            />
+                                            <Label
+                                              htmlFor={`prepend-${field.id}`}
+                                              className="text-sm font-normal cursor-pointer flex-1"
+                                            >
+                                              <span>{field.name}</span>
+                                              <span className="text-xs text-gray-500 ml-1">({field.type})</span>
+                                            </Label>
+                                          </div>
+                                        ))}
+                                        {metadataFields.length === 0 && (
+                                          <p className="text-sm text-gray-500 text-center py-4">
+                                            No metadata fields available
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <DialogFooter>
+                                      <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                          setTempPrependedFields(prependedFields);
+                                          setShowPrependModal(false);
+                                        }}
+                                      >
+                                        Cancel
+                                      </Button>
+                                      <Button
+                                        onClick={() => {
+                                          onPrependedFieldsChange?.(tempPrependedFields);
+                                          setShowPrependModal(false);
+                                        }}
+                                      >
+                                        Apply
+                                      </Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+                              )}
+                            </div>
+                          </div>
                             </div>
                           </div>
                           
@@ -536,16 +654,16 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                   disabled={disabled}
                                 >
                                   <SelectTrigger className="h-8 text-xs border-blue-200 focus:border-blue-400">
-                                    <SelectValue placeholder="Select embedding model" />
+                                    <SelectValue placeholder="Select embedding model" className="truncate" />
                                   </SelectTrigger>
-                                  <SelectContent>
+                                  <SelectContent className="max-w-[300px]">
                                     {embeddingModels.map(model => (
                                       <SelectItem key={model.id} value={model.id} className="text-xs">
-                                        <div className="flex items-center gap-2">
-                                          <Sparkles className="w-3 h-3" />
-                                          <span>{model.name}</span>
+                                        <div className="flex items-center gap-2 max-w-full">
+                                          <Sparkles className="w-3 h-3 flex-shrink-0" />
+                                          <span className="truncate flex-1">{model.name}</span>
                                           {model.isRecommended && (
-                                            <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1 h-4">
+                                            <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1 h-4 flex-shrink-0">
                                               Recommended
                                             </Badge>
                                           )}
@@ -636,127 +754,8 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 </DialogFooter>
                               </DialogContent>
                             </Dialog>
-                            
-                            {/* Prepend Metadata Option */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1">
-                                <Switch
-                                  id="prependMetadata"
-                                  checked={prependMetadata}
-                                  onCheckedChange={(checked) => onTogglePrependMetadata?.(checked)}
-                                  disabled={disabled}
-                                  className="h-4 w-7"
-                                />
-                                <Label htmlFor="prependMetadata" className="text-xs cursor-pointer flex items-center gap-1">
-                                  <Plus className="w-3 h-3" /> Prepend metadata
-                                </Label>
-                              </div>
-                              {prependMetadata && (
-                                <Dialog open={showPrependModal} onOpenChange={setShowPrependModal}>
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-6 text-xs px-2"
-                                      disabled={disabled}
-                                    >
-                                      Select Fields
-                                      {prependedFields.length > 0 && (
-                                        <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">
-                                          {prependedFields.length}
-                                        </Badge>
-                                      )}
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="sm:max-w-[425px]">
-                                    <DialogHeader>
-                                      <DialogTitle>Select Fields to Prepend</DialogTitle>
-                                      <DialogDescription>
-                                        Choose which metadata fields to prepend to chunks during indexing
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="py-4 max-h-[300px] overflow-y-auto">
-                                      <div className="space-y-2">
-                                        {metadataFields.map(field => (
-                                          <div key={field.id} className="flex items-center space-x-2">
-                                            <Checkbox
-                                              id={`prepend-${field.id}`}
-                                              checked={tempPrependedFields.includes(field.id)}
-                                              onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                  setTempPrependedFields([...tempPrependedFields, field.id]);
-                                                } else {
-                                                  setTempPrependedFields(tempPrependedFields.filter(f => f !== field.id));
-                                                }
-                                              }}
-                                            />
-                                            <Label
-                                              htmlFor={`prepend-${field.id}`}
-                                              className="text-sm font-normal cursor-pointer flex-1"
-                                            >
-                                              <span>{field.name}</span>
-                                              <span className="text-xs text-gray-500 ml-1">({field.type})</span>
-                                            </Label>
-                                          </div>
-                                        ))}
-                                        {metadataFields.length === 0 && (
-                                          <p className="text-sm text-gray-500 text-center py-4">
-                                            No metadata fields available
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <DialogFooter>
-                                      <Button
-                                        variant="outline"
-                                        onClick={() => {
-                                          setTempPrependedFields(prependedFields);
-                                          setShowPrependModal(false);
-                                        }}
-                                      >
-                                        Cancel
-                                      </Button>
-                                      <Button
-                                        onClick={() => {
-                                          onPrependedFieldsChange?.(tempPrependedFields);
-                                          setShowPrependModal(false);
-                                        }}
-                                      >
-                                        Apply
-                                      </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                              )}
-                            </div>
                           </div>
                         </div>
-                        
-                        {/* Evaluate Index Button */}
-                        {isEnabled && (
-                          <TooltipProvider>
-                            <div className="flex items-center gap-1 mt-3 border-t pt-3">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => onEvaluateIndex?.()}
-                                disabled={disabled}
-                                className="flex-1 h-7 text-xs justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                              >
-                                <TestTube className="w-3 h-3 mr-1" />
-                                Evaluate Index
-                              </Button>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className="max-w-[200px]">
-                                  <p className="text-xs">Test your index with sample queries and evaluate retrieval quality. Helps optimize your parsing and indexing configuration.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </TooltipProvider>
-                        )}
                             </div>
                           </div>
                         </div>
