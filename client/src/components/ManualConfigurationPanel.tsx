@@ -63,6 +63,9 @@ interface ManualConfigurationPanelProps {
   onViewParsedOutput?: () => void;
   onViewMultimodal?: () => void;
   onEvaluateIndex?: () => void;
+  onViewIDP?: () => void;
+  onViewKG?: () => void;
+  activeAccordion?: string;
 }
 
 const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo(({
@@ -95,7 +98,10 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   metadataFields = [],
   onViewParsedOutput,
   onViewMultimodal,
-  onEvaluateIndex
+  onEvaluateIndex,
+  onViewIDP,
+  onViewKG,
+  activeAccordion
 }) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [showMetadataModal, setShowMetadataModal] = useState(false);
@@ -237,8 +243,27 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     
                     {/* Advanced settings for KG when enabled */}
                     {type.id === 'kg' && isEnabled && (
-                      <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-                        <h5 className="text-xs font-medium text-gray-700 mb-2">Advanced Graph Options</h5>
+                      <div className="mt-2 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-md border border-emerald-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="text-xs font-medium text-emerald-700">🕸️ Advanced Graph Options</h5>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  className={`p-1 hover:bg-emerald-100 rounded transition-all duration-200 ${activeAccordion === 'kg' ? 'bg-emerald-200 shadow-sm scale-110' : ''}`}
+                                  onClick={() => onViewKG && onViewKG()}
+                                  title="View knowledge graph results"
+                                >
+                                  <Eye className={`h-4 w-4 transition-colors ${activeAccordion === 'kg' ? 'text-emerald-900' : 'text-emerald-700 hover:text-emerald-900'}`} />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="left" className="max-w-[200px]">
+                                <p className="text-xs">🕸️ Open Knowledge Graph to see extracted entities, relationships, and graph visualization</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <div className="space-y-1">
                           {['entityExtraction', 'relationMapping', 'graphBuilding'].map(option => (
                             <div key={option} className="flex items-center gap-2">
@@ -260,8 +285,27 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     
                     {/* Advanced settings for IDP when enabled */}
                     {type.id === 'idp' && isEnabled && (
-                      <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-                        <h5 className="text-xs font-medium text-gray-700 mb-2">Advanced Processing</h5>
+                      <div className="mt-2 p-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-md border border-orange-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="text-xs font-medium text-orange-700">📄 Advanced Processing</h5>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  className={`p-1 hover:bg-orange-100 rounded transition-all duration-200 ${activeAccordion === 'idp' ? 'bg-orange-200 shadow-sm scale-110' : ''}`}
+                                  onClick={() => onViewIDP && onViewIDP()}
+                                  title="View document understanding results"
+                                >
+                                  <Eye className={`h-4 w-4 transition-colors ${activeAccordion === 'idp' ? 'text-orange-900' : 'text-orange-700 hover:text-orange-900'}`} />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="left" className="max-w-[200px]">
+                                <p className="text-xs">📄 Open Document Understanding to see extracted tables, text, and classification results</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <div className="space-y-1">
                           {['textExtraction', 'classification', 'metadata'].map(option => (
                             <div key={option} className="flex items-center gap-2">
@@ -293,16 +337,23 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
                             <div className="flex items-center justify-between mb-2">
                               <h5 className="text-xs font-medium text-blue-900">📊 Parse and Chunk</h5>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-blue-100"
-                                onClick={() => onViewParsedOutput?.()}
-                                disabled={disabled}
-                                title="Preview parsed chunks and metadata"
-                              >
-                                <Eye className="h-4 w-4 text-blue-700" />
-                              </Button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      className={`p-1 hover:bg-blue-100 rounded transition-all duration-200 ${activeAccordion === 'rag' ? 'bg-blue-200 shadow-sm scale-110' : ''}`}
+                                      onClick={() => onViewParsedOutput?.()}
+                                      title="View parsed chunks and metadata in results"
+                                    >
+                                      <Eye className={`h-4 w-4 transition-colors ${activeAccordion === 'rag' ? 'text-blue-900' : 'text-blue-700 hover:text-blue-900'}`} />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left" className="max-w-[200px]">
+                                    <p className="text-xs">📊 Open RAG Results to see how your document was parsed into chunks</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                             <div className="space-y-3">
                         {/* Chunking settings */}
@@ -392,31 +443,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             </div>
                           )}
                           
-                          {/* View Parsed Output Button */}
-                          {(useCustomParsing || state.promptParsing?.isApplied || isEnabled) && (
-                            <TooltipProvider>
-                              <div className="flex items-center gap-1 mt-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => onViewParsedOutput?.()}
-                                  disabled={disabled}
-                                  className="flex-1 h-7 text-xs justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                                >
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  View Parsed Output
-                                </Button>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent side="right" className="max-w-[200px]">
-                                    <p className="text-xs">See how your document has been parsed into chunks. Review parsing quality and iterate with custom prompts for better results.</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                            </TooltipProvider>
-                          )}
                             </div>
                           </div>
                           
@@ -424,16 +450,23 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
                             <div className="flex items-center justify-between mb-2">
                               <h5 className="text-xs font-medium text-blue-900">🎯 Multimodal</h5>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-blue-100"
-                                onClick={() => onViewMultimodal?.()}
-                                disabled={disabled}
-                                title="Preview extracted multimodal content"
-                              >
-                                <Eye className="h-4 w-4 text-blue-700" />
-                              </Button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      className="p-1 hover:bg-blue-100 rounded transition-all duration-200 hover:scale-105"
+                                      onClick={() => onViewMultimodal?.()}
+                                      title="View extracted multimodal content in results"
+                                    >
+                                      <Eye className="h-4 w-4 text-blue-700 hover:text-blue-900 transition-colors" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left" className="max-w-[200px]">
+                                    <p className="text-xs">🖼️ Open Multimodal Content to see extracted images, audio, and visual analysis</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div className="flex items-center gap-2">
@@ -482,50 +515,29 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             </div>
                           </div>
                           
-                          {/* View Multimodal Button */}
-                          {isEnabled && (processingConfig.rag?.multimodal?.ocr || 
-                                         processingConfig.rag?.multimodal?.transcription || 
-                                         processingConfig.rag?.multimodal?.imageCaption || 
-                                         processingConfig.rag?.multimodal?.visualAnalysis) && (
-                            <TooltipProvider>
-                              <div className="flex items-center gap-1 mt-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => onViewMultimodal?.()}
-                                  disabled={disabled}
-                                  className="flex-1 h-7 text-xs justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                                >
-                                  <Image className="w-3 h-3 mr-1" />
-                                  View Multimodal
-                                </Button>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent side="right" className="max-w-[200px]">
-                                    <p className="text-xs">View extracted images, audio transcriptions, and visual analysis results from your document.</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                            </TooltipProvider>
-                          )}
                           </div>
                           
                           {/* Index Configuration Section */}
                           <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
                             <div className="flex items-center justify-between mb-2">
                               <h5 className="text-xs font-medium text-blue-900">⚙️ Index Configuration</h5>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-blue-100"
-                                onClick={() => onEvaluateIndex?.()}
-                                disabled={disabled}
-                                title="Preview index configuration and test queries"
-                              >
-                                <Eye className="h-4 w-4 text-blue-700" />
-                              </Button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      className="p-1 hover:bg-blue-100 rounded transition-all duration-200 hover:scale-105"
+                                      onClick={() => onEvaluateIndex?.()}
+                                      title="Test index configuration and queries in results"
+                                    >
+                                      <Eye className="h-4 w-4 text-blue-700 hover:text-blue-900 transition-colors" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left" className="max-w-[200px]">
+                                    <p className="text-xs">🧪 Open Query Testing to evaluate index performance and test retrieval</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                             <div className="space-y-3">
                               <div>
@@ -732,31 +744,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           </div>
                         </div>
                         
-                        {/* Evaluate Index Button */}
-                        {isEnabled && (
-                          <TooltipProvider>
-                            <div className="flex items-center gap-1 mt-3 border-t pt-3">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => onEvaluateIndex?.()}
-                                disabled={disabled}
-                                className="flex-1 h-7 text-xs justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                              >
-                                <TestTube className="w-3 h-3 mr-1" />
-                                Evaluate Index
-                              </Button>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className="max-w-[200px]">
-                                  <p className="text-xs">Test your index with sample queries and evaluate retrieval quality. Helps optimize your parsing and indexing configuration.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </TooltipProvider>
-                        )}
                             </div>
                           </div>
                         </div>

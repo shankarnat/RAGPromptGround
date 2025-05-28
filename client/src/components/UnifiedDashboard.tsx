@@ -1519,6 +1519,18 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
       setActiveResultsTab("test");
       // Index evaluation is always visible at bottom
     },
+    onViewIDP: () => {
+      setCurrentStep("results");
+      setActiveResultsTab("test");
+      setActiveAccordion("idp");
+    },
+    onViewKG: () => {
+      setCurrentStep("results");
+      setActiveResultsTab("test");
+      setActiveAccordion("kg");
+    },
+    // Pass current accordion state for visual feedback
+    activeAccordion: activeAccordion,
     // Sync and preview handler
     onSyncAndPreview: handleSyncAndPreview,
     // Document AI props
