@@ -3,12 +3,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FileSearch, Network, FileText, PlayCircle, Wand2, Check, Settings, ChevronRight, ChevronLeft, ChevronDown, Image, Mic, Eye, Layers, Hash, Timer } from "lucide-react";
+import { FileSearch, Network, FileText, PlayCircle, Check, Settings, ChevronRight, ChevronLeft, ChevronDown, Image, Mic, Eye, Layers, Hash, Timer, Sparkles, ScrollText, ScanEye, Filter, Plus, Info, TestTube } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { embeddingModels } from "@/data/embeddingModelsData";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ManualConfigurationPanelProps {
   processingTypes: Array<{
@@ -18,8 +35,8 @@ interface ManualConfigurationPanelProps {
     description: string;
   }>;
   processingConfig: any;
-  handleProcessingToggle: (type: string, enabled: boolean, forceUpdate?: boolean) => void;
-  handleOptionToggle: (type: string, option: string, enabled: boolean, skipToast?: boolean) => void;
+  handleProcessingToggle: (type: any, enabled: boolean, forceUpdate?: boolean) => void;
+  handleOptionToggle: (type: any, option: string, enabled: boolean, skipToast?: boolean) => void;
   onProcessDocument?: () => void;
   state: any;
   updateChunkingMethod: (method: any) => void;
@@ -30,6 +47,22 @@ interface ManualConfigurationPanelProps {
   pulseEffect?: boolean;
   initialCollapsed?: boolean;
   onCollapseChange?: (collapsed: boolean) => void;
+  selectedEmbeddingModel?: string;
+  onEmbeddingModelChange?: (modelId: string) => void;
+  parsingInstructions?: string;
+  onParsingInstructionsChange?: (instructions: string) => void;
+  useCustomParsing?: boolean;
+  onToggleCustomParsing?: (enabled: boolean) => void;
+  selectedMetadataFilters?: string[];
+  onMetadataFiltersChange?: (filters: string[]) => void;
+  prependMetadata?: boolean;
+  onTogglePrependMetadata?: (enabled: boolean) => void;
+  prependedFields?: string[];
+  onPrependedFieldsChange?: (fields: string[]) => void;
+  metadataFields?: Array<{ id: string; name: string; type: string }>;
+  onViewParsedOutput?: () => void;
+  onViewMultimodal?: () => void;
+  onEvaluateIndex?: () => void;
 }
 
 const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo(({
@@ -46,9 +79,29 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   highlightProcessButton = false,
   pulseEffect = false,
   initialCollapsed = false,
-  onCollapseChange
+  onCollapseChange,
+  selectedEmbeddingModel = "openai-text-embedding-3-large",
+  onEmbeddingModelChange,
+  parsingInstructions = "",
+  onParsingInstructionsChange,
+  useCustomParsing = false,
+  onToggleCustomParsing,
+  selectedMetadataFilters = [],
+  onMetadataFiltersChange,
+  prependMetadata = false,
+  onTogglePrependMetadata,
+  prependedFields = [],
+  onPrependedFieldsChange,
+  metadataFields = [],
+  onViewParsedOutput,
+  onViewMultimodal,
+  onEvaluateIndex
 }) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
+  const [showMetadataModal, setShowMetadataModal] = useState(false);
+  const [tempSelectedFilters, setTempSelectedFilters] = useState<string[]>(selectedMetadataFilters);
+  const [showPrependModal, setShowPrependModal] = useState(false);
+  const [tempPrependedFields, setTempPrependedFields] = useState<string[]>(prependedFields);
 
   useEffect(() => {
     if (initialCollapsed !== collapsed) {
@@ -58,6 +111,14 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
       }
     }
   }, [initialCollapsed, collapsed, onCollapseChange]);
+  
+  useEffect(() => {
+    setTempSelectedFilters(selectedMetadataFilters);
+  }, [selectedMetadataFilters]);
+  
+  useEffect(() => {
+    setTempPrependedFields(prependedFields);
+  }, [prependedFields]);
 
   const toggleCollapse = () => {
     const newCollapsedState = !collapsed;
@@ -153,8 +214,8 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           <ul className="text-xs text-gray-500 mt-1 space-y-0.5">
                             {type.id === 'rag' && (
                               <>
-                                <li>• Semantic search</li>
-                                <li>• Smart chunking</li>
+                                <li>• Parse multimodal</li>
+                                <li>• Hybrid index</li>
                               </>
                             )}
                             {type.id === 'kg' && (
@@ -268,10 +329,79 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           </div>
                         </div>
                         
+                        {/* Parsing Instructions */}
+                        <div className="border-t pt-2">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                              <ScrollText className="w-3 h-3" /> Parsing Instructions
+                            </h5>
+                            <Switch
+                              id="useCustomParsing"
+                              checked={useCustomParsing || state.promptParsing?.isApplied}
+                              onCheckedChange={(checked) => !disabled && onToggleCustomParsing?.(checked)}
+                              disabled={disabled}
+                              className="h-4 w-7"
+                            />
+                          </div>
+                          {(useCustomParsing || state.promptParsing?.isApplied) && (
+                            <div className="space-y-2">
+                              <Textarea
+                                placeholder="Enter custom instructions for parsing (e.g., 'Extract all warranty information and technical specifications')"
+                                value={parsingInstructions || state.promptParsing?.customPrompt || ""}
+                                onChange={(e) => !disabled && onParsingInstructionsChange?.(e.target.value)}
+                                className="h-16 text-xs resize-none"
+                                disabled={disabled}
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  if (onParsingInstructionsChange && parsingInstructions) {
+                                    onParsingInstructionsChange(parsingInstructions);
+                                  }
+                                  if (onProcessDocument) {
+                                    onProcessDocument();
+                                  }
+                                }}
+                                disabled={disabled || !parsingInstructions?.trim()}
+                                className="w-full h-7 text-xs"
+                              >
+                                <ScrollText className="w-3 h-3 mr-1" />
+                                Fix with Prompt
+                              </Button>
+                            </div>
+                          )}
+                          
+                          {/* View Parsed Output Button */}
+                          {(useCustomParsing || state.promptParsing?.isApplied || isEnabled) && (
+                            <TooltipProvider>
+                              <div className="flex items-center gap-1 mt-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => onViewParsedOutput?.()}
+                                  disabled={disabled}
+                                  className="flex-1 h-7 text-xs justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                                >
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  View Parsed Output
+                                </Button>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent side="right" className="max-w-[200px]">
+                                    <p className="text-xs">See how your document has been parsed into chunks. Review parsing quality and iterate with custom prompts for better results.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                        
                         {/* Multimodal options */}
                         <div className="border-t pt-2">
                           <h5 className="text-xs font-medium text-gray-700 mb-2">Multimodal</h5>
-                          <div className="flex items-center gap-4">
+                          <div className="grid grid-cols-2 gap-2">
                             <div className="flex items-center gap-2">
                               <Switch
                                 id="ocr"
@@ -285,38 +415,306 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch
-                                id="audioTranscription"
-                                checked={processingConfig.rag?.multimodal?.audioTranscription || false}
-                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'audioTranscription', checked)}
+                                id="transcription"
+                                checked={processingConfig.rag?.multimodal?.transcription || false}
+                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'transcription', checked)}
                                 disabled={disabled}
                               />
-                              <Label htmlFor="audioTranscription" className="text-xs cursor-pointer flex items-center gap-1">
+                              <Label htmlFor="transcription" className="text-xs cursor-pointer flex items-center gap-1">
                                 <Mic className="w-3 h-3" /> Audio
                               </Label>
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch
-                                id="imageCaptioning"
-                                checked={processingConfig.rag?.multimodal?.imageCaptioning || false}
-                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'imageCaptioning', checked)}
+                                id="imageCaption"
+                                checked={processingConfig.rag?.multimodal?.imageCaption || false}
+                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'imageCaption', checked)}
                                 disabled={disabled}
                               />
-                              <Label htmlFor="imageCaptioning" className="text-xs cursor-pointer flex items-center gap-1">
+                              <Label htmlFor="imageCaption" className="text-xs cursor-pointer flex items-center gap-1">
                                 <Image className="w-3 h-3" /> Images
                               </Label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                id="visualAnalysis"
+                                checked={processingConfig.rag?.multimodal?.visualAnalysis || false}
+                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'visualAnalysis', checked)}
+                                disabled={disabled}
+                              />
+                              <Label htmlFor="visualAnalysis" className="text-xs cursor-pointer flex items-center gap-1">
+                                <ScanEye className="w-3 h-3" /> Visual
+                              </Label>
+                            </div>
+                          </div>
+                          
+                          {/* View Multimodal Button */}
+                          {isEnabled && (processingConfig.rag?.multimodal?.ocr || 
+                                         processingConfig.rag?.multimodal?.transcription || 
+                                         processingConfig.rag?.multimodal?.imageCaption || 
+                                         processingConfig.rag?.multimodal?.visualAnalysis) && (
+                            <TooltipProvider>
+                              <div className="flex items-center gap-1 mt-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => onViewMultimodal?.()}
+                                  disabled={disabled}
+                                  className="flex-1 h-7 text-xs justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                                >
+                                  <Image className="w-3 h-3 mr-1" />
+                                  View Multimodal
+                                </Button>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent side="right" className="max-w-[200px]">
+                                    <p className="text-xs">View extracted images, audio transcriptions, and visual analysis results from your document.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                        
+                        {/* Embedding Model Selection */}
+                        <div className="border-t pt-2">
+                          <h5 className="text-xs font-medium text-gray-700 mb-2">Embedding Model</h5>
+                          <Select
+                            value={selectedEmbeddingModel}
+                            onValueChange={(value) => !disabled && onEmbeddingModelChange?.(value)}
+                            disabled={disabled}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select embedding model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {embeddingModels.map(model => (
+                                <SelectItem key={model.id} value={model.id} className="text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <Sparkles className="w-3 h-3" />
+                                    <span>{model.name}</span>
+                                    {model.isRecommended && (
+                                      <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1 h-4">
+                                        Recommended
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {/* Index Configuration */}
+                        <div className="border-t pt-2">
+                          <h5 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                            <Settings className="w-3 h-3" /> Index Configuration
+                          </h5>
+                          
+                          {/* Metadata Filter */}
+                          <div className="space-y-2">
+                            <Dialog open={showMetadataModal} onOpenChange={setShowMetadataModal}>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full h-7 text-xs justify-between"
+                                  disabled={disabled}
+                                >
+                                  <span className="flex items-center gap-1">
+                                    <Filter className="w-3 h-3" />
+                                    Filter on related metadata
+                                  </span>
+                                  {selectedMetadataFilters.length > 0 && (
+                                    <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">
+                                      {selectedMetadataFilters.length}
+                                    </Badge>
+                                  )}
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>Select Metadata Filters</DialogTitle>
+                                  <DialogDescription>
+                                    Choose which metadata fields to filter on during indexing
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4 max-h-[300px] overflow-y-auto">
+                                  <div className="space-y-2">
+                                    {metadataFields.map(field => (
+                                      <div key={field.id} className="flex items-center space-x-2">
+                                        <Checkbox
+                                          id={field.id}
+                                          checked={tempSelectedFilters.includes(field.id)}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setTempSelectedFilters([...tempSelectedFilters, field.id]);
+                                            } else {
+                                              setTempSelectedFilters(tempSelectedFilters.filter(f => f !== field.id));
+                                            }
+                                          }}
+                                        />
+                                        <Label
+                                          htmlFor={field.id}
+                                          className="text-sm font-normal cursor-pointer flex-1"
+                                        >
+                                          <span>{field.name}</span>
+                                          <span className="text-xs text-gray-500 ml-1">({field.type})</span>
+                                        </Label>
+                                      </div>
+                                    ))}
+                                    {metadataFields.length === 0 && (
+                                      <p className="text-sm text-gray-500 text-center py-4">
+                                        No metadata fields available
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setTempSelectedFilters(selectedMetadataFilters);
+                                      setShowMetadataModal(false);
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    onClick={() => {
+                                      onMetadataFiltersChange?.(tempSelectedFilters);
+                                      setShowMetadataModal(false);
+                                    }}
+                                  >
+                                    Apply
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                            
+                            {/* Prepend Metadata Option */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <Switch
+                                  id="prependMetadata"
+                                  checked={prependMetadata}
+                                  onCheckedChange={(checked) => !disabled && onTogglePrependMetadata?.(checked)}
+                                  disabled={disabled}
+                                  className="h-4 w-7"
+                                />
+                                <Label htmlFor="prependMetadata" className="text-xs cursor-pointer flex items-center gap-1">
+                                  <Plus className="w-3 h-3" /> Prepend metadata
+                                </Label>
+                              </div>
+                              {prependMetadata && (
+                                <Dialog open={showPrependModal} onOpenChange={setShowPrependModal}>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-6 text-xs px-2"
+                                      disabled={disabled}
+                                    >
+                                      Select Fields
+                                      {prependedFields.length > 0 && (
+                                        <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">
+                                          {prependedFields.length}
+                                        </Badge>
+                                      )}
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="sm:max-w-[425px]">
+                                    <DialogHeader>
+                                      <DialogTitle>Select Fields to Prepend</DialogTitle>
+                                      <DialogDescription>
+                                        Choose which metadata fields to prepend to chunks during indexing
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="py-4 max-h-[300px] overflow-y-auto">
+                                      <div className="space-y-2">
+                                        {metadataFields.map(field => (
+                                          <div key={field.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                              id={`prepend-${field.id}`}
+                                              checked={tempPrependedFields.includes(field.id)}
+                                              onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                  setTempPrependedFields([...tempPrependedFields, field.id]);
+                                                } else {
+                                                  setTempPrependedFields(tempPrependedFields.filter(f => f !== field.id));
+                                                }
+                                              }}
+                                            />
+                                            <Label
+                                              htmlFor={`prepend-${field.id}`}
+                                              className="text-sm font-normal cursor-pointer flex-1"
+                                            >
+                                              <span>{field.name}</span>
+                                              <span className="text-xs text-gray-500 ml-1">({field.type})</span>
+                                            </Label>
+                                          </div>
+                                        ))}
+                                        {metadataFields.length === 0 && (
+                                          <p className="text-sm text-gray-500 text-center py-4">
+                                            No metadata fields available
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <DialogFooter>
+                                      <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                          setTempPrependedFields(prependedFields);
+                                          setShowPrependModal(false);
+                                        }}
+                                      >
+                                        Cancel
+                                      </Button>
+                                      <Button
+                                        onClick={() => {
+                                          onPrependedFieldsChange?.(tempPrependedFields);
+                                          setShowPrependModal(false);
+                                        }}
+                                      >
+                                        Apply
+                                      </Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+                              )}
                             </div>
                           </div>
                         </div>
                         
-                        {/* Custom prompt if set */}
-                        {state.promptParsing?.customPrompt && (
-                          <div className="border-t pt-2">
-                            <h5 className="text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                              <Wand2 className="w-3 h-3" /> Custom Prompt
-                            </h5>
-                            <p className="text-xs text-gray-600 italic">{state.promptParsing.customPrompt}</p>
-                          </div>
+                        {/* Evaluate Index Button */}
+                        {isEnabled && (
+                          <TooltipProvider>
+                            <div className="flex items-center gap-1 mt-3 border-t pt-3">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onEvaluateIndex?.()}
+                                disabled={disabled}
+                                className="flex-1 h-7 text-xs justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                              >
+                                <TestTube className="w-3 h-3 mr-1" />
+                                Evaluate Index
+                              </Button>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="max-w-[200px]">
+                                  <p className="text-xs">Test your index with sample queries and evaluate retrieval quality. Helps optimize your parsing and indexing configuration.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TooltipProvider>
                         )}
+                        
                       </div>
                     )}
                   </div>

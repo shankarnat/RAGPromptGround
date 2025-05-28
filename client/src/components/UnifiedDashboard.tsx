@@ -94,7 +94,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     updateChunkOverlap, updateActiveTab, selectChunk, toggleUnifiedProcessing,
     updateProcessingStatus, processDocument, toggleProcessingType, processWithIntent,
     clearAllResults, switchDocumentExample, updateUnifiedResults, 
-    applyPromptParsing, clearPromptParsing } = useDocumentProcessing();
+    applyPromptParsing, clearPromptParsing, selectEmbeddingModel, updatePromptParsing } = useDocumentProcessing();
   const { toast } = useToast();
   const { state: analysisState, analyzeDocument } = useDocumentAnalysisContext();
   console.log('UnifiedDashboard: analysisState =', analysisState);
@@ -115,6 +115,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const [extractedTables, setExtractedTables] = useState<any>(null);
   const [isProcessingRAG, setIsProcessingRAG] = useState(false);
   const [isProcessingIDP, setIsProcessingIDP] = useState(false);
+  const [activeResultsTab, setActiveResultsTab] = useState<string>("rag");
   
   // Use multimodal config hook for better state management
   const {
@@ -236,8 +237,8 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   }, [multimodalConfig, isUpdatingFromAI]);
 
   const processingTypes = [
-    { id: "rag", label: "RAG Search", icon: FileSearch, description: "Vector-based search with retrieval" },
-    { id: "idp", label: "Document Processing", icon: FileText, description: "Advanced document analysis" },
+    { id: "rag", label: "Parse and Index", icon: FileSearch, description: "Vector-based search with retrieval" },
+    { id: "idp", label: "Document AI", icon: FileText, description: "Advanced document analysis" },
     { id: "kg", label: "Knowledge Graph", icon: Network, description: "Entity and relation extraction" },
   ];
 
@@ -1384,9 +1385,65 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   // State for sidebar collapse
   const [configPanelCollapsed, setConfigPanelCollapsed] = useState(false);
   
+  // State for metadata filters and prepend
+  const [selectedMetadataFilters, setSelectedMetadataFilters] = useState<string[]>([]);
+  const [prependMetadata, setPrependMetadata] = useState(false);
+  const [prependedFields, setPrependedFields] = useState<string[]>([]);
+  
   // Handler for sidebar collapse state changes
   const handleConfigPanelCollapse = useCallback((collapsed: boolean) => {
     setConfigPanelCollapsed(collapsed);
+  }, []);
+  
+  // Handlers for parsing instructions
+  const handleParsingInstructionsChange = useCallback((instructions: string) => {
+    updatePromptParsing({ customPrompt: instructions });
+  }, [updatePromptParsing]);
+  
+  const handleToggleCustomParsing = useCallback((enabled: boolean) => {
+    if (enabled) {
+      applyPromptParsing();
+    } else {
+      clearPromptParsing();
+    }
+  }, [applyPromptParsing, clearPromptParsing]);
+  
+  // Handlers for metadata configuration
+  const handleMetadataFiltersChange = useCallback((filters: string[]) => {
+    setSelectedMetadataFilters(filters);
+    // Trigger configuration change
+    setConfigChanged(true);
+  }, []);
+  
+  const handleTogglePrependMetadata = useCallback((enabled: boolean) => {
+    setPrependMetadata(enabled);
+    // Trigger configuration change
+    setConfigChanged(true);
+  }, []);
+  
+  const handlePrependedFieldsChange = useCallback((fields: string[]) => {
+    setPrependedFields(fields);
+    // Trigger configuration change
+    setConfigChanged(true);
+  }, []);
+  
+  // Navigation handlers for the buttons
+  const handleViewParsedOutput = useCallback(() => {
+    // Switch to RAG tab in results
+    setCurrentStep("results");
+    setActiveResultsTab("rag");
+  }, []);
+  
+  const handleViewMultimodal = useCallback(() => {
+    // Switch to Images tab in results
+    setCurrentStep("results");
+    setActiveResultsTab("images");
+  }, []);
+  
+  const handleEvaluateIndex = useCallback(() => {
+    // Switch to Evaluate and Test tab in results
+    setCurrentStep("results");
+    setActiveResultsTab("test");
   }, []);
   
   const manualConfigPanelProps = useMemo(() => ({
@@ -1409,7 +1466,31 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     pulseEffect: pulseProcessButton,
     // Add the collapse state and handler
     initialCollapsed: configPanelCollapsed,
-    onCollapseChange: handleConfigPanelCollapse
+    onCollapseChange: handleConfigPanelCollapse,
+    // Add embedding model props
+    selectedEmbeddingModel: state.selectedModelId,
+    onEmbeddingModelChange: selectEmbeddingModel,
+    // Add parsing instructions props
+    parsingInstructions: state.promptParsing?.customPrompt || "",
+    onParsingInstructionsChange: handleParsingInstructionsChange,
+    useCustomParsing: state.promptParsing?.isApplied || false,
+    onToggleCustomParsing: handleToggleCustomParsing,
+    // Add metadata configuration props
+    selectedMetadataFilters,
+    onMetadataFiltersChange: handleMetadataFiltersChange,
+    prependMetadata,
+    onTogglePrependMetadata: handleTogglePrependMetadata,
+    prependedFields,
+    onPrependedFieldsChange: handlePrependedFieldsChange,
+    metadataFields: state.metadataFields?.map(field => ({
+      id: String(field.id),
+      name: field.name,
+      type: String(field.type)
+    })) || [],
+    // Navigation handlers
+    onViewParsedOutput: handleViewParsedOutput,
+    onViewMultimodal: handleViewMultimodal,
+    onEvaluateIndex: handleEvaluateIndex
   }), [
     processingTypes,
     processingConfig,
@@ -1424,7 +1505,20 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     highlightProcessButton,
     pulseProcessButton,
     configPanelCollapsed,
-    handleConfigPanelCollapse
+    handleConfigPanelCollapse,
+    selectEmbeddingModel,
+    handleParsingInstructionsChange,
+    handleToggleCustomParsing,
+    selectedMetadataFilters,
+    handleMetadataFiltersChange,
+    prependMetadata,
+    handleTogglePrependMetadata,
+    prependedFields,
+    handlePrependedFieldsChange,
+    state.metadataFields,
+    handleViewParsedOutput,
+    handleViewMultimodal,
+    handleEvaluateIndex
   ]);
 
   const renderContent = () => {
@@ -1722,6 +1816,8 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                       promptParsing={state.promptParsing}
                       onApplyPromptParsing={applyPromptParsing}
                       onClearPromptParsing={clearPromptParsing}
+                      activeTab={activeResultsTab}
+                      onTabChange={setActiveResultsTab}
                     />
                   )}
                 </div>

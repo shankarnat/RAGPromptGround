@@ -206,6 +206,8 @@ interface UnifiedResultsEnhancedProps {
   };
   onApplyPromptParsing?: (customPrompt: string) => void;
   onClearPromptParsing?: () => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 // Simple Markdown renderer for RAG chunks
@@ -353,9 +355,15 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   selectedDocument,
   promptParsing,
   onApplyPromptParsing,
-  onClearPromptParsing
+  onClearPromptParsing,
+  activeTab: externalActiveTab,
+  onTabChange
 }) => {
-  const [activeTab, setActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic' | 'images'>('agentic');
+  const [internalActiveTab, setInternalActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'test' | 'images'>('test');
+  
+  // Use external activeTab if provided, otherwise use internal state
+  const activeTab = externalActiveTab || internalActiveTab;
+  const setActiveTab = onTabChange || setInternalActiveTab;
   const [showTestingInterface, setShowTestingInterface] = useState(false);
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const [imageViewMode, setImageViewMode] = useState<'grid' | 'list'>('grid');
@@ -365,19 +373,19 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   
   // Handle tab switching if the current tab is disabled
   useEffect(() => {
-    // If Knowledge Graph tab is active but KG is disabled, switch to 'agentic' tab
+    // If Knowledge Graph tab is active but KG is disabled, switch to 'test' tab
     if (activeTab === 'kg' && !processingConfig?.kg?.enabled) {
-      setActiveTab('agentic');
+      setActiveTab('test');
     }
     
-    // If Document Intelligence tab is active but IDP is disabled, switch to 'agentic' tab
+    // If Document Intelligence tab is active but IDP is disabled, switch to 'test' tab
     if (activeTab === 'idp' && !processingConfig?.idp?.enabled) {
-      setActiveTab('agentic');
+      setActiveTab('test');
     }
     
-    // If 'all' tab is active, switch to 'agentic' tab (since we've removed the 'all' tab)
+    // If 'all' tab is active, switch to 'test' tab (since we've removed the 'all' tab)
     if (activeTab === 'all') {
-      setActiveTab('agentic');
+      setActiveTab('test');
     }
   }, [activeTab, processingConfig?.kg?.enabled, processingConfig?.idp?.enabled]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1629,7 +1637,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   className="justify-start"
                   onClick={() => {
                     setAgenticQuery('What is the engine displacement?');
-                    setActiveTab('agentic');
+                    setActiveTab('test');
                   }}
                 >
                   What is the engine displacement?
@@ -1640,7 +1648,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   className="justify-start"
                   onClick={() => {
                     setAgenticQuery('List all available safety features');
-                    setActiveTab('agentic');
+                    setActiveTab('test');
                   }}
                 >
                   List all available safety features
@@ -1651,7 +1659,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   className="justify-start"
                   onClick={() => {
                     setAgenticQuery('What are the maintenance intervals?');
-                    setActiveTab('agentic');
+                    setActiveTab('test');
                   }}
                 >
                   What are the maintenance intervals?
@@ -1662,7 +1670,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   className="justify-start"
                   onClick={() => {
                     setAgenticQuery('Find part numbers for brake pads');
-                    setActiveTab('agentic');
+                    setActiveTab('test');
                   }}
                 >
                   Find part numbers for brake pads
@@ -1733,7 +1741,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   // Mock function to simulate agentic query processing
   const processAgenticQuery = async (query: string) => {
     setIsAgenticLoading(true);
-    setActiveTab('agentic'); // Ensure agentic tab is active
+    setActiveTab('test'); // Ensure test tab is active
     
     // Check if this is one of the automotive test questions
     const matchingQuestion = automotiveTestQuestions.find(q => q.question === query);
@@ -1849,11 +1857,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   ];
 
   // Function to navigate between tabs with visual feedback
-  const navigateToTab = (tab: 'source' | 'all' | 'rag' | 'kg' | 'idp' | 'agentic' | 'images') => {
-    // Handle navigation to 'all' tab by redirecting to 'agentic' 
+  const navigateToTab = (tab: 'source' | 'all' | 'rag' | 'kg' | 'idp' | 'test' | 'images') => {
+    // Handle navigation to 'all' tab by redirecting to 'test' 
     if (tab === 'all') {
-      console.log('Redirecting from "all" tab to "agentic" tab');
-      setActiveTab('agentic');
+      console.log('Redirecting from "all" tab to "test" tab');
+      setActiveTab('test');
       return;
     }
     
@@ -2159,49 +2167,6 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                         );
                       })()}
                     </div>
-                  )}
-                  
-                  {/* Prompt Input UI */}
-                  {showPromptFix && (
-                    <Card className="mt-4">
-                      <CardHeader>
-                        <CardTitle className="text-lg">Fix extraction with custom prompt</CardTitle>
-                        <CardDescription>
-                          Enter a prompt to improve data extraction from the document
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Textarea
-                          placeholder="e.g., Extract the towing capacity value from the drivetrain specifications table and format the output as a Markdown table with columns for Component, Specification, and Details"
-                          value={customExtractionPrompt}
-                          onChange={(e) => setLocalCustomPrompt(e.target.value)}
-                          className="min-h-[100px]"
-                        />
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            onClick={() => {
-                              if (onApplyPromptParsing) {
-                                onApplyPromptParsing(localCustomPrompt);
-                              }
-                              setShowPromptFix(false);
-                              // Re-run the query with better extraction after a delay
-                              setTimeout(() => {
-                                handleAgenticQueryClick(agenticQuery);
-                              }, 3000); // Wait for processing to complete
-                            }}
-                            disabled={!localCustomPrompt.trim()}
-                          >
-                            Apply Prompt
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => setShowPromptFix(false)}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
                   )}
                 </div>
                 {/* Results tab removed
@@ -2952,7 +2917,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
               <File className="h-4 w-4" />
               Source Doc
             </TabsTrigger>
-            <TabsTrigger value="agentic" className="flex items-center gap-2 bg-indigo-100">
+            <TabsTrigger value="test" className="flex items-center gap-2 bg-indigo-100">
               <BrainCircuit className="h-4 w-4" />
               Evaluate and Test
             </TabsTrigger>
@@ -2992,7 +2957,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </TabsList>
           
           <TabsContent value="source">{renderSourceDocument()}</TabsContent>
-          <TabsContent value="agentic">{renderAgenticResults()}</TabsContent>
+          <TabsContent value="test">{renderAgenticResults()}</TabsContent>
           <TabsContent value="rag">{renderRAGResults()}</TabsContent>
           {processingConfig?.idp?.enabled && (
             <TabsContent value="idp">{renderIDPResults()}</TabsContent>

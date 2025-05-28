@@ -2134,53 +2134,6 @@ export const ConversationalUI: React.FC<ConversationalUIProps> = ({
               </div>
             )}
             
-            {/* Prompt Fix UI */}
-            {showPromptFix && (
-              <div className="max-w-[75%] mx-auto">
-                <Card className="mt-4">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Fix extraction with custom prompt</CardTitle>
-                    <p className="text-sm text-gray-600">
-                      Enter a prompt to improve data extraction from the document
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="e.g., Extract the towing capacity value from the drivetrain specifications table and format the output as a Markdown table with columns for Component, Specification, and Details"
-                      value={customPrompt}
-                      onChange={(e) => setCustomPrompt(e.target.value)}
-                      className="min-h-[100px]"
-                    />
-                    <div className="flex gap-2 mt-4">
-                      <Button
-                        onClick={() => {
-                          if (onApplyPromptParsing && customPrompt.trim()) {
-                            onApplyPromptParsing(customPrompt);
-                            setShowPromptFix(false);
-                            setCustomPrompt('');
-                            
-                            // Send a message to the chat that prompt parsing is being applied
-                            sendMessage('Applying custom prompt for better extraction...');
-                          }
-                        }}
-                        disabled={!customPrompt.trim()}
-                      >
-                        Apply Prompt
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setShowPromptFix(false);
-                          setCustomPrompt('');
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
             
             <div ref={messagesEndRef} />
           </div>
