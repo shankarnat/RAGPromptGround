@@ -2942,7 +2942,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 collapsible 
                 value={currentActiveAccordion}
                 onValueChange={setActiveAccordion}
-                className="w-full space-y-3"
+                className="w-full space-y-4"
               >
                 {/* RAG Accordion Item - Enhanced styling */}
                 <AccordionItem value="rag" className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm overflow-hidden">
@@ -3031,50 +3031,49 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                     </AccordionContent>
                   </AccordionItem>
                 )}
-              </Accordion>
 
-              {/* Always visible sections at bottom */}
-              <div className="space-y-3 mt-8 border-t-2 border-gray-200 pt-6">
-                {/* Images Section - Always Visible */}
-                <Card className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-sm overflow-hidden">
-                  <CardHeader className="pb-3 bg-green-100/50 border-b border-green-200">
-                    <CardTitle className="text-base flex items-center gap-3 text-green-900">
+                {/* Multimodal Content Accordion Item - Always visible for now */}
+                <AccordionItem value="multimodal" className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-sm overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-green-100/50 transition-colors [&[data-state=open]]:bg-green-100">
+                    <div className="flex items-center gap-3 w-full">
                       <div className="p-2 rounded-lg bg-green-100">
                         <Image className="h-5 w-5 text-green-600" />
                       </div>
-                      <div className="flex-1">
-                        <div className="font-semibold">🖼️ Multimodal Content</div>
-                        <div className="text-xs text-green-600 font-normal mt-0.5">
+                      <div className="flex-1 text-left">
+                        <div className="font-semibold text-green-900 text-base">🖼️ Multimodal Content</div>
+                        <div className="text-xs text-green-600 mt-0.5">
                           Images • Audio • Video • Charts
                         </div>
                       </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 bg-white/50">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-6 bg-white/50">
                     {renderImagesTab()}
-                  </CardContent>
-                </Card>
+                  </AccordionContent>
+                </AccordionItem>
 
-                {/* Evaluate and Test Section - Always Visible */}
-                <Card className="border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-sm overflow-hidden">
-                  <CardHeader className="pb-3 bg-indigo-100/50 border-b border-indigo-200">
-                    <CardTitle className="text-base flex items-center gap-3 text-indigo-900">
+                {/* Query Testing Interface Accordion Item */}
+                <AccordionItem value="testing" className="border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-sm overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-indigo-100/50 transition-colors [&[data-state=open]]:bg-indigo-100">
+                    <div className="flex items-center gap-3 w-full">
                       <div className="p-2 rounded-lg bg-indigo-100">
                         <TestTube className="h-5 w-5 text-indigo-600" />
                       </div>
-                      <div className="flex-1">
-                        <div className="font-semibold">🧪 Query Testing Interface</div>
-                        <div className="text-xs text-indigo-600 font-normal mt-0.5">
+                      <div className="flex-1 text-left">
+                        <div className="font-semibold text-indigo-900 text-base">🧪 Query Testing Interface</div>
+                        <div className="text-xs text-indigo-600 mt-0.5">
                           Test • Evaluate • Iterate • Optimize
                         </div>
                       </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 bg-white/50">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-6 bg-white/50">
                     {renderAgenticResults()}
-                  </CardContent>
-                </Card>
-              </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
           </TabsContent>
         </Tabs>

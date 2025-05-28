@@ -1512,12 +1512,12 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     onViewMultimodal: () => {
       setCurrentStep("results");
       setActiveResultsTab("test");
-      // Multimodal is always visible at bottom
+      setActiveAccordion("multimodal");
     },
     onEvaluateIndex: () => {
       setCurrentStep("results");
       setActiveResultsTab("test");
-      // Index evaluation is always visible at bottom
+      setActiveAccordion("testing");
     },
     onViewIDP: () => {
       setCurrentStep("results");
