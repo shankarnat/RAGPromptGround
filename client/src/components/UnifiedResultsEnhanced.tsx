@@ -942,9 +942,6 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  {image.caption && (
-                    <p className="mt-1 text-xs text-gray-600 line-clamp-2">{image.caption}</p>
-                  )}
                 </div>
               ))}
             </div>
