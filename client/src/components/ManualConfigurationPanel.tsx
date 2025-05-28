@@ -183,7 +183,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                 className={`${highlightProcessButton ? 'bg-green-600 hover:bg-green-700' : ''} ${pulseEffect ? 'animate-pulse' : ''}`}
               >
                 <PlayCircle className="w-4 h-4 mr-1" />
-                Process
+                Finalize
               </Button>
             </div>
 
@@ -272,7 +272,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               className="h-6 w-6 p-0 hover:bg-purple-100"
                               onClick={() => onViewIDP?.()}
                               disabled={disabled}
-                              title="Preview Document AI processing results"
+                              title="Sync and Preview IDP"
                             >
                               <Eye className="h-4 w-4 text-purple-700" />
                             </Button>
@@ -321,7 +321,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 className="h-6 w-6 p-0 hover:bg-blue-100"
                                 onClick={() => onViewParsedOutput?.()}
                                 disabled={disabled}
-                                title="Preview parsed chunks and metadata"
+                                title="Sync and Preview RAG"
                               >
                                 <Eye className="h-4 w-4 text-blue-700" />
                               </Button>
@@ -330,7 +330,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                         {/* Chunking settings */}
                         <div className="grid grid-cols-3 gap-2">
                           <div>
-                            <label className="text-xs text-gray-600">Method</label>
+                            <label className="text-xs text-gray-600">Chunking Method</label>
                             <Select
                               value={state.chunkingMethod?.value || 'sentence'}
                               onValueChange={(value) => updateChunkingMethod({ value, label: value })}
@@ -522,7 +522,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 className="h-6 w-6 p-0 hover:bg-blue-100"
                                 onClick={() => onViewMultimodal?.()}
                                 disabled={disabled}
-                                title="Preview extracted multimodal content"
+                                title="Sync and Preview Multimodal"
                               >
                                 <Eye className="h-4 w-4 text-blue-700" />
                               </Button>
@@ -585,7 +585,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 className="h-6 w-6 p-0 hover:bg-blue-100"
                                 onClick={() => onEvaluateIndex?.()}
                                 disabled={disabled}
-                                title="Preview index configuration and test queries"
+                                title="Sync and Preview Index Configuration"
                               >
                                 <Eye className="h-4 w-4 text-blue-700" />
                               </Button>
