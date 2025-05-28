@@ -97,21 +97,21 @@ export const mockIDPResults = {
     images: [
       {
         id: "img1",
-        url: "/api/documents/images/revenue-chart.png",
-        caption: "Revenue Growth Trend 2021-2023",
-        metadata: { page: 5, type: "chart", dimensions: "800x600" }
+        url: "/api/assets/img1.png",
+        caption: "Vehicle specifications extracted via OCR",
+        metadata: { page: 5, type: "technical-spec", dimensions: "800x600" }
       },
       {
-        id: "img2",
-        url: "/api/documents/images/market-share.png",
-        caption: "Market Share by Product Category",
-        metadata: { page: 8, type: "pie-chart", dimensions: "600x600" }
+        id: "img2", 
+        url: "/api/assets/img2.png",
+        caption: "Dashboard features identified through vision AI",
+        metadata: { page: 8, type: "dashboard-layout", dimensions: "600x600" }
       },
       {
         id: "img3",
-        url: "/api/documents/images/customer-growth.png",
-        caption: "Customer Base Growth Over Time",
-        metadata: { page: 12, type: "line-chart", dimensions: "800x400" }
+        url: "/api/assets/img3.png", 
+        caption: "Engine details captured from technical documentation",
+        metadata: { page: 12, type: "engine-diagram", dimensions: "800x400" }
       }
     ],
     formFields: {
