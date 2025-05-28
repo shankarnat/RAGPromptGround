@@ -2967,25 +2967,67 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                       )}
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-6 bg-white/50">
+                  <AccordionContent className="px-6 pb-6 bg-white/50 max-h-[400px] overflow-y-auto">
                     {renderRAGResults()}
                   </AccordionContent>
                 </AccordionItem>
 
-                {/* Document Understanding (IDP) Accordion Item */}
+                {/* Multimodal Content Accordion Item - Moved to second position */}
+                <AccordionItem value="multimodal" className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-sm overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-green-100/50 transition-colors [&[data-state=open]]:bg-green-100">
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="p-2 rounded-lg bg-green-100">
+                        <Image className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="font-semibold text-green-900 text-base">🖼️ Multimodal Content</div>
+                        <div className="text-xs text-green-600 mt-0.5">
+                          Images • Audio • Video • Charts
+                        </div>
+                      </div>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-6 bg-white/50 max-h-[400px] overflow-y-auto">
+                    {renderImagesTab()}
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Test & Evaluate Accordion Item - Moved to third position */}
+                <AccordionItem value="testing" className="border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-sm overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-indigo-100/50 transition-colors [&[data-state=open]]:bg-indigo-100">
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="p-2 rounded-lg bg-indigo-100">
+                        <TestTube className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="font-semibold text-indigo-900 text-base">🧪 Test & Evaluate</div>
+                        <div className="text-xs text-indigo-600 mt-0.5">
+                          Test • Evaluate • Iterate • Optimize
+                        </div>
+                      </div>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-6 bg-white/50 max-h-[400px] overflow-y-auto">
+                    {renderAgenticResults()}
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Document AI (IDP) Accordion Item - Renamed and moved to fourth position */}
                 {processingConfig?.idp?.enabled && (
-                  <AccordionItem value="idp" className="border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg shadow-sm overflow-hidden">
-                    <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-orange-100/50 transition-colors [&[data-state=open]]:bg-orange-100">
+                  <AccordionItem value="idp" className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg shadow-sm overflow-hidden">
+                    <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-purple-100/50 transition-colors [&[data-state=open]]:bg-purple-100">
                       <div className="flex items-center gap-3 w-full">
-                        <div className="p-2 rounded-lg bg-orange-100">
-                          <FileText className="h-5 w-5 text-orange-600" />
+                        <div className="p-2 rounded-lg bg-purple-100">
+                          <FileText className="h-5 w-5 text-purple-600" />
                         </div>
                         <div className="flex-1 text-left">
-                          <div className="font-semibold text-orange-900 text-base">📄 Document Understanding</div>
-                          <div className="text-xs text-orange-600 mt-0.5">
+                          <div className="font-semibold text-purple-900 text-base">🤖 Document AI</div>
+                          <div className="text-xs text-purple-600 mt-0.5">
                             Extract • Classify • Structure
                             {idpResults?.tables?.length > 0 && (
-                              <span className="ml-2 px-2 py-0.5 bg-orange-200 text-orange-800 rounded-full text-[10px] font-medium">
+                              <span className="ml-2 px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full text-[10px] font-medium">
                                 {idpResults.tables.length} tables
                               </span>
                             )}
@@ -2996,13 +3038,13 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                         )}
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="px-6 pb-6 bg-white/50">
+                    <AccordionContent className="px-6 pb-6 bg-white/50 max-h-[400px] overflow-y-auto">
                       {renderIDPResults()}
                     </AccordionContent>
                   </AccordionItem>
                 )}
 
-                {/* Knowledge Graph Accordion Item */}
+                {/* Knowledge Graph Accordion Item - Moved to fifth position */}
                 {processingConfig?.kg?.enabled && (
                   <AccordionItem value="kg" className="border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg shadow-sm overflow-hidden">
                     <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-emerald-100/50 transition-colors [&[data-state=open]]:bg-emerald-100">
@@ -3026,53 +3068,11 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                         )}
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="px-6 pb-6 bg-white/50">
+                    <AccordionContent className="px-6 pb-6 bg-white/50 max-h-[400px] overflow-y-auto">
                       {renderKGResults()}
                     </AccordionContent>
                   </AccordionItem>
                 )}
-
-                {/* Multimodal Content Accordion Item - Always visible for now */}
-                <AccordionItem value="multimodal" className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-sm overflow-hidden">
-                  <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-green-100/50 transition-colors [&[data-state=open]]:bg-green-100">
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="p-2 rounded-lg bg-green-100">
-                        <Image className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <div className="font-semibold text-green-900 text-base">🖼️ Multimodal Content</div>
-                        <div className="text-xs text-green-600 mt-0.5">
-                          Images • Audio • Video • Charts
-                        </div>
-                      </div>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-6 bg-white/50">
-                    {renderImagesTab()}
-                  </AccordionContent>
-                </AccordionItem>
-
-                {/* Query Testing Interface Accordion Item */}
-                <AccordionItem value="testing" className="border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-sm overflow-hidden">
-                  <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-indigo-100/50 transition-colors [&[data-state=open]]:bg-indigo-100">
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="p-2 rounded-lg bg-indigo-100">
-                        <TestTube className="h-5 w-5 text-indigo-600" />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <div className="font-semibold text-indigo-900 text-base">🧪 Query Testing Interface</div>
-                        <div className="text-xs text-indigo-600 mt-0.5">
-                          Test • Evaluate • Iterate • Optimize
-                        </div>
-                      </div>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-6 bg-white/50">
-                    {renderAgenticResults()}
-                  </AccordionContent>
-                </AccordionItem>
               </Accordion>
             </div>
           </TabsContent>

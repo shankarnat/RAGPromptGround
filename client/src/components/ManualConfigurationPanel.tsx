@@ -415,32 +415,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             </div>
                           )}
                           
-                          {/* View Parsed Output Button */}
-                          {(useCustomParsing || state.promptParsing?.isApplied || isEnabled) && (
-                            <TooltipProvider>
-                              <div className="flex items-center gap-1 mt-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => onViewParsedOutput?.()}
-                                  disabled={disabled}
-                                  className="flex-1 h-7 text-xs justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                                >
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  View Parsed Output
-                                </Button>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent side="right" className="max-w-[200px]">
-                                    <p className="text-xs">See how your document has been parsed into chunks. Review parsing quality and iterate with custom prompts for better results.</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                            </TooltipProvider>
-                          )}
-                          
                           {/* Prepend Metadata Section - moved here from Index Configuration */}
                           <div className="mt-3 pt-3 border-t border-gray-200">
                             <div className="flex items-center justify-between mb-2">
@@ -599,35 +573,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               </Label>
                             </div>
                           </div>
-                          
-                          {/* View Multimodal Button */}
-                          {isEnabled && (processingConfig.rag?.multimodal?.ocr || 
-                                         processingConfig.rag?.multimodal?.transcription || 
-                                         processingConfig.rag?.multimodal?.imageCaption || 
-                                         processingConfig.rag?.multimodal?.visualAnalysis) && (
-                            <TooltipProvider>
-                              <div className="flex items-center gap-1 mt-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => onViewMultimodal?.()}
-                                  disabled={disabled}
-                                  className="flex-1 h-7 text-xs justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                                >
-                                  <Image className="w-3 h-3 mr-1" />
-                                  View Multimodal
-                                </Button>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent side="right" className="max-w-[200px]">
-                                    <p className="text-xs">View extracted images, audio transcriptions, and visual analysis results from your document.</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                            </TooltipProvider>
-                          )}
                           </div>
                           
                           {/* Index Configuration Section */}
