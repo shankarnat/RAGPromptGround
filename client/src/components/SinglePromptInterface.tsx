@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
 import { 
   FileText, 
   Database, 
@@ -14,7 +13,6 @@ import {
   MessageSquare,
   CheckCircle,
   Clock,
-  Search,
   RefreshCw,
   Settings,
   FileSearch,
@@ -104,19 +102,6 @@ const SinglePromptInterface: React.FC<SinglePromptInterfaceProps> = ({
     onProcessStart?.(prompt, autoConfig);
   };
 
-  const handleQuestionSubmit = () => {
-    if (!question.trim()) return;
-    onQuestionSubmit?.(question);
-    setQuestion('');
-  };
-
-  const quickQuestions = [
-    'What is the towing capacity?',
-    'What safety features are included?',
-    'What are the engine specifications?',
-    'What are the vehicle dimensions?',
-    'What features are standard?'
-  ];
 
   if (currentPhase === 'input') {
     return (
@@ -225,18 +210,20 @@ const SinglePromptInterface: React.FC<SinglePromptInterfaceProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleProceed} className="flex-1">
+            <div className="flex flex-col gap-2 pt-2">
+              <Button onClick={handleProceed} className="w-full">
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Proceed with Processing
               </Button>
-              <Button variant="outline" onClick={() => setCurrentPhase('input')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Modify Settings
-              </Button>
-              <Button variant="outline" onClick={() => setCurrentPhase('input')}>
-                Cancel
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setCurrentPhase('input')} className="flex-1 text-sm">
+                  <Settings className="h-4 w-4 mr-1" />
+                  Modify
+                </Button>
+                <Button variant="outline" onClick={() => setCurrentPhase('input')} className="flex-1 text-sm">
+                  Cancel
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -310,58 +297,14 @@ const SinglePromptInterface: React.FC<SinglePromptInterfaceProps> = ({
               </div>
             </div>
 
-            <div className="p-3 bg-white rounded-lg border">
-              <div className="font-medium text-sm mb-2">🎯 Quick Facts Extracted:</div>
-              <div className="space-y-1">
-                {results?.quickFacts?.map((fact: string, index: number) => (
-                  <div key={index} className="text-sm text-gray-600">• {fact}</div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="font-medium text-sm">💬 Ask questions about your document:</div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="What's the towing capacity of the RDX?"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleQuestionSubmit()}
-                  className="flex-1"
-                />
-                <Button onClick={handleQuestionSubmit} disabled={!question.trim()}>
-                  <Search className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <span className="text-xs text-gray-500 self-center">Quick Questions:</span>
-                {quickQuestions.map((q, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => setQuestion(q)}
-                  >
-                    {q}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
             <div className="flex gap-2 pt-2">
               <Button variant="outline" className="flex-1">
                 <FileSearch className="h-4 w-4 mr-2" />
                 View All Results
               </Button>
-              <Button variant="outline" onClick={() => setCurrentPhase('input')}>
+              <Button variant="outline" onClick={() => setCurrentPhase('input')} className="flex-1">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Process Another
-              </Button>
-              <Button variant="outline">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
               </Button>
             </div>
           </CardContent>

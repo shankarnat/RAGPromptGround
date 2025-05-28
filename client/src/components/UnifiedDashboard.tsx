@@ -1793,32 +1793,13 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
             
             {/* Center Panel - Processing Status - expands when left panel is collapsed */}
             <ResizablePanel defaultSize={configPanelCollapsed ? 77 : 60} minSize={40} maxSize={configPanelCollapsed ? 87 : 70}>
-              <div className="h-full p-6 bg-gray-50 overflow-y-auto">
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-2">Processing Document</h2>
-                  <p className="text-gray-600">Your document is being processed with the selected methods</p>
-                </div>
-
-                {/* Pipeline Visualization */}
-                <ProcessingPipelineVisualization
-                  onStepClick={(stepType) => {
-                    console.log('Step clicked:', stepType);
-                  }}
-                  showDependencies={true}
-                  pipelineSteps={state.unifiedProcessing.pipeline.steps}
-                  pipelineStatus={state.unifiedProcessing.pipeline.status}
-                />
-
-                <div className="mt-6 flex justify-center">
-                  <Button 
-                    size="lg"
-                    onClick={() => goToStep("results")}
-                    disabled={
-                      Object.values(state.unifiedProcessing.processingStatus).some(status => status === "processing")
-                    }
-                  >
-                    View Results
-                  </Button>
+              <div className="h-full flex items-center justify-center bg-gray-50">
+                <div className="text-center space-y-4">
+                  <Brain className="h-12 w-12 text-blue-600 animate-pulse mx-auto" />
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium text-gray-800">Processing Document</h3>
+                    <p className="text-gray-600">Your document is being analyzed...</p>
+                  </div>
                 </div>
               </div>
             </ResizablePanel>
