@@ -106,6 +106,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const [selectedPreset, setSelectedPreset] = useState<string>("custom");
   const [documentReady, setDocumentReady] = useState(false);
   const [basicAnalysis, setBasicAnalysis] = useState<any>(null);
+  const [activeAccordion, setActiveAccordion] = useState<string>("rag");
   const multimodalUpdateRef = useRef<boolean>(false);
   const [lastProcessedConfig, setLastProcessedConfig] = useState<any>(null);
   const [configChanged, setConfigChanged] = useState(false);
@@ -1389,6 +1390,9 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const [selectedMetadataFilters, setSelectedMetadataFilters] = useState<string[]>([]);
   const [prependMetadata, setPrependMetadata] = useState(false);
   const [prependedFields, setPrependedFields] = useState<string[]>([]);
+  const [documentFileType, setDocumentFileType] = useState<string>('pdf');
+  const [saveDLO, setSaveDLO] = useState(false);
+  const [dloName, setDloName] = useState('');
   
   // Handler for sidebar collapse state changes
   const handleConfigPanelCollapse = useCallback((collapsed: boolean) => {
@@ -1427,24 +1431,36 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     setConfigChanged(true);
   }, []);
   
-  // Navigation handlers for the buttons
-  const handleViewParsedOutput = useCallback(() => {
-    // Switch to RAG tab in results
+  // Unified sync and preview handler
+  const handleSyncAndPreview = useCallback((section: string) => {
+    // Apply any pending configurations if needed
+    if (configChanged && (section === 'parsing' || section === 'chunking')) {
+      handleProcessDocument();
+    }
+    
+    // Navigate to results view and open appropriate tab + accordion
     setCurrentStep("results");
-    setActiveResultsTab("rag");
-  }, []);
-  
-  const handleViewMultimodal = useCallback(() => {
-    // Switch to Images tab in results
-    setCurrentStep("results");
-    setActiveResultsTab("images");
-  }, []);
-  
-  const handleEvaluateIndex = useCallback(() => {
-    // Switch to Evaluate and Test tab in results
-    setCurrentStep("results");
-    setActiveResultsTab("test");
-  }, []);
+    setActiveResultsTab("test"); // Always go to "Evaluate and Test" tab
+    
+    switch (section) {
+      case 'parsing':
+      case 'chunking':
+        setActiveAccordion("rag");
+        break;
+      case 'multimodal':
+        // For multimodal, it's always visible at bottom - just navigate to test tab
+        break;
+      case 'index':
+        // For index/test, it's always visible at bottom - just navigate to test tab  
+        break;
+      case 'document':
+        setActiveAccordion("idp");
+        break;
+      case 'kg':
+        setActiveAccordion("kg");
+        break;
+    }
+  }, [configChanged, handleProcessDocument]);
   
   const manualConfigPanelProps = useMemo(() => ({
     processingTypes,
@@ -1482,15 +1498,20 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     onTogglePrependMetadata: handleTogglePrependMetadata,
     prependedFields,
     onPrependedFieldsChange: handlePrependedFieldsChange,
-    metadataFields: state.metadataFields?.map(field => ({
+    metadataFields: state.metadataFields?.map((field: any) => ({
       id: String(field.id),
       name: field.name,
-      type: String(field.type)
+      type: field.type || 'string'
     })) || [],
-    // Navigation handlers
-    onViewParsedOutput: handleViewParsedOutput,
-    onViewMultimodal: handleViewMultimodal,
-    onEvaluateIndex: handleEvaluateIndex
+    // Sync and preview handler
+    onSyncAndPreview: handleSyncAndPreview,
+    // Document AI props
+    documentFileType,
+    onDocumentFileTypeChange: setDocumentFileType,
+    saveDLO,
+    onToggleSaveDLO: setSaveDLO,
+    dloName,
+    onDloNameChange: setDloName
   }), [
     processingTypes,
     processingConfig,
@@ -1516,9 +1537,10 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     prependedFields,
     handlePrependedFieldsChange,
     state.metadataFields,
-    handleViewParsedOutput,
-    handleViewMultimodal,
-    handleEvaluateIndex
+    handleSyncAndPreview,
+    documentFileType,
+    saveDLO,
+    dloName
   ]);
 
   const renderContent = () => {
@@ -1818,6 +1840,8 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                       onClearPromptParsing={clearPromptParsing}
                       activeTab={activeResultsTab}
                       onTabChange={setActiveResultsTab}
+                      activeAccordion={activeAccordion}
+                      onAccordionChange={setActiveAccordion}
                     />
                   )}
                 </div>

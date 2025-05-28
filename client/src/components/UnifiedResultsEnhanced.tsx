@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import UnifiedSearchEnhanced from '@/components/UnifiedSearchEnhanced';
 import { TestingInterface } from '@/components/TestingInterface';
 import { ExtractedTablesDisplay } from '@/components/ExtractedTablesDisplay';
@@ -208,6 +209,8 @@ interface UnifiedResultsEnhancedProps {
   onClearPromptParsing?: () => void;
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  activeAccordion?: string;
+  onAccordionChange?: (value: string) => void;
 }
 
 // Simple Markdown renderer for RAG chunks
@@ -357,13 +360,20 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   onApplyPromptParsing,
   onClearPromptParsing,
   activeTab: externalActiveTab,
-  onTabChange
+  onTabChange,
+  activeAccordion,
+  onAccordionChange
 }) => {
   const [internalActiveTab, setInternalActiveTab] = useState<'source' | 'all' | 'rag' | 'kg' | 'idp' | 'test' | 'images'>('test');
+  const [internalActiveAccordion, setInternalActiveAccordion] = useState<string>('rag');
   
   // Use external activeTab if provided, otherwise use internal state
   const activeTab = externalActiveTab || internalActiveTab;
   const setActiveTab = onTabChange || setInternalActiveTab;
+  
+  // Use external activeAccordion if provided, otherwise use internal state
+  const currentActiveAccordion = activeAccordion || internalActiveAccordion;
+  const setActiveAccordion = onAccordionChange || setInternalActiveAccordion;
   const [showTestingInterface, setShowTestingInterface] = useState(false);
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const [imageViewMode, setImageViewMode] = useState<'grid' | 'list'>('grid');
@@ -2915,57 +2925,99 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <TabsList className="w-full justify-start mb-4">
             <TabsTrigger value="source" className="flex items-center gap-2">
               <File className="h-4 w-4" />
-              Source Doc
+              Source Data
             </TabsTrigger>
             <TabsTrigger value="test" className="flex items-center gap-2 bg-indigo-100">
               <BrainCircuit className="h-4 w-4" />
               Evaluate and Test
             </TabsTrigger>
-            <TabsTrigger 
-              value="rag" 
-              className="flex items-center gap-2"
-              onClick={() => {
-                // Trigger DC Agent for prompt input when RAG tab is clicked
-                if (!isPromptApplied && testResults.length > 0 && testResults[testResults.length - 1].actualAnswer === 'Answer not able to find') {
-                  // This would trigger DC Agent integration
-                  console.log('Triggering DC Agent for prompt-based parsing');
-                  // In a real implementation, this would open DC Agent interface
-                }
-              }}
-            >
-              <Database className="h-4 w-4" />
-              RAG
-            </TabsTrigger>
-            {/* Only show Document Intelligence tab when the IDP checkbox is enabled */}
-            {processingConfig?.idp?.enabled && (
-              <TabsTrigger value="idp" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Document Intelligence
-              </TabsTrigger>
-            )}
-            {/* Knowledge Graph tab - only shown when KG checkbox is checked */}
-            {processingConfig?.kg?.enabled && (
-              <TabsTrigger value="kg" className="flex items-center gap-2">
-                <Network className="h-4 w-4" />
-                Knowledge Graph
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="images" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              Images
-            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="source">{renderSourceDocument()}</TabsContent>
-          <TabsContent value="test">{renderAgenticResults()}</TabsContent>
-          <TabsContent value="rag">{renderRAGResults()}</TabsContent>
-          {processingConfig?.idp?.enabled && (
-            <TabsContent value="idp">{renderIDPResults()}</TabsContent>
-          )}
-          {processingConfig?.kg?.enabled && (
-            <TabsContent value="kg">{renderKGResults()}</TabsContent>
-          )}
-          <TabsContent value="images">{renderImagesTab()}</TabsContent>
+          <TabsContent value="test">
+            <div className="space-y-4">
+              {/* Main collapsible sections */}
+              <Accordion 
+                type="single" 
+                collapsible 
+                value={currentActiveAccordion}
+                onValueChange={setActiveAccordion}
+                className="w-full"
+              >
+                {/* RAG Accordion Item - Default expanded */}
+                <AccordionItem value="rag" className="border-blue-200 bg-blue-50">
+                  <AccordionTrigger className="hover:no-underline px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Database className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium text-blue-900">RAG Results</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    {renderRAGResults()}
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Document Understanding (IDP) Accordion Item */}
+                {processingConfig?.idp?.enabled && (
+                  <AccordionItem value="idp" className="border-orange-200 bg-orange-50">
+                    <AccordionTrigger className="hover:no-underline px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-orange-600" />
+                        <span className="font-medium text-orange-900">Document Understanding</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      {renderIDPResults()}
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+
+                {/* Knowledge Graph Accordion Item */}
+                {processingConfig?.kg?.enabled && (
+                  <AccordionItem value="kg" className="border-emerald-200 bg-emerald-50">
+                    <AccordionTrigger className="hover:no-underline px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Network className="h-4 w-4 text-emerald-600" />
+                        <span className="font-medium text-emerald-900">Knowledge Graph</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      {renderKGResults()}
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+              </Accordion>
+
+              {/* Always visible sections at bottom */}
+              <div className="space-y-3 mt-6 border-t pt-4">
+                {/* Images Section - Always Visible */}
+                <Card className="border-green-200 bg-green-50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-green-900">
+                      <Image className="h-4 w-4 text-green-600" />
+                      Multimodal Content
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    {renderImagesTab()}
+                  </CardContent>
+                </Card>
+
+                {/* Evaluate and Test Section - Always Visible */}
+                <Card className="border-indigo-200 bg-indigo-50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-indigo-900">
+                      <TestTube className="h-4 w-4 text-indigo-600" />
+                      Query Testing Interface
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    {renderAgenticResults()}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </>
