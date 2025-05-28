@@ -1503,6 +1503,22 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
       name: field.name,
       type: field.type || 'string'
     })) || [],
+    // View handlers for the eye buttons
+    onViewParsedOutput: () => {
+      setCurrentStep("results");
+      setActiveResultsTab("test");
+      setActiveAccordion("rag");
+    },
+    onViewMultimodal: () => {
+      setCurrentStep("results");
+      setActiveResultsTab("test");
+      // Multimodal is always visible at bottom
+    },
+    onEvaluateIndex: () => {
+      setCurrentStep("results");
+      setActiveResultsTab("test");
+      // Index evaluation is always visible at bottom
+    },
     // Sync and preview handler
     onSyncAndPreview: handleSyncAndPreview,
     // Document AI props

@@ -2942,31 +2942,61 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 collapsible 
                 value={currentActiveAccordion}
                 onValueChange={setActiveAccordion}
-                className="w-full"
+                className="w-full space-y-3"
               >
-                {/* RAG Accordion Item - Default expanded */}
-                <AccordionItem value="rag" className="border-blue-200 bg-blue-50">
-                  <AccordionTrigger className="hover:no-underline px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Database className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium text-blue-900">RAG Results</span>
+                {/* RAG Accordion Item - Enhanced styling */}
+                <AccordionItem value="rag" className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-blue-100/50 transition-colors [&[data-state=open]]:bg-blue-100">
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="p-2 rounded-lg bg-blue-100">
+                        <Database className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="font-semibold text-blue-900 text-base">🔍 RAG Results</div>
+                        <div className="text-xs text-blue-600 mt-0.5">
+                          Parse • Chunk • Index • Search
+                          {ragResults?.chunks?.length > 0 && (
+                            <span className="ml-2 px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full text-[10px] font-medium">
+                              {ragResults.chunks.length} chunks
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {ragResults?.chunks?.length > 0 && (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      )}
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
+                  <AccordionContent className="px-6 pb-6 bg-white/50">
                     {renderRAGResults()}
                   </AccordionContent>
                 </AccordionItem>
 
                 {/* Document Understanding (IDP) Accordion Item */}
                 {processingConfig?.idp?.enabled && (
-                  <AccordionItem value="idp" className="border-orange-200 bg-orange-50">
-                    <AccordionTrigger className="hover:no-underline px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-orange-600" />
-                        <span className="font-medium text-orange-900">Document Understanding</span>
+                  <AccordionItem value="idp" className="border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg shadow-sm overflow-hidden">
+                    <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-orange-100/50 transition-colors [&[data-state=open]]:bg-orange-100">
+                      <div className="flex items-center gap-3 w-full">
+                        <div className="p-2 rounded-lg bg-orange-100">
+                          <FileText className="h-5 w-5 text-orange-600" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="font-semibold text-orange-900 text-base">📄 Document Understanding</div>
+                          <div className="text-xs text-orange-600 mt-0.5">
+                            Extract • Classify • Structure
+                            {idpResults?.tables?.length > 0 && (
+                              <span className="ml-2 px-2 py-0.5 bg-orange-200 text-orange-800 rounded-full text-[10px] font-medium">
+                                {idpResults.tables.length} tables
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {idpResults?.tables?.length > 0 && (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        )}
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
+                    <AccordionContent className="px-6 pb-6 bg-white/50">
                       {renderIDPResults()}
                     </AccordionContent>
                   </AccordionItem>
@@ -2974,14 +3004,29 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
 
                 {/* Knowledge Graph Accordion Item */}
                 {processingConfig?.kg?.enabled && (
-                  <AccordionItem value="kg" className="border-emerald-200 bg-emerald-50">
-                    <AccordionTrigger className="hover:no-underline px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Network className="h-4 w-4 text-emerald-600" />
-                        <span className="font-medium text-emerald-900">Knowledge Graph</span>
+                  <AccordionItem value="kg" className="border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg shadow-sm overflow-hidden">
+                    <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-emerald-100/50 transition-colors [&[data-state=open]]:bg-emerald-100">
+                      <div className="flex items-center gap-3 w-full">
+                        <div className="p-2 rounded-lg bg-emerald-100">
+                          <Network className="h-5 w-5 text-emerald-600" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="font-semibold text-emerald-900 text-base">🕸️ Knowledge Graph</div>
+                          <div className="text-xs text-emerald-600 mt-0.5">
+                            Entities • Relations • Graph
+                            {kgResults?.entities?.length > 0 && (
+                              <span className="ml-2 px-2 py-0.5 bg-emerald-200 text-emerald-800 rounded-full text-[10px] font-medium">
+                                {kgResults.entities.length} entities
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {kgResults?.entities?.length > 0 && (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        )}
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
+                    <AccordionContent className="px-6 pb-6 bg-white/50">
                       {renderKGResults()}
                     </AccordionContent>
                   </AccordionItem>
@@ -2989,29 +3034,43 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
               </Accordion>
 
               {/* Always visible sections at bottom */}
-              <div className="space-y-3 mt-6 border-t pt-4">
+              <div className="space-y-3 mt-8 border-t-2 border-gray-200 pt-6">
                 {/* Images Section - Always Visible */}
-                <Card className="border-green-200 bg-green-50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2 text-green-900">
-                      <Image className="h-4 w-4 text-green-600" />
-                      Multimodal Content
+                <Card className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-sm overflow-hidden">
+                  <CardHeader className="pb-3 bg-green-100/50 border-b border-green-200">
+                    <CardTitle className="text-base flex items-center gap-3 text-green-900">
+                      <div className="p-2 rounded-lg bg-green-100">
+                        <Image className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold">🖼️ Multimodal Content</div>
+                        <div className="text-xs text-green-600 font-normal mt-0.5">
+                          Images • Audio • Video • Charts
+                        </div>
+                      </div>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-4 bg-white/50">
                     {renderImagesTab()}
                   </CardContent>
                 </Card>
 
                 {/* Evaluate and Test Section - Always Visible */}
-                <Card className="border-indigo-200 bg-indigo-50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2 text-indigo-900">
-                      <TestTube className="h-4 w-4 text-indigo-600" />
-                      Query Testing Interface
+                <Card className="border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-sm overflow-hidden">
+                  <CardHeader className="pb-3 bg-indigo-100/50 border-b border-indigo-200">
+                    <CardTitle className="text-base flex items-center gap-3 text-indigo-900">
+                      <div className="p-2 rounded-lg bg-indigo-100">
+                        <TestTube className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold">🧪 Query Testing Interface</div>
+                        <div className="text-xs text-indigo-600 font-normal mt-0.5">
+                          Test • Evaluate • Iterate • Optimize
+                        </div>
+                      </div>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-4 bg-white/50">
                     {renderAgenticResults()}
                   </CardContent>
                 </Card>

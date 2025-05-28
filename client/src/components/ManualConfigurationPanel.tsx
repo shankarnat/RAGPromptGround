@@ -176,7 +176,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
               </h3>
               <Button 
                 size="sm"
-                onClick={() => onProcessDocument && !disabled && onProcessDocument()}
+                onClick={() => onProcessDocument && onProcessDocument()}
                 disabled={disabled || !activeMethods.length}
                 className={`${highlightProcessButton ? 'bg-green-600 hover:bg-green-700' : ''} ${pulseEffect ? 'animate-pulse' : ''}`}
               >
@@ -198,7 +198,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                       <div className="flex items-start gap-3">
                         <Checkbox
                           checked={isEnabled}
-                          onCheckedChange={(checked) => !disabled && handleProcessingToggle(type.id, checked as boolean, true)}
+                          onCheckedChange={(checked) => handleProcessingToggle(type.id, checked as boolean, true)}
                           disabled={disabled}
                           className="mt-0.5"
                         />
@@ -245,7 +245,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <Checkbox
                                 id={`kg-${option}`}
                                 checked={processingConfig.kg?.[option] || false}
-                                onCheckedChange={(checked) => !disabled && handleOptionToggle('kg', option, checked as boolean)}
+                                onCheckedChange={(checked) => handleOptionToggle('kg', option, checked as boolean)}
                                 disabled={disabled}
                                 className="h-3 w-3"
                               />
@@ -268,7 +268,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <Checkbox
                                 id={`idp-${option}`}
                                 checked={processingConfig.idp?.[option] || false}
-                                onCheckedChange={(checked) => !disabled && handleOptionToggle('idp', option, checked as boolean)}
+                                onCheckedChange={(checked) => handleOptionToggle('idp', option, checked as boolean)}
                                 disabled={disabled}
                                 className="h-3 w-3"
                               />
@@ -281,16 +281,37 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                       </div>
                     )}
 
-                    {/* Inline chunking, multimodal, and prompt parsing for RAG when enabled */}
+                    {/* Group 1: Parse & Index Configuration for RAG */}
                     {isRAG && isEnabled && (
-                      <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200 space-y-3">
+                      <div className="mt-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                        <div className="mb-3">
+                          <h4 className="text-sm font-semibold text-blue-900 mb-1">🔍 Parse & Index Configuration</h4>
+                          <p className="text-xs text-blue-600">Configure how documents are parsed, chunked, and indexed</p>
+                        </div>
+                        <div className="space-y-4">
+                          {/* Parse and Chunk Section */}
+                          <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="text-xs font-medium text-blue-900">📊 Parse and Chunk</h5>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-blue-100"
+                                onClick={() => onViewParsedOutput?.()}
+                                disabled={disabled}
+                                title="Preview parsed chunks and metadata"
+                              >
+                                <Eye className="h-4 w-4 text-blue-700" />
+                              </Button>
+                            </div>
+                            <div className="space-y-3">
                         {/* Chunking settings */}
                         <div className="grid grid-cols-3 gap-2">
                           <div>
                             <label className="text-xs text-gray-600">Method</label>
                             <Select
                               value={state.chunkingMethod?.value || 'sentence'}
-                              onValueChange={(value) => !disabled && updateChunkingMethod({ value, label: value })}
+                              onValueChange={(value) => updateChunkingMethod({ value, label: value })}
                               disabled={disabled}
                             >
                               <SelectTrigger className="h-8 text-xs">
@@ -310,7 +331,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             <Input
                               type="number"
                               value={state.chunkSize}
-                              onChange={(e) => !disabled && updateChunkSize(parseInt(e.target.value))}
+                              onChange={(e) => updateChunkSize(parseInt(e.target.value))}
                               className="h-8 text-xs"
                               disabled={disabled}
                             />
@@ -322,7 +343,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             <Input
                               type="number"
                               value={state.chunkOverlap}
-                              onChange={(e) => !disabled && updateChunkOverlap(parseInt(e.target.value))}
+                              onChange={(e) => updateChunkOverlap(parseInt(e.target.value))}
                               className="h-8 text-xs"
                               disabled={disabled}
                             />
@@ -338,7 +359,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             <Switch
                               id="useCustomParsing"
                               checked={useCustomParsing || state.promptParsing?.isApplied}
-                              onCheckedChange={(checked) => !disabled && onToggleCustomParsing?.(checked)}
+                              onCheckedChange={(checked) => onToggleCustomParsing?.(checked)}
                               disabled={disabled}
                               className="h-4 w-7"
                             />
@@ -348,7 +369,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <Textarea
                                 placeholder="Enter custom instructions for parsing (e.g., 'Extract all warranty information and technical specifications')"
                                 value={parsingInstructions || state.promptParsing?.customPrompt || ""}
-                                onChange={(e) => !disabled && onParsingInstructionsChange?.(e.target.value)}
+                                onChange={(e) => onParsingInstructionsChange?.(e.target.value)}
                                 className="h-16 text-xs resize-none"
                                 disabled={disabled}
                               />
@@ -396,17 +417,30 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               </div>
                             </TooltipProvider>
                           )}
-                        </div>
-                        
-                        {/* Multimodal options */}
-                        <div className="border-t pt-2">
-                          <h5 className="text-xs font-medium text-gray-700 mb-2">Multimodal</h5>
+                            </div>
+                          </div>
+                          
+                          {/* Multimodal Section */}
+                          <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="text-xs font-medium text-blue-900">🎯 Multimodal</h5>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-blue-100"
+                                onClick={() => onViewMultimodal?.()}
+                                disabled={disabled}
+                                title="Preview extracted multimodal content"
+                              >
+                                <Eye className="h-4 w-4 text-blue-700" />
+                              </Button>
+                            </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div className="flex items-center gap-2">
                               <Switch
                                 id="ocr"
                                 checked={processingConfig.rag?.multimodal?.ocr || false}
-                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'ocr', checked)}
+                                onCheckedChange={(checked) => handleOptionToggle('rag', 'ocr', checked)}
                                 disabled={disabled}
                               />
                               <Label htmlFor="ocr" className="text-xs cursor-pointer flex items-center gap-1">
@@ -417,7 +451,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <Switch
                                 id="transcription"
                                 checked={processingConfig.rag?.multimodal?.transcription || false}
-                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'transcription', checked)}
+                                onCheckedChange={(checked) => handleOptionToggle('rag', 'transcription', checked)}
                                 disabled={disabled}
                               />
                               <Label htmlFor="transcription" className="text-xs cursor-pointer flex items-center gap-1">
@@ -428,7 +462,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <Switch
                                 id="imageCaption"
                                 checked={processingConfig.rag?.multimodal?.imageCaption || false}
-                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'imageCaption', checked)}
+                                onCheckedChange={(checked) => handleOptionToggle('rag', 'imageCaption', checked)}
                                 disabled={disabled}
                               />
                               <Label htmlFor="imageCaption" className="text-xs cursor-pointer flex items-center gap-1">
@@ -439,7 +473,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <Switch
                                 id="visualAnalysis"
                                 checked={processingConfig.rag?.multimodal?.visualAnalysis || false}
-                                onCheckedChange={(checked) => !disabled && handleOptionToggle('rag', 'visualAnalysis', checked)}
+                                onCheckedChange={(checked) => handleOptionToggle('rag', 'visualAnalysis', checked)}
                                 disabled={disabled}
                               />
                               <Label htmlFor="visualAnalysis" className="text-xs cursor-pointer flex items-center gap-1">
@@ -476,42 +510,51 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               </div>
                             </TooltipProvider>
                           )}
-                        </div>
-                        
-                        {/* Embedding Model Selection */}
-                        <div className="border-t pt-2">
-                          <h5 className="text-xs font-medium text-gray-700 mb-2">Embedding Model</h5>
-                          <Select
-                            value={selectedEmbeddingModel}
-                            onValueChange={(value) => !disabled && onEmbeddingModelChange?.(value)}
-                            disabled={disabled}
-                          >
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="Select embedding model" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {embeddingModels.map(model => (
-                                <SelectItem key={model.id} value={model.id} className="text-xs">
-                                  <div className="flex items-center gap-2">
-                                    <Sparkles className="w-3 h-3" />
-                                    <span>{model.name}</span>
-                                    {model.isRecommended && (
-                                      <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1 h-4">
-                                        Recommended
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        {/* Index Configuration */}
-                        <div className="border-t pt-2">
-                          <h5 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
-                            <Settings className="w-3 h-3" /> Index Configuration
-                          </h5>
+                          </div>
+                          
+                          {/* Index Configuration Section */}
+                          <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="text-xs font-medium text-blue-900">⚙️ Index Configuration</h5>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-blue-100"
+                                onClick={() => onEvaluateIndex?.()}
+                                disabled={disabled}
+                                title="Preview index configuration and test queries"
+                              >
+                                <Eye className="h-4 w-4 text-blue-700" />
+                              </Button>
+                            </div>
+                            <div className="space-y-3">
+                              <div>
+                                <Label className="text-xs text-blue-800 mb-1 block">Embedding Model</Label>
+                                <Select
+                                  value={selectedEmbeddingModel}
+                                  onValueChange={(value) => onEmbeddingModelChange?.(value)}
+                                  disabled={disabled}
+                                >
+                                  <SelectTrigger className="h-8 text-xs border-blue-200 focus:border-blue-400">
+                                    <SelectValue placeholder="Select embedding model" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {embeddingModels.map(model => (
+                                      <SelectItem key={model.id} value={model.id} className="text-xs">
+                                        <div className="flex items-center gap-2">
+                                          <Sparkles className="w-3 h-3" />
+                                          <span>{model.name}</span>
+                                          {model.isRecommended && (
+                                            <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1 h-4">
+                                              Recommended
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
                           
                           {/* Metadata Filter */}
                           <div className="space-y-2">
@@ -600,7 +643,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 <Switch
                                   id="prependMetadata"
                                   checked={prependMetadata}
-                                  onCheckedChange={(checked) => !disabled && onTogglePrependMetadata?.(checked)}
+                                  onCheckedChange={(checked) => onTogglePrependMetadata?.(checked)}
                                   disabled={disabled}
                                   className="h-4 w-7"
                                 />
@@ -714,7 +757,9 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             </div>
                           </TooltipProvider>
                         )}
-                        
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
