@@ -62,7 +62,8 @@ import {
   List,
   FileSearch,
   TestTube,
-  CheckCircle
+  CheckCircle,
+  RefreshCw
 } from 'lucide-react';
 
 interface RAGResults {
@@ -2020,12 +2021,27 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 <BrainCircuit className="h-5 w-5 text-purple-500" />
                 <CardTitle>Evaluate and Test</CardTitle>
               </div>
-              {isPromptApplied && (
-                <Badge variant="default" className="text-xs">
-                  <Wand2 className="h-3 w-3 mr-1" />
-                  Prompt-based Parsing Active
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                {isPromptApplied && (
+                  <Badge variant="default" className="text-xs">
+                    <Wand2 className="h-3 w-3 mr-1" />
+                    Prompt-based Parsing Active
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const sampleQuery = "What are the key specifications of the Acura RDX?";
+                    setAgenticQuery(sampleQuery);
+                    handleAgenticQueryClick(sampleQuery);
+                  }}
+                  className="h-8 w-8"
+                  title="Refresh test results"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -2919,6 +2935,19 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
             <BrainCircuit className="h-6 w-6 text-purple-500" />
             <h2 className="text-2xl font-semibold">Content Understanding</h2>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              const sampleQuery = "What are the key specifications of the Acura RDX?";
+              setAgenticQuery(sampleQuery);
+              handleAgenticQueryClick(sampleQuery);
+            }}
+            className="h-8 w-8"
+            title="Refresh all results"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
         </div>
         
         <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="flex-1">
@@ -2952,9 +2981,9 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                         <Database className="h-5 w-5 text-blue-600" />
                       </div>
                       <div className="flex-1 text-left">
-                        <div className="font-semibold text-blue-900 text-base">🔍 RAG Results</div>
+                        <div className="font-semibold text-blue-900 text-base">🔍 Parse.Chunk</div>
                         <div className="text-xs text-blue-600 mt-0.5">
-                          Parse • Chunk • Index • Search
+                          Parse • Chunk
                           {ragResults?.chunks?.length > 0 && (
                             <span className="ml-2 px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full text-[10px] font-medium">
                               {ragResults.chunks.length} chunks
@@ -3001,9 +3030,9 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                         <TestTube className="h-5 w-5 text-indigo-600" />
                       </div>
                       <div className="flex-1 text-left">
-                        <div className="font-semibold text-indigo-900 text-base">🧪 Test & Evaluate</div>
+                        <div className="font-semibold text-indigo-900 text-base">🧪 Index Configuration</div>
                         <div className="text-xs text-indigo-600 mt-0.5">
-                          Test • Evaluate • Iterate • Optimize
+                          Index Configuration
                         </div>
                       </div>
                       <CheckCircle className="h-4 w-4 text-green-600" />
