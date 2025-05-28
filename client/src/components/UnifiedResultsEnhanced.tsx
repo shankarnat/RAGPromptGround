@@ -930,9 +930,9 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <CardContent>
             <div className="grid grid-cols-3 gap-3">
               {(idpResults?.extractedData?.images?.slice(0, 3) || [
-                { id: 1, url: '/attached_assets/img1.png', caption: 'Vehicle specifications extracted via OCR' },
-                { id: 2, url: '/attached_assets/img2.png', caption: 'Dashboard features identified through vision AI' },
-                { id: 3, url: '/attached_assets/img3.png', caption: 'Engine details captured from technical documentation' }
+                { id: 1, url: '/img1.png', caption: 'Vehicle specifications extracted via OCR' },
+                { id: 2, url: '/img2.png', caption: 'Dashboard features identified through vision AI' },
+                { id: 3, url: '/img3.png', caption: 'Engine details captured from technical documentation' }
               ]).map((image) => (
                 <div key={image.id} className="relative group">
                   <div className="aspect-square overflow-hidden rounded-lg border border-green-200">
