@@ -373,11 +373,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
   const currentActiveAccordion = activeAccordion || internalActiveAccordion;
   const setActiveAccordion = onAccordionChange || setInternalActiveAccordion;
   const [showTestingInterface, setShowTestingInterface] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<any>(null);
-  const [imageViewMode, setImageViewMode] = useState<'grid' | 'list'>('grid');
   const [expandedJson, setExpandedJson] = useState<string[]>([]);
   const [jsonSearchQuery, setJsonSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
   // Handle tab switching if the current tab is disabled
   useEffect(() => {

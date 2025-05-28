@@ -187,304 +187,26 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
               </Button>
             </div>
 
-            {/* Accordion-based processing configuration */}
-            <Accordion type="multiple" className="space-y-2">
-              {/* RAG Processing Accordion */}
-              <AccordionItem value="rag" className="border rounded-lg">
-                <AccordionTrigger className="hover:no-underline px-4 py-3">
-                  <div className="flex items-center gap-3 w-full">
-                    <Checkbox
-                      checked={processingConfig.rag?.enabled || false}
-                      onCheckedChange={(checked) => handleProcessingToggle('rag', checked as boolean, true)}
-                      disabled={disabled}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <FileSearch className={`w-4 h-4 ${processingConfig.rag?.enabled ? 'text-blue-600' : 'text-gray-400'}`} />
-                    <span className="text-left font-medium">🔍 RAG Processing</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  {processingConfig.rag?.enabled && (
-                    <div className="space-y-4">
-                      {/* Parse & Chunk Configuration */}
-                      <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="text-sm font-semibold text-blue-900">🔍 Parse & Chunk</h4>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 hover:bg-blue-100"
-                              onClick={() => onViewParsedOutput?.()}
-                              disabled={disabled}
-                              title="Content Understanding - Chunk"
-                            >
-                              <Eye className="h-4 w-4 text-blue-700" />
-                            </Button>
-                          </div>
-                          <p className="text-xs text-blue-600">Configure document parsing and chunking strategy</p>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <label className="text-xs text-gray-600">Chunking Method</label>
-                              <Select
-                                value={state.chunkingMethod?.value || 'sentence'}
-                                onValueChange={(value) => updateChunkingMethod({ value, label: value })}
-                                disabled={disabled}
-                              >
-                                <SelectTrigger className="h-7 text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="sentence">Sentence</SelectItem>
-                                  <SelectItem value="paragraph">Paragraph</SelectItem>
-                                  <SelectItem value="semantic">Semantic</SelectItem>
-                                  <SelectItem value="fixed">Fixed Size</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-600">Size</label>
-                              <Input
-                                type="number"
-                                value={state.chunkSize || 1000}
-                                onChange={(e) => updateChunkSize(parseInt(e.target.value))}
-                                disabled={disabled}
-                                className="h-7 text-xs"
-                                min="100"
-                                max="8000"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-600">Overlap</label>
-                              <Input
-                                type="number"
-                                value={state.chunkOverlap || 200}
-                                onChange={(e) => updateChunkOverlap(parseInt(e.target.value))}
-                                disabled={disabled}
-                                className="h-7 text-xs"
-                                min="0"
-                                max="500"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Multimodal Configuration */}
-                      <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="text-sm font-semibold text-green-900">🖼️ Multimodal</h4>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 hover:bg-blue-100"
-                              onClick={() => onViewMultimodal?.()}
-                              disabled={disabled}
-                              title="Content Understanding - Multimodal"
-                            >
-                              <Eye className="h-4 w-4 text-blue-700" />
-                            </Button>
-                          </div>
-                          <p className="text-xs text-green-600">Configure multimodal content extraction</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
+            {/* Compact processing method cards */}
+            <div className="space-y-2">
+              {processingTypes.map(type => {
+                const Icon = type.icon;
+                const isEnabled = processingConfig[type.id]?.enabled || false;
+                const isRAG = type.id === 'rag';
+                
+                return (
+                  <div key={type.id}>
+                    <Card className={`p-3 cursor-pointer transition-all ${isEnabled ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={isEnabled}
+                          onCheckedChange={(checked) => handleProcessingToggle(type.id, checked as boolean, true)}
+                          disabled={disabled}
+                          className="mt-0.5"
+                        />
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <Switch
-                              id="ocr-enabled"
-                              checked={processingConfig.rag?.ocrExtraction || false}
-                              onCheckedChange={(checked) => handleOptionToggle('rag', 'ocrExtraction', checked)}
-                              disabled={disabled}
-                              className="h-4 w-7"
-                            />
-                            <div className="flex items-center gap-1">
-                              <Eye className="w-3 h-3" /> OCR
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id="audio-transcription"
-                              checked={processingConfig.rag?.audioTranscription || false}
-                              onCheckedChange={(checked) => handleOptionToggle('rag', 'audioTranscription', checked)}
-                              disabled={disabled}
-                              className="h-4 w-7"
-                            />
-                            <div className="flex items-center gap-1">
-                              <Mic className="w-3 h-3" /> Audio
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id="visual-analysis"
-                              checked={processingConfig.rag?.visualAnalysis || false}
-                              onCheckedChange={(checked) => handleOptionToggle('rag', 'visualAnalysis', checked)}
-                              disabled={disabled}
-                              className="h-4 w-7"
-                            />
-                            <div className="flex items-center gap-1">
-                              <ScanEye className="w-3 h-3" /> Visual
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id="image-captioning"
-                              checked={processingConfig.rag?.imageCaptioning || false}
-                              onCheckedChange={(checked) => handleOptionToggle('rag', 'imageCaptioning', checked)}
-                              disabled={disabled}
-                              className="h-4 w-7"
-                            />
-                            <div className="flex items-center gap-1">
-                              <Image className="w-3 h-3" /> Caption
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Index Configuration */}
-                      <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="text-sm font-semibold text-indigo-900">🧪 Index Configuration</h4>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 hover:bg-blue-100"
-                              onClick={() => onEvaluateIndex?.()}
-                              disabled={disabled}
-                              title="Content Understanding - Index Config"
-                            >
-                              <Eye className="h-4 w-4 text-blue-700" />
-                            </Button>
-                          </div>
-                          <p className="text-xs text-indigo-600">Configure vectorization and indexing options</p>
-                        </div>
-                        <div className="space-y-3">
-                          <div>
-                            <Label className="text-xs text-blue-800 mb-1 block">Embedding Model</Label>
-                            <Select 
-                              value={selectedEmbeddingModel} 
-                              onValueChange={onEmbeddingModelChange}
-                              disabled={disabled}
-                            >
-                              <SelectTrigger className="h-7 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {embeddingModels.map(model => (
-                                  <SelectItem key={model.id} value={model.id} className="text-xs">
-                                    {model.name} ({model.dimensions}d)
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Knowledge Graph Accordion */}
-              <AccordionItem value="kg" className="border rounded-lg">
-                <AccordionTrigger className="hover:no-underline px-4 py-3">
-                  <div className="flex items-center gap-3 w-full">
-                    <Checkbox
-                      checked={processingConfig.kg?.enabled || false}
-                      onCheckedChange={(checked) => handleProcessingToggle('kg', checked as boolean, true)}
-                      disabled={disabled}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <Network className={`w-4 h-4 ${processingConfig.kg?.enabled ? 'text-emerald-600' : 'text-gray-400'}`} />
-                    <span className="text-left font-medium">🕸️ Knowledge Graph</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  {processingConfig.kg?.enabled && (
-                    <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                      <h5 className="text-xs font-medium text-gray-700 mb-2">Advanced Graph Options</h5>
-                      <div className="space-y-1">
-                        {['entityExtraction', 'relationMapping', 'graphBuilding'].map(option => (
-                          <div key={option} className="flex items-center gap-2">
-                            <Checkbox
-                              id={`kg-${option}`}
-                              checked={processingConfig.kg?.[option] || false}
-                              onCheckedChange={(checked) => handleOptionToggle('kg', option, checked as boolean)}
-                              disabled={disabled}
-                              className="h-3 w-3"
-                            />
-                            <Label htmlFor={`kg-${option}`} className="text-xs cursor-pointer">
-                              {option.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Document AI Accordion */}
-              <AccordionItem value="idp" className="border rounded-lg">
-                <AccordionTrigger className="hover:no-underline px-4 py-3">
-                  <div className="flex items-center gap-3 w-full">
-                    <Checkbox
-                      checked={processingConfig.idp?.enabled || false}
-                      onCheckedChange={(checked) => handleProcessingToggle('idp', checked as boolean, true)}
-                      disabled={disabled}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <FileText className={`w-4 h-4 ${processingConfig.idp?.enabled ? 'text-purple-600' : 'text-gray-400'}`} />
-                    <span className="text-left font-medium">🤖 Document AI</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  {processingConfig.idp?.enabled && (
-                    <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
-                      <div className="mb-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-sm font-semibold text-purple-900">🤖 Document AI Configuration</h4>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 hover:bg-purple-100"
-                            onClick={() => onViewIDP?.()}
-                            disabled={disabled}
-                            title="Content Understanding - Document AI"
-                          >
-                            <Eye className="h-4 w-4 text-purple-700" />
-                          </Button>
-                        </div>
-                        <p className="text-xs text-purple-600">Configure intelligent document processing and extraction</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="p-3 bg-white rounded-md border border-purple-200 shadow-sm">
-                          <h5 className="text-xs font-medium text-purple-900 mb-2">🔍 Processing Options</h5>
-                          <div className="space-y-1">
-                            {['textExtraction', 'classification', 'metadata'].map(option => (
-                              <div key={option} className="flex items-center gap-2">
-                                <Checkbox
-                                  id={`idp-${option}`}
-                                  checked={processingConfig.idp?.[option] || false}
-                                  onCheckedChange={(checked) => handleOptionToggle('idp', option, checked as boolean)}
-                                  disabled={disabled}
-                                  className="h-3 w-3"
-                                />
-                                <Label htmlFor={`idp-${option}`} className="text-xs cursor-pointer">
-                                  {option.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                                </Label>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                            <Icon className={`w-4 h-4 ${isEnabled ? 'text-blue-600' : 'text-gray-400'}`} />
                             <span className={`font-medium text-sm ${isEnabled ? 'text-blue-900' : 'text-gray-600'}`}>
                               {type.label}
                             </span>
@@ -550,7 +272,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               className="h-6 w-6 p-0 hover:bg-purple-100"
                               onClick={() => onViewIDP?.()}
                               disabled={disabled}
-                              title="Content Understanding - Document AI"
+                              title="Sync and Preview IDP"
                             >
                               <Eye className="h-4 w-4 text-purple-700" />
                             </Button>
@@ -599,7 +321,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 className="h-6 w-6 p-0 hover:bg-blue-100"
                                 onClick={() => onViewParsedOutput?.()}
                                 disabled={disabled}
-                                title="Content Understanding - Chunk"
+                                title="Sync and Preview RAG"
                               >
                                 <Eye className="h-4 w-4 text-blue-700" />
                               </Button>
@@ -800,7 +522,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 className="h-6 w-6 p-0 hover:bg-blue-100"
                                 onClick={() => onViewMultimodal?.()}
                                 disabled={disabled}
-                                title="Content Understanding - Multimodal"
+                                title="Sync and Preview Multimodal"
                               >
                                 <Eye className="h-4 w-4 text-blue-700" />
                               </Button>
@@ -863,7 +585,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 className="h-6 w-6 p-0 hover:bg-blue-100"
                                 onClick={() => onEvaluateIndex?.()}
                                 disabled={disabled}
-                                title="Content Understanding - Index Config"
+                                title="Sync and Preview Index Configuration"
                               >
                                 <Eye className="h-4 w-4 text-blue-700" />
                               </Button>
