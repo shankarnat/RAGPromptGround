@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FileSearch, Network, FileText, PlayCircle, Check, Settings, ChevronRight, ChevronLeft, ChevronDown, Image, Mic, Eye, Layers, Hash, Timer, Sparkles, ScrollText, ScanEye, Filter, Plus, Info, TestTube } from "lucide-react";
+import { FileSearch, Network, FileText, PlayCircle, Check, Settings, ChevronRight, ChevronLeft, ChevronDown, Image, Mic, Eye, Layers, Hash, Timer, Sparkles, ScrollText, ScanEye, ScanLine, Filter, Plus, Info, TestTube } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -59,11 +59,12 @@ interface ManualConfigurationPanelProps {
   onTogglePrependMetadata?: (enabled: boolean) => void;
   prependedFields?: string[];
   onPrependedFieldsChange?: (fields: string[]) => void;
-  metadataFields?: Array<{ id: string; name: string; type: string }>;
+  metadataFields?: string[];
   onViewParsedOutput?: () => void;
   onViewMultimodal?: () => void;
   onEvaluateIndex?: () => void;
   onViewIDP?: () => void;
+  onApplyPromptParsing?: () => void;
 }
 
 const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo(({
@@ -97,7 +98,8 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   onViewParsedOutput,
   onViewMultimodal,
   onEvaluateIndex,
-  onViewIDP
+  onViewIDP,
+  onApplyPromptParsing
 }) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [showMetadataModal, setShowMetadataModal] = useState(false);
@@ -187,566 +189,507 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
               </Button>
             </div>
 
-            {/* Compact processing method cards */}
-            <div className="space-y-2">
-              {processingTypes.map(type => {
-                const Icon = type.icon;
-                const isEnabled = processingConfig[type.id]?.enabled || false;
-                const isRAG = type.id === 'rag';
-                
-                return (
-                  <div key={type.id}>
-                    <Card className={`p-3 cursor-pointer transition-all ${isEnabled ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
-                      <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={isEnabled}
-                          onCheckedChange={(checked) => handleProcessingToggle(type.id, checked as boolean, true)}
-                          disabled={disabled}
-                          className="mt-0.5"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <Icon className={`w-4 h-4 ${isEnabled ? 'text-blue-600' : 'text-gray-400'}`} />
-                            <span className={`font-medium text-sm ${isEnabled ? 'text-blue-900' : 'text-gray-600'}`}>
-                              {type.label}
-                            </span>
-                            {isEnabled && <Check className="w-3 h-3 text-green-600 ml-auto" />}
-                          </div>
-                          {/* Bullet points for features */}
-                          <ul className="text-xs text-gray-500 mt-1 space-y-0.5">
-                            {type.id === 'rag' && (
-                              <>
-                                <li>• Parse multimodal</li>
-                                <li>• Hybrid index</li>
-                              </>
-                            )}
-                            {type.id === 'kg' && (
-                              <>
-                                <li>• Entity extraction</li>
-                                <li>• Relationship mapping</li>
-                              </>
-                            )}
-                            {type.id === 'idp' && (
-                              <>
-                                <li>• Text extraction</li>
-                                <li>• Classification</li>
-                              </>
-                            )}
-                          </ul>
-                        </div>
-                      </div>
-                    </Card>
-                    
-                    {/* Advanced settings for KG when enabled */}
-                    {type.id === 'kg' && isEnabled && (
-                      <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-                        <h5 className="text-xs font-medium text-gray-700 mb-2">Advanced Graph Options</h5>
-                        <div className="space-y-1">
-                          {['entityExtraction', 'relationMapping', 'graphBuilding'].map(option => (
-                            <div key={option} className="flex items-center gap-2">
-                              <Checkbox
-                                id={`kg-${option}`}
-                                checked={processingConfig.kg?.[option] || false}
-                                onCheckedChange={(checked) => handleOptionToggle('kg', option, checked as boolean)}
-                                disabled={disabled}
-                                className="h-3 w-3"
-                              />
-                              <Label htmlFor={`kg-${option}`} className="text-xs cursor-pointer">
-                                {option.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Document AI Configuration for IDP */}
-                    {type.id === 'idp' && isEnabled && (
-                      <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="text-sm font-semibold text-purple-900">🤖 Document AI Configuration</h4>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 hover:bg-purple-100"
-                              onClick={() => onViewIDP?.()}
-                              disabled={disabled}
-                              title="Sync and Preview IDP"
-                            >
-                              <Eye className="h-4 w-4 text-purple-700" />
-                            </Button>
-                          </div>
-                          <p className="text-xs text-purple-600">Configure intelligent document processing and extraction</p>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="p-3 bg-white rounded-md border border-purple-200 shadow-sm">
-                            <h5 className="text-xs font-medium text-purple-900 mb-2">🔍 Processing Options</h5>
-                            <div className="space-y-1">
-                              {['textExtraction', 'classification', 'metadata'].map(option => (
-                                <div key={option} className="flex items-center gap-2">
-                                  <Checkbox
-                                    id={`idp-${option}`}
-                                    checked={processingConfig.idp?.[option] || false}
-                                    onCheckedChange={(checked) => handleOptionToggle('idp', option, checked as boolean)}
-                                    disabled={disabled}
-                                    className="h-3 w-3"
-                                  />
-                                  <Label htmlFor={`idp-${option}`} className="text-xs cursor-pointer">
-                                    {option.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Group 1: Parse & Index Configuration for RAG */}
-                    {isRAG && isEnabled && (
-                      <div className="mt-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                        <div className="mb-3">
-                          <h4 className="text-sm font-semibold text-blue-900 mb-1">🔍 Parse & Index Configuration</h4>
-                          <p className="text-xs text-blue-600">Configure how documents are parsed, chunked, and indexed</p>
-                        </div>
-                        <div className="space-y-4">
-                          {/* Parse and Chunk Section */}
-                          <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
-                            <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-xs font-medium text-blue-900">📊 Parse and Chunk</h5>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-blue-100"
-                                onClick={() => onViewParsedOutput?.()}
-                                disabled={disabled}
-                                title="Sync and Preview RAG"
-                              >
-                                <Eye className="h-4 w-4 text-blue-700" />
-                              </Button>
-                            </div>
-                            <div className="space-y-3">
-                        {/* Chunking settings */}
-                        <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <label className="text-xs text-gray-600">Chunking Method</label>
-                            <Select
-                              value={state.chunkingMethod?.value || 'sentence'}
-                              onValueChange={(value) => updateChunkingMethod({ value, label: value })}
-                              disabled={disabled}
-                            >
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="sentence">Sentence</SelectItem>
-                                <SelectItem value="fixed">Fixed</SelectItem>
-                                <SelectItem value="semantic">Semantic</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600 flex items-center gap-1">
-                              <Hash className="w-3 h-3" /> Size
-                            </label>
-                            <Input
-                              type="number"
-                              value={state.chunkSize}
-                              onChange={(e) => updateChunkSize(parseInt(e.target.value))}
-                              className="h-8 text-xs"
-                              disabled={disabled}
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600 flex items-center gap-1">
-                              <Layers className="w-3 h-3" /> Overlap
-                            </label>
-                            <Input
-                              type="number"
-                              value={state.chunkOverlap}
-                              onChange={(e) => updateChunkOverlap(parseInt(e.target.value))}
-                              className="h-8 text-xs"
-                              disabled={disabled}
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Parsing Instructions */}
-                        <div className="border-t pt-2">
-                          <div className="flex items-center justify-between mb-2">
-                            <h5 className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                              <ScrollText className="w-3 h-3" /> Prompt Based Parsing
-                            </h5>
-                            <Switch
-                              id="useCustomParsing"
-                              checked={useCustomParsing || state.promptParsing?.isApplied}
-                              onCheckedChange={(checked) => onToggleCustomParsing?.(checked)}
-                              disabled={disabled}
-                              className="h-4 w-7"
-                            />
-                          </div>
-                          {(useCustomParsing || state.promptParsing?.isApplied) && (
-                            <div className="space-y-2">
-                              <Textarea
-                                placeholder="Enter custom instructions for parsing (e.g., 'Extract all warranty information and technical specifications')"
-                                value={parsingInstructions || state.promptParsing?.customPrompt || ""}
-                                onChange={(e) => onParsingInstructionsChange?.(e.target.value)}
-                                className="h-16 text-xs resize-none"
-                                disabled={false}
-                              />
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  const currentInstructions = parsingInstructions || state.promptParsing?.customPrompt || "";
-                                  if (onParsingInstructionsChange && currentInstructions.trim()) {
-                                    onParsingInstructionsChange(currentInstructions);
-                                  }
-                                  if (onProcessDocument) {
-                                    onProcessDocument();
-                                  }
-                                }}
-                                disabled={disabled || !(parsingInstructions?.trim() || state.promptParsing?.customPrompt?.trim())}
-                                className="w-full h-7 text-xs"
-                              >
-                                <ScrollText className="w-3 h-3 mr-1" />
-                                Apply Prompt Parsing
-                              </Button>
-                            </div>
-                          )}
-                          
-                          {/* Prepend Metadata Section - moved here from Index Configuration */}
-                          <div className="mt-3 pt-3 border-t border-gray-200">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-1">
-                                <Switch
-                                  id="prependMetadata"
-                                  checked={prependMetadata}
-                                  onCheckedChange={(checked) => onTogglePrependMetadata?.(checked)}
-                                  disabled={disabled}
-                                  className="h-4 w-7"
-                                />
-                                <Label htmlFor="prependMetadata" className="text-xs cursor-pointer flex items-center gap-1">
-                                  <Plus className="w-3 h-3" /> Prepend metadata
-                                </Label>
-                              </div>
-                              {prependMetadata && (
-                                <Dialog open={showPrependModal} onOpenChange={setShowPrependModal}>
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-6 text-xs px-2"
-                                      disabled={disabled}
-                                    >
-                                      Select Fields
-                                      {prependedFields.length > 0 && (
-                                        <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">
-                                          {prependedFields.length}
-                                        </Badge>
-                                      )}
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="sm:max-w-[425px]">
-                                    <DialogHeader>
-                                      <DialogTitle>Select Fields to Prepend</DialogTitle>
-                                      <DialogDescription>
-                                        Choose which metadata fields to prepend to chunks during indexing
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="py-4 max-h-[300px] overflow-y-auto">
-                                      <div className="space-y-2">
-                                        {metadataFields.map(field => (
-                                          <div key={field.id} className="flex items-center space-x-2">
-                                            <Checkbox
-                                              id={`prepend-${field.id}`}
-                                              checked={tempPrependedFields.includes(field.id)}
-                                              onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                  setTempPrependedFields([...tempPrependedFields, field.id]);
-                                                } else {
-                                                  setTempPrependedFields(tempPrependedFields.filter(f => f !== field.id));
-                                                }
-                                              }}
-                                            />
-                                            <Label
-                                              htmlFor={`prepend-${field.id}`}
-                                              className="text-sm font-normal cursor-pointer flex-1"
-                                            >
-                                              <span>{field.name}</span>
-                                              <span className="text-xs text-gray-500 ml-1">({field.type})</span>
-                                            </Label>
-                                          </div>
-                                        ))}
-                                        {metadataFields.length === 0 && (
-                                          <p className="text-sm text-gray-500 text-center py-4">
-                                            No metadata fields available
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <DialogFooter>
-                                      <Button
-                                        variant="outline"
-                                        onClick={() => {
-                                          setTempPrependedFields(prependedFields);
-                                          setShowPrependModal(false);
-                                        }}
-                                      >
-                                        Cancel
-                                      </Button>
-                                      <Button
-                                        onClick={() => {
-                                          onPrependedFieldsChange?.(tempPrependedFields);
-                                          setShowPrependModal(false);
-                                        }}
-                                      >
-                                        Apply
-                                      </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                              )}
-                            </div>
-                          </div>
-                            </div>
-                          </div>
-                          
-                          {/* Multimodal Section */}
-                          <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
-                            <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-xs font-medium text-blue-900">🎯 Multimodal</h5>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-blue-100"
-                                onClick={() => onViewMultimodal?.()}
-                                disabled={disabled}
-                                title="Sync and Preview Multimodal"
-                              >
-                                <Eye className="h-4 w-4 text-blue-700" />
-                              </Button>
-                            </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                id="ocr"
-                                checked={processingConfig.rag?.multimodal?.ocr || false}
-                                onCheckedChange={(checked) => handleOptionToggle('rag', 'ocr', checked)}
-                                disabled={disabled}
-                              />
-                              <Label htmlFor="ocr" className="text-xs cursor-pointer flex items-center gap-1">
-                                <Eye className="w-3 h-3" /> OCR
-                              </Label>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                id="transcription"
-                                checked={processingConfig.rag?.multimodal?.transcription || false}
-                                onCheckedChange={(checked) => handleOptionToggle('rag', 'transcription', checked)}
-                                disabled={disabled}
-                              />
-                              <Label htmlFor="transcription" className="text-xs cursor-pointer flex items-center gap-1">
-                                <Mic className="w-3 h-3" /> Audio
-                              </Label>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                id="imageCaption"
-                                checked={processingConfig.rag?.multimodal?.imageCaption || false}
-                                onCheckedChange={(checked) => handleOptionToggle('rag', 'imageCaption', checked)}
-                                disabled={disabled}
-                              />
-                              <Label htmlFor="imageCaption" className="text-xs cursor-pointer flex items-center gap-1">
-                                <Image className="w-3 h-3" /> Images
-                              </Label>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                id="visualAnalysis"
-                                checked={processingConfig.rag?.multimodal?.visualAnalysis || false}
-                                onCheckedChange={(checked) => handleOptionToggle('rag', 'visualAnalysis', checked)}
-                                disabled={disabled}
-                              />
-                              <Label htmlFor="visualAnalysis" className="text-xs cursor-pointer flex items-center gap-1">
-                                <ScanEye className="w-3 h-3" /> Visual
-                              </Label>
-                            </div>
-                          </div>
-                          </div>
-                          
-                          {/* Index Configuration Section */}
-                          <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
-                            <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-xs font-medium text-blue-900">⚙️ Index Configuration</h5>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-blue-100"
-                                onClick={() => onEvaluateIndex?.()}
-                                disabled={disabled}
-                                title="Sync and Preview Index Configuration"
-                              >
-                                <Eye className="h-4 w-4 text-blue-700" />
-                              </Button>
-                            </div>
-                            <div className="space-y-3">
-                              <div>
-                                <Label className="text-xs text-blue-800 mb-1 block">Embedding Model</Label>
-                                <Select
-                                  value={selectedEmbeddingModel}
-                                  onValueChange={(value) => onEmbeddingModelChange?.(value)}
-                                  disabled={disabled}
-                                >
-                                  <SelectTrigger className="h-8 text-xs border-blue-200 focus:border-blue-400">
-                                    <SelectValue placeholder="Select embedding model" className="truncate" />
-                                  </SelectTrigger>
-                                  <SelectContent className="max-w-[300px]">
-                                    {embeddingModels.map(model => (
-                                      <SelectItem key={model.id} value={model.id} className="text-xs">
-                                        <div className="flex items-center gap-2 max-w-full">
-                                          <Sparkles className="w-3 h-3 flex-shrink-0" />
-                                          <span className="truncate flex-1">{model.name}</span>
-                                          {model.isRecommended && (
-                                            <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1 h-4 flex-shrink-0">
-                                              Recommended
-                                            </Badge>
-                                          )}
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                          
-                          {/* Metadata Filter */}
-                          <div className="space-y-2">
-                            <Dialog open={showMetadataModal} onOpenChange={setShowMetadataModal}>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-full h-7 text-xs justify-between"
-                                  disabled={disabled}
-                                >
-                                  <span className="flex items-center gap-1">
-                                    <Filter className="w-3 h-3" />
-                                    Filter on related metadata
-                                  </span>
-                                  {selectedMetadataFilters.length > 0 && (
-                                    <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">
-                                      {selectedMetadataFilters.length}
-                                    </Badge>
-                                  )}
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                  <DialogTitle>Select Metadata Filters</DialogTitle>
-                                  <DialogDescription>
-                                    Choose which metadata fields to filter on during indexing
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="py-4 max-h-[300px] overflow-y-auto">
-                                  <div className="space-y-2">
-                                    {metadataFields.map(field => (
-                                      <div key={field.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={field.id}
-                                          checked={tempSelectedFilters.includes(field.id)}
-                                          onCheckedChange={(checked) => {
-                                            if (checked) {
-                                              setTempSelectedFilters([...tempSelectedFilters, field.id]);
-                                            } else {
-                                              setTempSelectedFilters(tempSelectedFilters.filter(f => f !== field.id));
-                                            }
-                                          }}
-                                        />
-                                        <Label
-                                          htmlFor={field.id}
-                                          className="text-sm font-normal cursor-pointer flex-1"
-                                        >
-                                          <span>{field.name}</span>
-                                          <span className="text-xs text-gray-500 ml-1">({field.type})</span>
-                                        </Label>
-                                      </div>
-                                    ))}
-                                    {metadataFields.length === 0 && (
-                                      <p className="text-sm text-gray-500 text-center py-4">
-                                        No metadata fields available
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                <DialogFooter>
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                      setTempSelectedFilters(selectedMetadataFilters);
-                                      setShowMetadataModal(false);
-                                    }}
-                                  >
-                                    Cancel
-                                  </Button>
-                                  <Button
-                                    onClick={() => {
-                                      onMetadataFiltersChange?.(tempSelectedFilters);
-                                      setShowMetadataModal(false);
-                                    }}
-                                  >
-                                    Apply
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          </div>
-                        </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+            {/* Accordion-based configuration */}
+            <Accordion type="multiple" defaultValue={["processing", "parse-chunk", "index-search", "document-ai"]} className="space-y-2">
+              
+              {/* Processing Methods - Always visible and expanded */}
+              <AccordionItem value="processing" className="border rounded-lg">
+                <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🎯</span>
+                    <span className="font-medium">Processing Methods</span>
+                    <Badge variant="outline" className="ml-auto mr-2 text-xs">
+                      {activeMethods.length} selected
+                    </Badge>
                   </div>
-                );
-              })}
-            </div>
-
-
-
-            {/* Bottom summary bar */}
-            {activeMethods.length > 0 && (
-              <div className="sticky bottom-0 bg-gray-100 rounded-md p-2 mt-auto">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-600">Active:</span>
-                  <div className="flex gap-1">
-                    {activeMethods.map(method => {
-                      const Icon = method.icon;
+                </AccordionTrigger>
+                <AccordionContent className="px-3 pb-3">
+                  <div className="space-y-2">
+                    {processingTypes.map(type => {
+                      const Icon = type.icon;
+                      const isEnabled = processingConfig[type.id]?.enabled || false;
+                      
                       return (
-                        <div key={method.id} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
-                          <Icon className="w-3 h-3" />
-                          <span>{method.label}</span>
-                        </div>
+                        <Card key={type.id} className={`p-3 cursor-pointer transition-all ${isEnabled ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              checked={isEnabled}
+                              onCheckedChange={(checked) => handleProcessingToggle(type.id, checked as boolean, true)}
+                              disabled={disabled}
+                              className="mt-0.5"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <Icon className={`w-4 h-4 ${isEnabled ? 'text-blue-600' : 'text-gray-400'}`} />
+                                <span className={`font-medium text-sm ${isEnabled ? 'text-blue-900' : 'text-gray-600'}`}>
+                                  {type.label}
+                                </span>
+                                {isEnabled && <Check className="w-3 h-3 text-green-600 ml-auto" />}
+                              </div>
+                              <ul className="text-xs text-gray-500 mt-1 space-y-0.5">
+                                {type.id === 'rag' && (
+                                  <>
+                                    <li>• Parse multimodal</li>
+                                    <li>• Hybrid index</li>
+                                  </>
+                                )}
+                                {type.id === 'kg' && (
+                                  <>
+                                    <li>• Entity extraction</li>
+                                    <li>• Relationship mapping</li>
+                                  </>
+                                )}
+                                {type.id === 'idp' && (
+                                  <>
+                                    <li>• Document processing</li>
+                                    <li>• Form extraction</li>
+                                  </>
+                                )}
+                              </ul>
+                            </div>
+                          </div>
+                        </Card>
                       );
                     })}
                   </div>
-                </div>
-              </div>
-            )}
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Parse & Chunk Section - Only visible when RAG is enabled */}
+              {processingConfig.rag?.enabled && (
+                <AccordionItem value="parse-chunk" className="border rounded-lg">
+                  <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📝</span>
+                      <span className="font-medium">Parse & Chunk</span>
+                      <Badge variant="outline" className="ml-auto mr-2 text-xs">
+                        {(() => {
+                          let activeCount = 0;
+                          if (processingConfig.rag?.multimodal?.ocr) activeCount++;
+                          if (processingConfig.rag?.multimodal?.imageCaption) activeCount++;
+                          if (processingConfig.rag?.multimodal?.visualAnalysis) activeCount++;
+                          if (processingConfig.rag?.multimodal?.transcription) activeCount++;
+                          if (useCustomParsing) activeCount++;
+                          if (prependMetadata) activeCount++;
+                          return activeCount > 0 ? `${activeCount} active` : 'Configure';
+                        })()}
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3 pb-3 space-y-4">
+                    
+                    {/* Chunking Settings */}
+                    <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
+                      <h5 className="text-xs font-medium text-blue-900 mb-2">📊 Chunking Settings</h5>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">Method</label>
+                          <Select
+                            value={state.chunkingMethod?.value || 'sentence'}
+                            onValueChange={(value) => updateChunkingMethod({ value, label: value })}
+                            disabled={disabled}
+                          >
+                            <SelectTrigger className="h-7 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="sentence">Sentence</SelectItem>
+                              <SelectItem value="paragraph">Paragraph</SelectItem>
+                              <SelectItem value="semantic">Semantic</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">Size</label>
+                          <Input
+                            type="number"
+                            value={state.chunkSize || 1000}
+                            onChange={(e) => updateChunkSize(parseInt(e.target.value))}
+                            disabled={disabled}
+                            className="h-7 text-xs"
+                            min={100}
+                            max={5000}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">Overlap</label>
+                          <Input
+                            type="number"
+                            value={state.chunkOverlap || 200}
+                            onChange={(e) => updateChunkOverlap(parseInt(e.target.value))}
+                            disabled={disabled}
+                            className="h-7 text-xs"
+                            min={0}
+                            max={1000}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Prompt-Based Parsing */}
+                    <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="text-xs font-medium text-blue-900">🧠 Prompt-Based Parsing</h5>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={useCustomParsing || state.promptParsing?.isApplied || false}
+                            onCheckedChange={onToggleCustomParsing}
+                            disabled={disabled}
+                          />
+                          <Badge variant={useCustomParsing || state.promptParsing?.isApplied ? "default" : "secondary"} className="text-xs">
+                            {useCustomParsing || state.promptParsing?.isApplied ? 'Applied' : 'Off'}
+                          </Badge>
+                        </div>
+                      </div>
+                      {(useCustomParsing || state.promptParsing?.isApplied) && (
+                        <div className="space-y-2">
+                          <Textarea
+                            placeholder="Enter parsing instructions..."
+                            value={parsingInstructions}
+                            onChange={(e) => onParsingInstructionsChange?.(e.target.value)}
+                            disabled={disabled}
+                            className="min-h-[60px] text-xs"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => onApplyPromptParsing?.()}
+                            disabled={disabled || !parsingInstructions.trim()}
+                            className="h-7 text-xs"
+                          >
+                            Apply Parsing
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Prepend Metadata */}
+                    <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="text-xs font-medium text-blue-900">🔖 Prepend Metadata</h5>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={prependMetadata}
+                            onCheckedChange={onTogglePrependMetadata}
+                            disabled={disabled}
+                          />
+                          <Badge variant={prependMetadata ? "default" : "secondary"} className="text-xs">
+                            {prependMetadata ? 'Active' : 'Off'}
+                          </Badge>
+                        </div>
+                      </div>
+                      {prependMetadata && (
+                        <div className="space-y-2">
+                          <div className="text-xs text-gray-600">
+                            Selected fields: {prependedFields.length > 0 ? prependedFields.join(', ') : 'None'}
+                          </div>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline" className="h-7 text-xs">
+                                Configure Fields
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Configure Prepend Metadata</DialogTitle>
+                                <DialogDescription>
+                                  Select metadata fields to prepend to chunks
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-2">
+                                {metadataFields.map((field) => (
+                                  <div key={field} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      checked={prependedFields.includes(field)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          onPrependedFieldsChange?.([...prependedFields, field]);
+                                        } else {
+                                          onPrependedFieldsChange?.(prependedFields.filter(f => f !== field));
+                                        }
+                                      }}
+                                    />
+                                    <Label className="text-sm">{field}</Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Multimodal Options */}
+                    <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="text-xs font-medium text-blue-900">🎭 Multimodal Processing</h5>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 hover:bg-blue-100"
+                          onClick={onViewMultimodal}
+                          disabled={disabled}
+                          title="Preview Multimodal Content"
+                        >
+                          <Eye className="h-4 w-4 text-blue-700" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={processingConfig.rag?.multimodal?.ocr || false}
+                            onCheckedChange={(checked) => handleOptionToggle('rag', 'ocrExtraction', checked)}
+                            disabled={disabled}
+                          />
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-3 w-3 text-gray-600" />
+                            <span className="text-xs">OCR</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={processingConfig.rag?.multimodal?.imageCaption || false}
+                            onCheckedChange={(checked) => handleOptionToggle('rag', 'imageCaptioning', checked)}
+                            disabled={disabled}
+                          />
+                          <div className="flex items-center gap-1">
+                            <Image className="h-3 w-3 text-gray-600" />
+                            <span className="text-xs">Captions</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={processingConfig.rag?.multimodal?.visualAnalysis || false}
+                            onCheckedChange={(checked) => handleOptionToggle('rag', 'visualAnalysis', checked)}
+                            disabled={disabled}
+                          />
+                          <div className="flex items-center gap-1">
+                            <ScanLine className="h-3 w-3 text-gray-600" />
+                            <span className="text-xs">Visual</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={processingConfig.rag?.multimodal?.transcription || false}
+                            onCheckedChange={(checked) => handleOptionToggle('rag', 'audioTranscription', checked)}
+                            disabled={disabled}
+                          />
+                          <div className="flex items-center gap-1">
+                            <Mic className="h-3 w-3 text-gray-600" />
+                            <span className="text-xs">Audio</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+
+              {/* Index & Search Section - Only visible when RAG is enabled */}
+              {processingConfig.rag?.enabled && (
+                <AccordionItem value="index-search" className="border rounded-lg">
+                  <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🔍</span>
+                      <span className="font-medium">Index & Search</span>
+                      <Badge variant="outline" className="ml-auto mr-2 text-xs">
+                        {selectedEmbeddingModel ? 'Configured' : 'Setup needed'}
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3 pb-3 space-y-4">
+                    
+                    {/* Embedding Model Selection */}
+                    <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
+                      <h5 className="text-xs font-medium text-blue-900 mb-2">🔤 Embedding Model</h5>
+                      <Select
+                        value={selectedEmbeddingModel}
+                        onValueChange={onEmbeddingModelChange}
+                        disabled={disabled}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Select embedding model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {embeddingModels.map((model) => (
+                            <SelectItem key={model.id} value={model.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{model.name}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {model.dimensions}d
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Metadata Filters */}
+                    <div className="p-3 bg-white rounded-md border border-blue-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="text-xs font-medium text-blue-900">📋 Metadata Filters</h5>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 hover:bg-blue-100"
+                          onClick={onEvaluateIndex}
+                          disabled={disabled}
+                          title="Test Index Configuration"
+                        >
+                          <TestTube className="h-4 w-4 text-blue-700" />
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs text-gray-600">
+                          Active filters: {selectedMetadataFilters.length > 0 ? selectedMetadataFilters.join(', ') : 'None'}
+                        </div>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="h-7 text-xs">
+                              <Filter className="h-3 w-3 mr-1" />
+                              Configure Filters
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Configure Metadata Filters</DialogTitle>
+                              <DialogDescription>
+                                Select metadata fields to filter search results
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-2">
+                              {metadataFields.map((field) => (
+                                <div key={field} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    checked={selectedMetadataFilters.includes(field)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        onMetadataFiltersChange?.([...selectedMetadataFilters, field]);
+                                      } else {
+                                        onMetadataFiltersChange?.(selectedMetadataFilters.filter(f => f !== field));
+                                      }
+                                    }}
+                                  />
+                                  <Label className="text-sm">{field}</Label>
+                                </div>
+                              ))}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+
+              {/* Document AI Section - Only visible when IDP is enabled */}
+              {processingConfig.idp?.enabled && (
+                <AccordionItem value="document-ai" className="border rounded-lg">
+                  <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🤖</span>
+                      <span className="font-medium">Document AI Config</span>
+                      <Badge variant="outline" className="ml-auto mr-2 text-xs">
+                        {(() => {
+                          let activeCount = 0;
+                          if (processingConfig.idp?.textExtraction) activeCount++;
+                          if (processingConfig.idp?.classification) activeCount++;
+                          if (processingConfig.idp?.metadata) activeCount++;
+                          return activeCount > 0 ? `${activeCount} active` : 'Configure';
+                        })()}
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3 pb-3 space-y-4">
+                    
+                    {/* Document Processing Options */}
+                    <div className="p-3 bg-white rounded-md border border-purple-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="text-xs font-medium text-purple-900">🔍 Processing Options</h5>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 hover:bg-purple-100"
+                          onClick={onViewIDP}
+                          disabled={disabled}
+                          title="Preview Document AI Results"
+                        >
+                          <Eye className="h-4 w-4 text-purple-700" />
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-3 w-3 text-purple-600" />
+                            <span className="text-xs font-medium">Text Extraction</span>
+                          </div>
+                          <Switch
+                            checked={processingConfig.idp?.textExtraction || false}
+                            onCheckedChange={(checked) => handleOptionToggle('idp', 'textExtraction', checked)}
+                            disabled={disabled}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Hash className="h-3 w-3 text-purple-600" />
+                            <span className="text-xs font-medium">Classification</span>
+                          </div>
+                          <Switch
+                            checked={processingConfig.idp?.classification || false}
+                            onCheckedChange={(checked) => handleOptionToggle('idp', 'classification', checked)}
+                            disabled={disabled}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Info className="h-3 w-3 text-purple-600" />
+                            <span className="text-xs font-medium">Metadata Extraction</span>
+                          </div>
+                          <Switch
+                            checked={processingConfig.idp?.metadata || false}
+                            onCheckedChange={(checked) => handleOptionToggle('idp', 'metadata', checked)}
+                            disabled={disabled}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Advanced IDP Options */}
+                    <div className="p-3 bg-white rounded-md border border-purple-200 shadow-sm">
+                      <h5 className="text-xs font-medium text-purple-900 mb-2">⚙️ Advanced Options</h5>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Form Processing</span>
+                          <Badge variant="outline" className="text-xs">Auto-detect</Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Table Extraction</span>
+                          <Badge variant="outline" className="text-xs">Enabled</Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Layout Analysis</span>
+                          <Badge variant="outline" className="text-xs">Enabled</Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+
+            </Accordion>
           </div>
         )}
       </div>
     </div>
   );
-}, (prevProps, nextProps) => {
-  // Custom comparison for memo optimization
-  const prevRagEnabled = prevProps.processingConfig.rag?.enabled;
-  const nextRagEnabled = nextProps.processingConfig.rag?.enabled;
-  
-  if (prevRagEnabled !== nextRagEnabled) {
-    return false;
-  }
-  
-  for (const key of ['kg', 'idp'] as const) {
+});
+
+const areEqual = (prevProps: ManualConfigurationPanelProps, nextProps: ManualConfigurationPanelProps) => {
+  // Compare processing types enabled state
+  for (const key of ['rag', 'kg', 'idp']) {
     if (prevProps.processingConfig[key]?.enabled !== nextProps.processingConfig[key]?.enabled) {
       return false;
     }
@@ -757,12 +700,8 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   const stateEqual = JSON.stringify(prevProps.state) === JSON.stringify(nextProps.state);
   const highlightEqual = prevProps.highlightProcessButton === nextProps.highlightProcessButton;
   const pulseEqual = prevProps.pulseEffect === nextProps.pulseEffect;
-  const collapsedEqual = prevProps.initialCollapsed === nextProps.initialCollapsed;
-  const onCollapseChangeEqual = prevProps.onCollapseChange === nextProps.onCollapseChange;
-  
-  return configEqual && disabledEqual && stateEqual && highlightEqual && pulseEqual && collapsedEqual && onCollapseChangeEqual;
-});
 
-ManualConfigurationPanel.displayName = 'ManualConfigurationPanel';
+  return configEqual && disabledEqual && stateEqual && highlightEqual && pulseEqual;
+};
 
-export default ManualConfigurationPanel;
+export default memo(ManualConfigurationPanel, areEqual);
