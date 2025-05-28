@@ -297,7 +297,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 onViewParsedOutput?.();
                               }}
                               disabled={disabled}
-                              title="Preview Parsed Output"
+                              title="Trigger Content Understanding"
                             >
                               <Eye className="h-3 w-3 text-blue-700" />
                             </Button>
@@ -358,16 +358,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                             <div className="flex items-center justify-between mb-2">
                               <h5 className="text-xs font-medium text-blue-900">🧠 Prompt-Based Parsing</h5>
                               <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-5 w-5 p-0 hover:bg-blue-100"
-                                  onClick={onViewParsedOutput}
-                                  disabled={disabled}
-                                  title="Preview Parsing Results"
-                                >
-                                  <Eye className="h-3 w-3 text-blue-700" />
-                                </Button>
                                 <Switch
                                   checked={useCustomParsing || state.promptParsing?.isApplied || false}
                                   onCheckedChange={onToggleCustomParsing}
@@ -465,7 +455,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 className="h-5 w-5 p-0 hover:bg-blue-100"
                                 onClick={onViewMultimodal}
                                 disabled={disabled}
-                                title="Preview Multimodal Content"
+                                title="Trigger Content Understanding"
                               >
                                 <Eye className="h-3 w-3 text-blue-700" />
                               </Button>
@@ -527,7 +517,20 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           <div className="flex items-center gap-2">
                             <span className="text-base">🔍</span>
                             <span className="font-medium text-sm">Index & Search</span>
-                            <Badge variant="outline" className="ml-auto mr-2 text-xs">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 w-5 p-0 hover:bg-blue-100 ml-auto mr-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEvaluateIndex?.();
+                              }}
+                              disabled={disabled}
+                              title="Trigger Content Understanding"
+                            >
+                              <Eye className="h-3 w-3 text-blue-700" />
+                            </Button>
+                            <Badge variant="outline" className="text-xs">
                               {selectedEmbeddingModel ? 'Configured' : 'Setup needed'}
                             </Badge>
                           </div>
@@ -631,19 +634,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                     <div className="flex items-center gap-2">
                       <span className="text-lg">🤖</span>
                       <span className="font-medium">Document AI Config</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-5 w-5 p-0 hover:bg-purple-100 ml-auto mr-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onViewIDP?.();
-                        }}
-                        disabled={disabled}
-                        title="Preview Document AI Results"
-                      >
-                        <Eye className="h-3 w-3 text-purple-700" />
-                      </Button>
                       <Badge variant="outline" className="text-xs">
                         {(() => {
                           let activeCount = 0;
@@ -667,7 +657,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           className="h-6 w-6 p-0 hover:bg-purple-100"
                           onClick={onViewIDP}
                           disabled={disabled}
-                          title="Preview Document AI Results"
+                          title="Trigger Content Understanding"
                         >
                           <Eye className="h-4 w-4 text-purple-700" />
                         </Button>
