@@ -8,7 +8,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { embeddingModels } from "@/data/embeddingModelsData";
 import {
@@ -18,14 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface ManualConfigurationPanelProps {
   processingTypes: Array<{
@@ -84,9 +76,9 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   onCollapseChange,
   selectedEmbeddingModel = "openai-text-embedding-3-large",
   onEmbeddingModelChange,
-  parsingInstructions = "",
+  parsingInstructions = "Convert any tables (especially drivetrain specifications) to clean markdown format. Extract key technical specifications and present them in structured tables with proper headers.",
   onParsingInstructionsChange,
-  useCustomParsing = false,
+  useCustomParsing = true,
   onToggleCustomParsing,
   selectedMetadataFilters = [],
   onMetadataFiltersChange,
@@ -102,10 +94,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   onApplyPromptParsing
 }) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
-  const [showMetadataModal, setShowMetadataModal] = useState(false);
-  const [tempSelectedFilters, setTempSelectedFilters] = useState<string[]>(selectedMetadataFilters);
-  const [showPrependModal, setShowPrependModal] = useState(false);
-  const [tempPrependedFields, setTempPrependedFields] = useState<string[]>(prependedFields);
 
   useEffect(() => {
     if (initialCollapsed !== collapsed) {
@@ -115,14 +103,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
       }
     }
   }, [initialCollapsed, collapsed, onCollapseChange]);
-  
-  useEffect(() => {
-    setTempSelectedFilters(selectedMetadataFilters);
-  }, [selectedMetadataFilters]);
-  
-  useEffect(() => {
-    setTempPrependedFields(prependedFields);
-  }, [prependedFields]);
 
   const toggleCollapse = () => {
     const newCollapsedState = !collapsed;
@@ -359,38 +339,82 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <h5 className="text-xs font-medium text-blue-900">🧠 Prompt-Based Parsing</h5>
                               <div className="flex items-center gap-2">
                                 <Switch
-                                  checked={useCustomParsing}
+                                  checked={useCustomParsing === true}
                                   onCheckedChange={(checked) => {
+                                    console.log('Toggle clicked:', checked);
                                     onToggleCustomParsing?.(checked);
+                                    if (!checked) {
+                                      onParsingInstructionsChange?.('');
+                                    }
                                   }}
                                   disabled={disabled}
                                 />
-                                <Badge variant={useCustomParsing ? "default" : "secondary"} className="text-xs">
-                                  {useCustomParsing ? 'Applied' : 'Off'}
+                                <Badge 
+                                  variant={useCustomParsing === true && parsingInstructions?.trim() ? "default" : "secondary"} 
+                                  className="text-xs"
+                                >
+                                  {useCustomParsing === true && parsingInstructions?.trim() ? 'Active' : 'Off'}
                                 </Badge>
                               </div>
                             </div>
-                            {useCustomParsing && (
+                            
+                            {/* Always show the textarea when toggle is on */}
+                            {useCustomParsing === true && (
                               <div className="space-y-2">
-                                <Textarea
-                                  placeholder="Enter parsing instructions..."
-                                  value={parsingInstructions}
-                                  onChange={(e) => onParsingInstructionsChange?.(e.target.value)}
-                                  disabled={disabled}
-                                  className="min-h-[60px] text-xs"
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    if (parsingInstructions.trim()) {
-                                      onApplyPromptParsing?.();
-                                    }
+                                <textarea
+                                  placeholder="Enter custom parsing instructions here..."
+                                  value={parsingInstructions || 'Convert any tables (especially drivetrain specifications) to clean markdown format. Extract key technical specifications and present them in structured tables with proper headers.'}
+                                  onChange={(e) => {
+                                    console.log('Textarea changed:', e.target.value);
+                                    onParsingInstructionsChange?.(e.target.value);
                                   }}
-                                  disabled={disabled || !parsingInstructions.trim()}
-                                  className="h-7 text-xs"
-                                >
-                                  {state.promptParsing?.isApplied ? 'Update Parsing' : 'Apply Parsing'}
-                                </Button>
+                                  disabled={disabled}
+                                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[80px] text-xs"
+                                  rows={4}
+                                />
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      console.log('Apply parsing clicked');
+                                      if (parsingInstructions?.trim()) {
+                                        // Enable the toggle if not already enabled
+                                        if (useCustomParsing !== true) {
+                                          onToggleCustomParsing?.(true);
+                                        }
+                                        onApplyPromptParsing?.();
+                                      }
+                                    }}
+                                    disabled={disabled || !parsingInstructions?.trim()}
+                                    className="h-7 text-xs bg-blue-600 hover:bg-blue-700"
+                                  >
+                                    <Sparkles className="h-3 w-3 mr-1" />
+                                    {state?.promptParsing?.isApplied ? 'Update Parsing' : 'Apply Parsing'}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      onParsingInstructionsChange?.('');
+                                    }}
+                                    disabled={disabled || !parsingInstructions?.trim()}
+                                    className="h-7 text-xs"
+                                  >
+                                    Clear
+                                  </Button>
+                                </div>
+                                {state?.promptParsing?.isApplied && (
+                                  <div className="text-xs text-green-600 bg-green-50 p-2 rounded border">
+                                    ✅ Custom parsing rules applied successfully
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Show message when toggle is off */}
+                            {useCustomParsing !== true && (
+                              <div className="text-xs text-gray-500 italic">
+                                Enable to add custom parsing instructions for better document understanding
                               </div>
                             )}
                           </div>
@@ -401,21 +425,27 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                               <h5 className="text-xs font-medium text-blue-900">🔖 Prepend Metadata</h5>
                               <div className="flex items-center gap-2">
                                 <Switch
-                                  checked={prependMetadata}
+                                  checked={prependMetadata === true}
                                   onCheckedChange={(checked) => {
                                     onTogglePrependMetadata?.(checked);
+                                    if (!checked) {
+                                      onPrependedFieldsChange?.([]);
+                                    }
                                   }}
-                                  disabled={disabled}
+                                  disabled={disabled || !metadataFields || metadataFields.length === 0}
                                 />
-                                <Badge variant={prependMetadata ? "default" : "secondary"} className="text-xs">
-                                  {prependMetadata ? 'Active' : 'Off'}
+                                <Badge 
+                                  variant={prependMetadata === true && prependedFields && prependedFields.length > 0 ? "default" : "secondary"} 
+                                  className="text-xs"
+                                >
+                                  {prependMetadata === true && prependedFields && prependedFields.length > 0 ? 'Active' : 'Off'}
                                 </Badge>
                               </div>
                             </div>
-                            {prependMetadata && (
+                            {(prependMetadata === true || (metadataFields && metadataFields.length > 0)) && (
                               <div className="space-y-2">
                                 <div className="text-xs text-gray-600">
-                                  Selected fields: {prependedFields && prependedFields.length > 0 ? 
+                                  Selected fields: {prependMetadata === true && prependedFields && prependedFields.length > 0 ? 
                                     prependedFields.map(fieldId => 
                                       metadataFields?.find(f => f.id === fieldId)?.name || fieldId
                                     ).join(', ') : 'None'}
