@@ -511,3 +511,207 @@
 - Client-side validation
 
 This prototype demonstrates a sophisticated document intelligence platform with extensive functionality, though backend implementation remains at the mock/prototype stage. The UI/UX is production-ready while data processing and persistence require full implementation.
+
+## Proposed Extensions: Salesforce Data Cloud Integration
+
+### Overview
+Extend the platform to integrate with Salesforce Data Cloud for enterprise-scale data processing, enabling organizations to leverage their existing Data Lake Objects (DLOs) as inputs and publish processed results back to the data cloud ecosystem.
+
+### 1. Input Integration with Salesforce Data Cloud DLOs
+
+**Proposed Features:**
+- **DLO Browser Interface**: Add new route `/datacloud/browse` for exploring available DLOs
+  - Tree view of Data Cloud spaces and categories
+  - Search and filter DLOs by type, schema, or metadata
+  - Preview DLO schemas and sample data
+  - Multi-select for batch processing
+
+- **DLO Import Workflow**:
+  - OAuth 2.0 authentication with Salesforce
+  - Query Data Cloud metadata API for available objects
+  - Support for various DLO types:
+    - Customer 360 data models
+    - Marketing Cloud Intelligence objects
+    - Sales Cloud data extensions
+    - Custom data lake objects
+  - Schema mapping interface to align DLO fields with document processing pipeline
+
+- **Streaming Data Support**:
+  - Real-time ingestion from Data Cloud streams
+  - Batch processing with configurable windows
+  - Change Data Capture (CDC) integration for incremental updates
+
+**Technical Implementation Ideas:**
+```
+New Routes:
+- /datacloud/connect - Salesforce authentication
+- /datacloud/browse - DLO explorer
+- /datacloud/mapping - Schema mapping interface
+- /datacloud/import - Import configuration
+```
+
+### 2. Enhanced Processing Pipeline for Structured Data
+
+**Adaptations Needed:**
+- **Multi-Source Processing**: 
+  - Combine document uploads with DLO data
+  - Cross-reference document entities with CRM records
+  - Enrich document metadata with Data Cloud attributes
+
+- **Schema-Aware Processing**:
+  - Auto-detect DLO schemas and suggest processing configs
+  - Generate knowledge graphs from relational data
+  - Apply business rules from Data Cloud metadata
+
+- **Hybrid Workflows**:
+  - Process documents with DLO context (e.g., contracts with account data)
+  - Use DLO relationships to enhance entity extraction
+  - Validate document data against master data in Data Cloud
+
+### 3. Publishing and Output Management
+
+**Publishing Features:**
+- **Data Cloud Publisher** (`/publish`):
+  - Create new DLOs from processed results
+  - Update existing DLOs with extracted insights
+  - Define publishing rules and transformations
+  - Schedule automated publishing jobs
+
+- **Output Formats**:
+  - Salesforce-compatible JSON/CSV
+  - Data Cloud Ingestion API format
+  - Tableau CRM datasets
+  - Einstein Analytics dataflows
+
+- **Publishing Workflows**:
+  1. Review processed results in enhanced playground
+  2. Configure output schema mapping
+  3. Set publishing rules (overwrite, append, merge)
+  4. Preview transformed data
+  5. Publish with audit trail
+
+### 4. User Input Collection Beyond Playground
+
+**Interactive Forms for Data Enrichment** (`/enrich`):
+- **Dynamic Form Builder**:
+  - Generate forms based on DLO schemas
+  - Conditional fields based on document content
+  - Validation against Data Cloud constraints
+  - Multi-step forms for complex workflows
+
+- **Human-in-the-Loop Features**:
+  - Queue for manual review/approval
+  - Annotation interface for ambiguous extractions
+  - Correction UI for AI-extracted data
+  - Confidence threshold routing
+
+- **Collaborative Workflows**:
+  - Assignment to specific users/teams
+  - Comments and notes on processing results
+  - Version control for human edits
+  - Approval chains before publishing
+
+### 5. Integration Architecture
+
+**New Components Needed:**
+
+```typescript
+// Salesforce Data Cloud Service
+interface DataCloudService {
+  authenticate(): Promise<AuthToken>
+  listDLOs(namespace: string): Promise<DLO[]>
+  queryDLO(objectName: string, filters: Filter[]): Promise<DLOData>
+  publishToDLO(objectName: string, data: any[], options: PublishOptions): Promise<PublishResult>
+}
+
+// Publishing Configuration
+interface PublishConfig {
+  targetDLO: string
+  mappingRules: FieldMapping[]
+  transformations: DataTransformation[]
+  schedule?: CronExpression
+  validation: ValidationRule[]
+  approvalRequired: boolean
+}
+
+// User Input Collection
+interface EnrichmentForm {
+  fields: FormField[]
+  validations: ValidationRule[]
+  conditionalLogic: ConditionalRule[]
+  prefilledFrom: 'document' | 'dlo' | 'both'
+}
+```
+
+### 6. Enhanced Workflow Examples
+
+**Example 1: Contract Processing with Account Enrichment**
+1. Import contract documents
+2. Pull related account data from Sales Cloud DLO
+3. Extract contract terms using document AI
+4. Cross-reference with account attributes
+5. Flag discrepancies for human review
+6. Collect additional terms via form
+7. Publish enriched contract data back to Data Cloud
+
+**Example 2: Automotive Service Records Integration**
+1. Process service manuals (existing flow)
+2. Import vehicle fleet data from DLO
+3. Match service procedures to fleet vehicles
+4. Generate maintenance schedules per vehicle
+5. Review and approve schedules
+6. Publish to Service Cloud for work orders
+
+**Example 3: Knowledge Base Synchronization**
+1. Extract Q&A pairs from documents
+2. Import existing knowledge articles from DLO
+3. Identify gaps and duplicates
+4. Route new articles for expert review
+5. Collect metadata via forms
+6. Publish approved articles to Knowledge DLO
+
+### 7. Benefits of Integration
+
+**For End Users:**
+- Seamless access to enterprise data
+- No manual data entry or export/import
+- Real-time synchronization
+- Unified workspace for all data operations
+
+**For Organizations:**
+- Leverage existing Data Cloud investments
+- Maintain single source of truth
+- Automated compliance and governance
+- Scalable to enterprise volumes
+
+**For Developers:**
+- Reusable integration patterns
+- Declarative configuration over code
+- Built-in security and authentication
+- Monitoring and observability
+
+### 8. Implementation Roadmap
+
+**Phase 1: Basic Integration**
+- Salesforce OAuth authentication
+- DLO browser and basic import
+- Simple publishing to new DLOs
+
+**Phase 2: Advanced Processing**
+- Schema mapping interface
+- Multi-source processing
+- Enrichment forms
+
+**Phase 3: Enterprise Features**
+- Approval workflows
+- Scheduled jobs
+- Change data capture
+- Advanced transformations
+
+**Phase 4: AI Enhancement**
+- Auto-mapping suggestions
+- Intelligent form generation
+- Anomaly detection
+- Predictive publishing rules
+
+This extension would transform the prototype from a standalone document processing tool into an enterprise-grade data intelligence platform that seamlessly integrates with Salesforce Data Cloud, enabling organizations to unlock insights from both unstructured documents and structured data lake objects.
