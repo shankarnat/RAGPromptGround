@@ -245,7 +245,7 @@ export class ConversationManager {
     }),
     
     department: () => ({
-      message: '🏢 Which team are you in? Below are common departments - click one or type your specific department name (e.g., "collision repair", "hybrid systems", "customer experience"):',
+      message: '🏢 Which department is the end user working with? Below are common departments - click one or type the specific department name (e.g., "collision repair", "hybrid systems", "customer experience"):',
       actions: [
         { label: '🔧 Service', action: 'set_department', data: { department: 'service', nextStep: 'vehicle_info' } },
         { label: '📦 Parts', action: 'set_department', data: { department: 'parts', nextStep: 'vehicle_info' } },
@@ -270,7 +270,7 @@ export class ConversationManager {
     // experience: () => ({ ... }),
     
     goals: () => ({
-      message: '🎯 What insights do you need from this document? Select an option below or describe your specific needs (e.g., "find all torque specifications", "extract maintenance intervals", "identify part supersessions"):',
+      message: '🎯 What\'s the end user\'s primary goal with this document? Select an option below or describe the specific needs (e.g., "find all torque specifications", "extract maintenance intervals", "identify part supersessions"):',
       actions: [
         { label: '🔍 Search Specs', action: 'set_goal', data: { goal: 'retrieval', nextStep: 'processing_selection' } },
         { label: '📊 Extract Data', action: 'set_goal', data: { goal: 'extraction', nextStep: 'processing_selection' } },
