@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FileSearch, Network, FileText, PlayCircle, Check, Settings, ChevronRight, ChevronLeft, ChevronDown, Image, Mic, Eye, Layers, Hash, Timer, Sparkles, ScrollText, ScanEye, ScanLine, Filter, Plus, Info, TestTube } from "lucide-react";
+import { FileSearch, Network, FileText, PlayCircle, Check, Settings, ChevronRight, ChevronLeft, ChevronDown, Image, Mic, Eye, Layers, Hash, Timer, Sparkles, ScrollText, ScanEye, ScanLine, Filter, Plus, Info, TestTube, FileType, Upload } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 
 interface ManualConfigurationPanelProps {
@@ -59,6 +60,45 @@ interface ManualConfigurationPanelProps {
   onApplyPromptParsing?: () => void;
 }
 
+// UDMO (Unified Data Model Objects) options
+const udmoOptions = [
+  {
+    id: 'auto',
+    name: 'Auto-Generated UDMO',
+    description: 'Automatically generated based on document analysis',
+    icon: Sparkles,
+    recommended: true
+  },
+  {
+    id: 'automotive',
+    name: 'Automotive UDMO',
+    description: 'Pre-configured for automotive documents and specifications',
+    icon: FileType,
+    category: 'Industry'
+  },
+  {
+    id: 'financial',
+    name: 'Financial UDMO',
+    description: 'Optimized for financial reports and statements',
+    icon: FileText,
+    category: 'Industry'
+  },
+  {
+    id: 'legal',
+    name: 'Legal UDMO',
+    description: 'Structured for contracts and legal documents',
+    icon: ScrollText,
+    category: 'Industry'
+  },
+  {
+    id: 'custom',
+    name: 'Custom UDMO',
+    description: 'Create your own custom data model',
+    icon: Settings,
+    category: 'Custom'
+  }
+];
+
 const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo(({
   processingTypes,
   processingConfig,
@@ -94,6 +134,9 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
   onApplyPromptParsing
 }) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
+  const [showFinalizeModal, setShowFinalizeModal] = useState(false);
+  const [selectedUDMO, setSelectedUDMO] = useState('auto');
+  const [isPublishing, setIsPublishing] = useState(false);
 
   useEffect(() => {
     if (initialCollapsed !== collapsed) {
@@ -112,8 +155,171 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
     }
   };
 
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    
+    // Simulate publishing process (remove this in production)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setIsPublishing(false);
+    setShowFinalizeModal(false);
+    
+    // Call the original process document function
+    if (onProcessDocument) {
+      onProcessDocument();
+    }
+  };
+
+  const getConfigurationSummary = () => {
+    const summary: Array<{section: string, items: Array<{label: string, value: string, enabled?: boolean}>}> = [];
+    
+    // Processing Methods
+    const enabledMethods = processingTypes.filter(type => processingConfig[type.id]?.enabled);
+    if (enabledMethods.length > 0) {
+      summary.push({
+        section: 'Processing Methods',
+        items: enabledMethods.map(method => ({
+          label: method.label,
+          value: 'Enabled',
+          enabled: true
+        }))
+      });
+    }
+
+    // Parse & Chunk Configuration
+    if (processingConfig.rag?.enabled) {
+      const parseConfig = [];
+      
+      if (state.chunkingMethod) {
+        parseConfig.push({
+          label: 'Chunking Method',
+          value: state.chunkingMethod.label || state.chunkingMethod.value || 'sentence'
+        });
+      }
+      
+      if (state.chunkSize) {
+        parseConfig.push({
+          label: 'Chunk Size',
+          value: state.chunkSize.toString()
+        });
+      }
+      
+      if (state.chunkOverlap) {
+        parseConfig.push({
+          label: 'Chunk Overlap',
+          value: state.chunkOverlap.toString()
+        });
+      }
+
+      if (useCustomParsing && parsingInstructions?.trim()) {
+        parseConfig.push({
+          label: 'Custom Parsing',
+          value: 'Enabled',
+          enabled: true
+        });
+      }
+
+      if (prependMetadata && prependedFields?.length > 0) {
+        parseConfig.push({
+          label: 'Prepend Metadata',
+          value: `${prependedFields.length} fields`,
+          enabled: true
+        });
+      }
+
+      // Multimodal options
+      const multimodalOptions = [];
+      if (processingConfig.rag?.multimodal?.ocr) multimodalOptions.push('OCR');
+      if (processingConfig.rag?.multimodal?.imageCaption) multimodalOptions.push('Image Captions');
+      if (processingConfig.rag?.multimodal?.visualAnalysis) multimodalOptions.push('Visual Analysis');
+      if (processingConfig.rag?.multimodal?.transcription) multimodalOptions.push('Audio Transcription');
+      
+      if (multimodalOptions.length > 0) {
+        parseConfig.push({
+          label: 'Multimodal Processing',
+          value: multimodalOptions.join(', '),
+          enabled: true
+        });
+      }
+
+      if (parseConfig.length > 0) {
+        summary.push({
+          section: 'Parse & Index Configuration',
+          items: parseConfig
+        });
+      }
+    }
+
+    // Index & Search Configuration
+    if (processingConfig.rag?.enabled) {
+      const indexConfig = [];
+      
+      if (selectedEmbeddingModel) {
+        const model = embeddingModels.find(m => m.id === selectedEmbeddingModel);
+        indexConfig.push({
+          label: 'Embedding Model',
+          value: model ? `${model.name} (${model.dimensions}d)` : selectedEmbeddingModel
+        });
+      }
+
+      if (selectedMetadataFilters?.length > 0) {
+        indexConfig.push({
+          label: 'Prefilters',
+          value: `${selectedMetadataFilters.length} filters`,
+          enabled: true
+        });
+      }
+
+      if (indexConfig.length > 0) {
+        summary.push({
+          section: 'Index & Search Configuration',
+          items: indexConfig
+        });
+      }
+    }
+
+    // Document AI Configuration
+    if (processingConfig.idp?.enabled) {
+      const idpConfig = [];
+      
+      if (processingConfig.idp?.textExtraction) {
+        idpConfig.push({
+          label: 'Text Extraction',
+          value: 'Enabled',
+          enabled: true
+        });
+      }
+      
+      if (processingConfig.idp?.classification) {
+        idpConfig.push({
+          label: 'Classification',
+          value: 'Enabled',
+          enabled: true
+        });
+      }
+      
+      if (processingConfig.idp?.metadata) {
+        idpConfig.push({
+          label: 'Metadata Extraction',
+          value: 'Enabled',
+          enabled: true
+        });
+      }
+
+      if (idpConfig.length > 0) {
+        summary.push({
+          section: 'Document AI Configuration',
+          items: idpConfig
+        });
+      }
+    }
+
+    return summary;
+  };
+
   // Determine active methods for summary
   const activeMethods = processingTypes.filter(type => processingConfig[type.id]?.enabled);
+
 
   return (
     <div className="h-full overflow-hidden flex w-full">
@@ -153,20 +359,11 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
            style={{overflow: collapsed ? 'hidden' : 'visible'}}>
         {!collapsed && (
           <div className="h-full overflow-y-auto p-3 space-y-3">
-            {/* Compact header with Process button */}
+            {/* Compact header */}
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 📋 Content Config
               </h3>
-              <Button 
-                size="sm"
-                onClick={() => onProcessDocument && onProcessDocument()}
-                disabled={disabled || !activeMethods.length}
-                className={`${highlightProcessButton ? 'bg-green-600 hover:bg-green-700' : ''} ${pulseEffect ? 'animate-pulse' : ''}`}
-              >
-                <PlayCircle className="w-4 h-4 mr-1" />
-                Finalize
-              </Button>
             </div>
 
             {/* Accordion-based configuration */}
@@ -613,7 +810,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           {/* Metadata Filters */}
                           <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
                             <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-xs font-medium text-blue-900">📋 Metadata Filters</h5>
+                              <h5 className="text-xs font-medium text-blue-900">📋 Prefilters</h5>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -779,9 +976,164 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
               )}
 
             </Accordion>
+
+            {/* Publish Button */}
+            <div className="pt-4 border-t border-gray-200">
+              <Button 
+                size="default"
+                onClick={() => setShowFinalizeModal(true)}
+                disabled={disabled || !activeMethods.length}
+                className={`w-full ${highlightProcessButton ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} ${pulseEffect ? 'animate-pulse' : ''}`}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Publish Configuration
+              </Button>
+              {activeMethods.length === 0 && (
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Select at least one processing method to publish
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>
+
+      {/* Publish Configuration Modal */}
+      <Dialog open={showFinalizeModal} onOpenChange={setShowFinalizeModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Publish Configuration & Select UDMO
+            </DialogTitle>
+            <DialogDescription>
+              Select a Unified Data Model Object (UDMO) and review your configuration before publishing.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* UDMO Selection */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Select UDMO</h3>
+              <div className="space-y-3">
+                {udmoOptions.map((udmo) => {
+                  const Icon = udmo.icon;
+                  return (
+                    <Card 
+                      key={udmo.id}
+                      className={`cursor-pointer transition-all ${
+                        selectedUDMO === udmo.id 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      } ${udmo.recommended ? 'ring-2 ring-green-200' : ''}`}
+                      onClick={() => setSelectedUDMO(udmo.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0">
+                            <Icon className={`w-5 h-5 ${
+                              selectedUDMO === udmo.id ? 'text-blue-600' : 'text-gray-400'
+                            }`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium text-sm">{udmo.name}</h4>
+                              {udmo.recommended && (
+                                <Badge className="bg-green-100 text-green-800 text-xs">
+                                  Recommended
+                                </Badge>
+                              )}
+                              {udmo.category && (
+                                <Badge variant="outline" className="text-xs">
+                                  {udmo.category}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">{udmo.description}</p>
+                          </div>
+                          {selectedUDMO === udmo.id && (
+                            <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Configuration Summary */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Configuration Summary</h3>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {getConfigurationSummary().map((section, index) => (
+                  <Card key={index} className="border-gray-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">{section.section}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-2">
+                        {section.items.map((item, itemIndex) => (
+                          <div key={itemIndex} className="flex items-center justify-between">
+                            <span className="text-xs text-gray-600">{item.label}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium">{item.value}</span>
+                              {item.enabled && (
+                                <Check className="w-3 h-3 text-green-600" />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {getConfigurationSummary().length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No configuration settings available</p>
+                    <p className="text-xs">Enable processing methods to see configuration options</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <FileType className="w-4 h-4" />
+              <span>Selected UDMO: {udmoOptions.find(u => u.id === selectedUDMO)?.name}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowFinalizeModal(false)}
+                disabled={isPublishing}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handlePublish}
+                disabled={isPublishing || !selectedUDMO}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isPublishing ? (
+                  <>
+                    <Timer className="w-4 h-4 mr-2 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Publish Configuration
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });
