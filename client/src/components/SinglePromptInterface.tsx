@@ -73,15 +73,17 @@ const IndexConfigurationTestPanel: React.FC<{
   const handleInputChange = useCallback((value: string) => {
     setAgenticQuery(value);
     
-    if (value.trim().length > 1) { // Show suggestions after 2 characters
+    if (value.trim().length === 0) {
+      // Show all suggestions when input is empty
+      setFilteredSuggestions(agenticSuggestions);
+      setShowSuggestions(true);
+    } else {
+      // Filter suggestions based on input
       const filtered = agenticSuggestions.filter(suggestion =>
         suggestion.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
-    } else {
-      setShowSuggestions(false);
-      setFilteredSuggestions([]);
     }
   }, [agenticSuggestions]);
 
@@ -191,7 +193,7 @@ const IndexConfigurationTestPanel: React.FC<{
   }, [agenticQuery, getAnswerFromChunks, getRelevantChunks, isPromptApplied]);
 
   return (
-    <div className="pt-0 px-6 pb-6 bg-white/50 max-h-[400px] overflow-y-auto">
+    <div className="pt-0 px-6 pb-6 bg-white/50 min-h-[600px] max-h-[95vh] overflow-y-auto">
       <div className="space-y-6">
         {/* Query Input Card */}
         <Card>
@@ -247,7 +249,12 @@ const IndexConfigurationTestPanel: React.FC<{
                         }
                       }}
                       onFocus={() => {
-                        if (agenticQuery.trim().length > 1) {
+                        if (agenticQuery.trim().length === 0) {
+                          // Show all suggestions when input is empty
+                          setFilteredSuggestions(agenticSuggestions);
+                          setShowSuggestions(true);
+                        } else {
+                          // Show filtered suggestions when input has text
                           const filtered = agenticSuggestions.filter(suggestion =>
                             suggestion.toLowerCase().includes(agenticQuery.toLowerCase())
                           );

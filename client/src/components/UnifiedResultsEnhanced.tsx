@@ -2939,8 +2939,8 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <TabsContent value="source">{renderSourceDocument()}</TabsContent>
           <TabsContent value="test">
             <div className="space-y-4">
-              {/* Simple File Metadata Filter Demo */}
-              <Card className="border-gray-200 bg-gradient-to-r from-gray-50 to-slate-50">
+              {/* Simple File Metadata Filter Demo - HIDDEN */}
+              {/* <Card className="border-gray-200 bg-gradient-to-r from-gray-50 to-slate-50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -2956,7 +2956,6 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* File Type Filter */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">File Type</label>
                       <select className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm">
@@ -2968,7 +2967,6 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                       </select>
                     </div>
                     
-                    {/* Size Filter */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">File Size</label>
                       <select className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm">
@@ -2979,7 +2977,6 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                       </select>
                     </div>
                     
-                    {/* Date Filter */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">Modified Date</label>
                       <select className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm">
@@ -2991,7 +2988,6 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                     </div>
                   </div>
                   
-                  {/* Sample Metadata Display */}
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="text-sm font-medium text-gray-700">Current Document Metadata</h4>
@@ -3019,7 +3015,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
               
               {/* Main collapsible sections */}
               <Accordion 
