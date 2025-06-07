@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: ragpromptground-steve-app
     ports:
       - "5175:5175"
     environment:
@@ -25,6 +26,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    container_name: ragpromptground-steve-db-init
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/ragplayground
     depends_on:
@@ -36,6 +38,7 @@ services:
 
   db:
     image: postgres:16-alpine
+    container_name: ragpromptground-steve-db
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -54,7 +57,9 @@ services:
 
 networks:
   ragplayground-network:
+    name: ragpromptground-steve-network
     driver: bridge
 
 volumes:
   postgres_data:
+    name: ragpromptground-steve-postgres-data
