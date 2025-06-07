@@ -2924,6 +2924,10 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </Button>
         </div>
         
+        <p className="text-sm text-gray-600 mb-4">
+          Your Document has been analyzed based on Content Lens and the Selected Configurations on left are applied (you can expand the left panel)
+        </p>
+        
         <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="flex-1">
           <TabsList className="w-full justify-start mb-4">
             <TabsTrigger value="source" className="flex items-center gap-2">
