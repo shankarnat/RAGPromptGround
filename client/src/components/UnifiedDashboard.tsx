@@ -1397,6 +1397,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   
   // Handler for sidebar collapse state changes
   const handleConfigPanelCollapse = useCallback((collapsed: boolean) => {
+    console.log('handleConfigPanelCollapse called with:', collapsed);
     setConfigPanelCollapsed(collapsed);
   }, []);
   
@@ -1579,21 +1580,28 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
         return (
           <ResizablePanelGroup direction="horizontal" className="h-full">
             {/* Left Panel - Manual Configuration - minimal size when collapsed */}
-            <ResizablePanel 
-              defaultSize={configPanelCollapsed ? 3 : 20} 
-              minSize={configPanelCollapsed ? 3 : 15} 
-              maxSize={configPanelCollapsed ? 3 : 30} 
-              className="h-full bg-gray-100"
-            >
-              <div className="h-full overflow-hidden">
+            {!configPanelCollapsed ? (
+              <>
+                <ResizablePanel 
+                  defaultSize={20} 
+                  minSize={15} 
+                  maxSize={30} 
+                  className="h-full bg-gray-100"
+                >
+                  <div className="h-full overflow-hidden">
+                    <ManualConfigurationPanel {...manualConfigPanelProps} />
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+              </>
+            ) : (
+              <div className="h-full bg-gray-100" style={{width: '40px'}}>
                 <ManualConfigurationPanel {...manualConfigPanelProps} />
               </div>
-            </ResizablePanel>
-            
-          <ResizableHandle withHandle />
+            )}
             
           {/* Center Panel - Document & Results - expands when left panel is collapsed */}
-          <ResizablePanel defaultSize={configPanelCollapsed ? 77 : 60} minSize={40} maxSize={configPanelCollapsed ? 87 : 70}>
+          <ResizablePanel defaultSize={60} minSize={40}>
             <div className="h-full bg-gray-50 overflow-y-auto">
               {!state.selectedDocument ? (
                 // Show upload panel when no document is selected
@@ -1773,21 +1781,28 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
         return (
           <ResizablePanelGroup direction="horizontal" className="h-full">
             {/* Left Panel - Manual Configuration - minimal size when collapsed */}
-            <ResizablePanel 
-              defaultSize={configPanelCollapsed ? 3 : 20} 
-              minSize={configPanelCollapsed ? 3 : 15} 
-              maxSize={configPanelCollapsed ? 3 : 30} 
-              className="h-full bg-gray-100"
-            >
-              <div className="h-full overflow-hidden">
+            {!configPanelCollapsed ? (
+              <>
+                <ResizablePanel 
+                  defaultSize={20} 
+                  minSize={15} 
+                  maxSize={30} 
+                  className="h-full bg-gray-100"
+                >
+                  <div className="h-full overflow-hidden">
+                    <ManualConfigurationPanel {...manualConfigPanelProps} />
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+              </>
+            ) : (
+              <div className="h-full bg-gray-100" style={{width: '40px'}}>
                 <ManualConfigurationPanel {...manualConfigPanelProps} />
               </div>
-            </ResizablePanel>
-            
-            <ResizableHandle withHandle />
+            )}
             
             {/* Center Panel - Processing Status - expands when left panel is collapsed */}
-            <ResizablePanel defaultSize={configPanelCollapsed ? 77 : 60} minSize={40} maxSize={configPanelCollapsed ? 87 : 70}>
+            <ResizablePanel defaultSize={60} minSize={40}>
               <div className="h-full flex items-center justify-center bg-gray-50">
                 <div className="text-center space-y-4">
                   <Brain className="h-12 w-12 text-blue-600 animate-pulse mx-auto" />
@@ -1865,21 +1880,28 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
         return (
           <ResizablePanelGroup direction="horizontal" className="h-full">
             {/* Left Panel - Manual Configuration - minimal size when collapsed */}
-            <ResizablePanel 
-              defaultSize={configPanelCollapsed ? 3 : 20} 
-              minSize={configPanelCollapsed ? 3 : 15} 
-              maxSize={configPanelCollapsed ? 3 : 30} 
-              className="h-full bg-gray-100"
-            >
-              <div className="h-full overflow-hidden">
+            {!configPanelCollapsed ? (
+              <>
+                <ResizablePanel 
+                  defaultSize={20} 
+                  minSize={15} 
+                  maxSize={30} 
+                  className="h-full bg-gray-100"
+                >
+                  <div className="h-full overflow-hidden">
+                    <ManualConfigurationPanel {...manualConfigPanelProps} />
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+              </>
+            ) : (
+              <div className="h-full bg-gray-100" style={{width: '40px'}}>
                 <ManualConfigurationPanel {...manualConfigPanelProps} />
               </div>
-            </ResizablePanel>
-            
-            <ResizableHandle withHandle />
+            )}
             
             {/* Center Panel - Results View - expands when left panel is collapsed */}
-            <ResizablePanel defaultSize={configPanelCollapsed ? 77 : 60} minSize={40} maxSize={configPanelCollapsed ? 87 : 70}>
+            <ResizablePanel defaultSize={60} minSize={40}>
               <div className="h-full flex flex-col bg-gray-50">
                 {/* Re-process button header removed */}
                 {/* <div className="flex items-center justify-between bg-gray-100 border-b border-gray-200 px-6 py-3">

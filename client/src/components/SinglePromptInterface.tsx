@@ -201,7 +201,7 @@ const IndexConfigurationTestPanel: React.FC<{
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <BrainCircuit className="h-5 w-5 text-purple-500" />
-                <CardTitle>Evaluate and Test</CardTitle>
+                <CardTitle>Processed Data</CardTitle>
               </div>
               <div className="flex items-center gap-2">
                 <Button

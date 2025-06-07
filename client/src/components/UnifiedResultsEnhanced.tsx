@@ -1993,7 +1993,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <BrainCircuit className="h-5 w-5 text-purple-500" />
-                <CardTitle>Evaluate and Test</CardTitle>
+                <CardTitle>Processed Data</CardTitle>
               </div>
               <div className="flex items-center gap-2">
                 {isPromptApplied && (
@@ -2936,7 +2936,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
             </TabsTrigger>
             <TabsTrigger value="test" className="flex items-center gap-2 bg-indigo-100">
               <BrainCircuit className="h-4 w-4" />
-              Evaluate and Test
+              Processed Data
             </TabsTrigger>
           </TabsList>
           
@@ -3186,7 +3186,7 @@ export const IndexConfigurationPanel = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <BrainCircuit className="h-5 w-5 text-purple-500" />
-              <CardTitle>Evaluate and Test</CardTitle>
+              <CardTitle>Processed Data</CardTitle>
             </div>
             <div className="flex items-center gap-2">
               {isPromptApplied && (

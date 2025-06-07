@@ -150,6 +150,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
 
   const toggleCollapse = () => {
     const newCollapsedState = !collapsed;
+    console.log('Toggling collapse from', collapsed, 'to', newCollapsedState);
     setCollapsed(newCollapsedState);
     if (onCollapseChange) {
       onCollapseChange(newCollapsedState);
@@ -328,11 +329,12 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
       <div className="relative h-full w-8 flex-shrink-0">
         <button 
           type="button"
-          className="group flex flex-col items-center justify-center h-full w-full bg-gradient-to-b from-gray-50 to-gray-100 border-r border-gray-300 hover:from-blue-50 hover:to-blue-100 hover:border-blue-300 transition-all duration-300 shadow-sm"
+          className="group relative h-full w-full bg-gradient-to-b from-gray-50 to-gray-100 border-r border-gray-300 hover:from-blue-50 hover:to-blue-100 hover:border-blue-300 transition-all duration-300 shadow-sm cursor-pointer"
           onClick={toggleCollapse}
           aria-label={collapsed ? "Expand panel" : "Collapse panel"}
         >
-          <div className="flex flex-col items-center justify-center space-y-1">
+          {/* Center the chevron and line */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center space-y-1">
             {collapsed ? (
               <>
                 <ChevronRight className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
@@ -345,14 +347,14 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
               </>
             )}
           </div>
+          
+          {/* Subtle indicator dots */}
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex flex-col space-y-1 pointer-events-none">
+            <div className="w-1 h-1 bg-gray-400 rounded-full opacity-60"></div>
+            <div className="w-1 h-1 bg-gray-400 rounded-full opacity-60"></div>
+            <div className="w-1 h-1 bg-gray-400 rounded-full opacity-60"></div>
+          </div>
         </button>
-        
-        {/* Subtle indicator dots */}
-        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex flex-col space-y-1">
-          <div className="w-1 h-1 bg-gray-400 rounded-full opacity-60"></div>
-          <div className="w-1 h-1 bg-gray-400 rounded-full opacity-60"></div>
-          <div className="w-1 h-1 bg-gray-400 rounded-full opacity-60"></div>
-        </div>
       </div>
       
       {/* Main content */}
