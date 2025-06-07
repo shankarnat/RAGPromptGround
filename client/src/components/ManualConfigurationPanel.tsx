@@ -529,6 +529,28 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 />
                               </div>
                             </div>
+                            
+                            {/* Prompt Chunking Toggle */}
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <label className="text-xs font-medium text-gray-700">
+                                    Prompt chunking
+                                  </label>
+                                  <Info className="h-3 w-3 text-gray-400 cursor-help" title="Use AI prompts to intelligently determine chunk boundaries" />
+                                </div>
+                                <Switch
+                                  checked={state.promptChunking || false}
+                                  onCheckedChange={(checked) => {
+                                    // Handle prompt chunking toggle
+                                    // This would need to be connected to state management
+                                    console.log('Prompt chunking toggled:', checked);
+                                  }}
+                                  disabled={disabled}
+                                  className="h-5 w-9 data-[state=checked]:bg-blue-600"
+                                />
+                              </div>
+                            </div>
                           </div>
 
                           {/* Prompt-Based Parsing */}
