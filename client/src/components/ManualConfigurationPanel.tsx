@@ -99,6 +99,7 @@ const udmoOptions = [
   }
 ];
 
+
 const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo(({
   processingTypes,
   processingConfig,
@@ -976,6 +977,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
               )}
 
             </Accordion>
+
 
             {/* Publish Button */}
             <div className="pt-4 border-t border-gray-200">

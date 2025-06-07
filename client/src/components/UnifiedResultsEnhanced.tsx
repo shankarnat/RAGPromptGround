@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -2938,6 +2939,88 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           <TabsContent value="source">{renderSourceDocument()}</TabsContent>
           <TabsContent value="test">
             <div className="space-y-4">
+              {/* Simple File Metadata Filter Demo */}
+              <Card className="border-gray-200 bg-gradient-to-r from-gray-50 to-slate-50">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="p-2 rounded-lg bg-gray-100">
+                        <Search className="h-5 w-5 text-gray-600" />
+                      </div>
+                      <div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Evaluate and Test</div>
+                        <div className="text-sm text-gray-600 mt-1">File metadata and content filters</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* File Type Filter */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">File Type</label>
+                      <select className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm">
+                        <option value="all">All Types</option>
+                        <option value="pdf">PDF Documents</option>
+                        <option value="csv">CSV Files</option>
+                        <option value="docx">Word Documents</option>
+                        <option value="xlsx">Excel Files</option>
+                      </select>
+                    </div>
+                    
+                    {/* Size Filter */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">File Size</label>
+                      <select className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm">
+                        <option value="all">Any Size</option>
+                        <option value="small">&lt; 1 MB</option>
+                        <option value="medium">1-10 MB</option>
+                        <option value="large">&gt; 10 MB</option>
+                      </select>
+                    </div>
+                    
+                    {/* Date Filter */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Modified Date</label>
+                      <select className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm">
+                        <option value="all">Any Date</option>
+                        <option value="today">Today</option>
+                        <option value="week">Last Week</option>
+                        <option value="month">Last Month</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Sample Metadata Display */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium text-gray-700">Current Document Metadata</h4>
+                      <Badge variant="outline" className="text-xs">
+                        {selectedDocument?.name || 'No document selected'}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="text-center p-3 bg-white border border-gray-100 rounded-lg">
+                        <div className="text-xs text-gray-500">Size</div>
+                        <div className="text-sm font-medium">2.4 MB</div>
+                      </div>
+                      <div className="text-center p-3 bg-white border border-gray-100 rounded-lg">
+                        <div className="text-xs text-gray-500">Pages</div>
+                        <div className="text-sm font-medium">18</div>
+                      </div>
+                      <div className="text-center p-3 bg-white border border-gray-100 rounded-lg">
+                        <div className="text-xs text-gray-500">Format</div>
+                        <div className="text-sm font-medium">PDF</div>
+                      </div>
+                      <div className="text-center p-3 bg-white border border-gray-100 rounded-lg">
+                        <div className="text-xs text-gray-500">Language</div>
+                        <div className="text-sm font-medium">English</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
               {/* Main collapsible sections */}
               <Accordion 
                 type="single" 
@@ -2995,26 +3078,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
                   </AccordionContent>
                 </AccordionItem>
 
-                {/* Test & Evaluate Accordion Item - Moved to third position */}
-                <AccordionItem value="testing" className="border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-sm overflow-hidden">
-                  <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-indigo-100/50 transition-colors [&[data-state=open]]:bg-indigo-100">
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="p-2 rounded-lg bg-indigo-100">
-                        <TestTube className="h-5 w-5 text-indigo-600" />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <div className="font-semibold text-indigo-900 text-base">🧪 Index Configuration</div>
-                        <div className="text-xs text-indigo-600 mt-0.5">
-                          Index Configuration
-                        </div>
-                      </div>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-6 bg-white/50 max-h-[400px] overflow-y-auto">
-                    {renderAgenticResults()}
-                  </AccordionContent>
-                </AccordionItem>
+                {/* Test & Evaluate section removed - moved to right panel */}
 
                 {/* Document AI (IDP) Accordion Item - Renamed and moved to fourth position */}
                 {processingConfig?.idp?.enabled && (
@@ -3083,5 +3147,190 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
     </>
   );
 }
+
+// Export the index configuration component for use in other places
+export const IndexConfigurationPanel = ({ 
+  agenticQuery,
+  setAgenticQuery,
+  agenticSuggestions,
+  handleAgenticQueryClick,
+  isAgenticLoading,
+  agenticResults,
+  isEvaluationLoading,
+  showEvaluation,
+  evaluationResults,
+  performEvaluation,
+  testResults,
+  isRunningTests,
+  isPromptApplied
+}: {
+  agenticQuery: string;
+  setAgenticQuery: (query: string) => void;
+  agenticSuggestions: string[];
+  handleAgenticQueryClick: (query: string) => void;
+  isAgenticLoading: boolean;
+  agenticResults: any;
+  isEvaluationLoading: boolean;
+  showEvaluation: boolean;
+  evaluationResults: any;
+  performEvaluation: () => void;
+  testResults: any[];
+  isRunningTests: boolean;
+  isPromptApplied: boolean;
+}) => {
+  return (
+    <div className="space-y-6">
+      {/* Query Input */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <BrainCircuit className="h-5 w-5 text-purple-500" />
+              <CardTitle>Evaluate and Test</CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              {isPromptApplied && (
+                <Badge variant="default" className="text-xs">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Prompt Applied
+                </Badge>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={performEvaluation}
+                disabled={isEvaluationLoading}
+              >
+                {isEvaluationLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Evaluating...
+                  </>
+                ) : (
+                  <>
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Evaluate All
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+          <CardDescription>
+            Ask questions about your document to test retrieval accuracy
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="query">Test Query</Label>
+            <div className="flex gap-2">
+              <Input
+                id="query"
+                placeholder="e.g., What is the towing capacity?"
+                value={agenticQuery}
+                onChange={(e) => setAgenticQuery(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && agenticQuery.trim()) {
+                    handleAgenticQueryClick(agenticQuery);
+                  }
+                }}
+                className="flex-1"
+              />
+              <Button
+                onClick={() => handleAgenticQueryClick(agenticQuery)}
+                disabled={!agenticQuery.trim() || isAgenticLoading}
+              >
+                {isAgenticLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Query Suggestions */}
+          <div className="space-y-2">
+            <Label className="text-sm text-gray-600">Suggested Queries</Label>
+            <div className="flex flex-wrap gap-2">
+              {agenticSuggestions.slice(0, 4).map((suggestion, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAgenticQuery(suggestion);
+                    handleAgenticQueryClick(suggestion);
+                  }}
+                  className="text-xs"
+                >
+                  {suggestion.length > 40 ? suggestion.substring(0, 40) + '...' : suggestion}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Test Results */}
+      {testResults.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <TestTube className="h-5 w-5 text-green-500" />
+                <CardTitle>Test Results</CardTitle>
+              </div>
+              {isRunningTests && (
+                <Badge variant="outline" className="text-xs">
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  Running Tests...
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {testResults.slice(-3).map((result: any, index: number) => (
+                <div key={result.id || index} className="p-3 border rounded-lg bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{result.question}</p>
+                      <p className="text-sm text-gray-600 mt-1">{result.actualAnswer}</p>
+                    </div>
+                    <Badge 
+                      variant={result.confidence > 0.8 ? "default" : "secondary"}
+                      className="text-xs"
+                    >
+                      {(result.confidence * 100).toFixed(0)}%
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Evaluation Results */}
+      {showEvaluation && evaluationResults && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Evaluation Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm max-w-none">
+              <p className="text-gray-700">{evaluationResults.executiveSummary}</p>
+              <h4 className="mt-4">Recommendation</h4>
+              <p className="text-gray-700">{evaluationResults.recommendation}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
 
 export default UnifiedResultsEnhanced;
