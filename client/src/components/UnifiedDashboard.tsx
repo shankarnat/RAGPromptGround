@@ -2006,6 +2006,10 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                           // Handle questions about existing results
                         }}
                         disabled={false}
+                        isPromptApplied={state.promptParsing?.isApplied || false}
+                        promptParsing={state.promptParsing}
+                        processingConfig={processingConfig}
+                        ragResults={state.unifiedProcessing.unifiedResults.standard}
                       />
                     ) : (
                       <ConversationalUI
