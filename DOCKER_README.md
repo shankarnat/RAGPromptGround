@@ -85,7 +85,7 @@ Key environment variables (see `.env.example`):
 ## Ports
 
 - `5175`: Application web interface
-- `5432`: PostgreSQL database (exposed for development)
+- `5433`: PostgreSQL database (exposed for development)
 
 ## Troubleshooting
 
