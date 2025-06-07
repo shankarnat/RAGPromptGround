@@ -60,8 +60,8 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use PORT from environment or default to 3001
-  const port = parseInt(process.env.PORT || "3001", 10);
+  // Use PORT from environment or default to 5175
+  const port = parseInt(process.env.PORT || "5175", 10);
   server.listen({
     port,
     host: "0.0.0.0",
