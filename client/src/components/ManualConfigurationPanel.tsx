@@ -551,6 +551,28 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 />
                               </div>
                             </div>
+                            
+                            {/* Bring Your Own Code Toggle */}
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <label className="text-xs font-medium text-gray-700">
+                                    Bring Your Own Code
+                                  </label>
+                                  <Info className="h-3 w-3 text-gray-400 cursor-help" title="Use custom code for advanced chunking strategies" />
+                                </div>
+                                <Switch
+                                  checked={state.bringYourOwnCode || false}
+                                  onCheckedChange={(checked) => {
+                                    // Handle bring your own code toggle
+                                    // This would need to be connected to state management
+                                    console.log('Bring Your Own Code toggled:', checked);
+                                  }}
+                                  disabled={disabled}
+                                  className="h-5 w-9 data-[state=checked]:bg-blue-600"
+                                />
+                              </div>
+                            </div>
                           </div>
 
                           {/* Prompt-Based Parsing */}
