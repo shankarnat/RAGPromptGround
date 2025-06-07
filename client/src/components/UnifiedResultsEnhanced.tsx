@@ -2941,7 +2941,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
           </TabsList>
           
           <TabsContent value="source">{renderSourceDocument()}</TabsContent>
-          <TabsContent value="test">
+          <TabsContent value="test" className="h-full overflow-y-auto">
             <div className="space-y-4">
               {/* Simple File Metadata Filter Demo - HIDDEN */}
               {/* <Card className="border-gray-200 bg-gradient-to-r from-gray-50 to-slate-50">

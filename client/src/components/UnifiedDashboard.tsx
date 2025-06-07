@@ -1710,7 +1710,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
+              <CardContent className="p-4 h-[calc(100%-5rem)] overflow-y-auto">
                 <div className="h-full">
                   {dcAgentMode === 'single-prompt' ? (
                     <SinglePromptInterface
@@ -1838,7 +1838,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
+                <CardContent className="p-4 h-[calc(100%-5rem)] overflow-y-auto">
                   <div className="h-full">
                     {dcAgentMode === 'single-prompt' ? (
                       <SinglePromptInterface
@@ -1996,7 +1996,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 h-[calc(100%-5rem)] overflow-hidden">
+                <CardContent className="p-4 h-[calc(100%-5rem)] overflow-y-auto">
                   <div className="h-full">
                     {dcAgentMode === 'single-prompt' ? (
                       <SinglePromptInterface

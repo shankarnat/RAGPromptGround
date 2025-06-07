@@ -483,6 +483,114 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                         </AccordionTrigger>
                         <AccordionContent className="px-3 pb-3 space-y-3">
                           
+                          {/* Prompt-Based Parsing */}
+                          <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="text-xs font-medium text-blue-900">🧠 Prompt-Based Parsing</h5>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={useCustomParsing === true}
+                                  onCheckedChange={(checked) => {
+                                    console.log('Toggle clicked:', checked);
+                                    onToggleCustomParsing?.(checked);
+                                    if (!checked) {
+                                      onParsingInstructionsChange?.('');
+                                    }
+                                  }}
+                                  disabled={disabled}
+                                />
+                                <Badge 
+                                  variant={useCustomParsing === true && parsingInstructions?.trim() ? "default" : "secondary"} 
+                                  className="text-xs"
+                                >
+                                  {useCustomParsing === true && parsingInstructions?.trim() ? 'Active' : 'Off'}
+                                </Badge>
+                              </div>
+                            </div>
+                            
+                            {/* Always show the textarea when toggle is on */}
+                            {useCustomParsing === true && (
+                              <div className="space-y-2">
+                                <textarea
+                                  placeholder="Enter custom parsing instructions here..."
+                                  value={parsingInstructions || 'Convert any tables (especially drivetrain specifications) to clean markdown format. Extract key technical specifications and present them in structured tables with proper headers.'}
+                                  onChange={(e) => {
+                                    console.log('Textarea changed:', e.target.value);
+                                    onParsingInstructionsChange?.(e.target.value);
+                                  }}
+                                  disabled={disabled}
+                                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[80px] text-xs"
+                                  rows={4}
+                                />
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      console.log('Apply parsing clicked');
+                                      if (parsingInstructions?.trim()) {
+                                        // Enable the toggle if not already enabled
+                                        if (useCustomParsing !== true) {
+                                          onToggleCustomParsing?.(true);
+                                        }
+                                        onApplyPromptParsing?.();
+                                      }
+                                    }}
+                                    disabled={disabled || !parsingInstructions?.trim()}
+                                    className="h-7 text-xs bg-blue-600 hover:bg-blue-700"
+                                  >
+                                    <Sparkles className="h-3 w-3 mr-1" />
+                                    {state?.promptParsing?.isApplied ? 'Update Parsing' : 'Apply Parsing'}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      onParsingInstructionsChange?.('');
+                                    }}
+                                    disabled={disabled || !parsingInstructions?.trim()}
+                                    className="h-7 text-xs"
+                                  >
+                                    Clear
+                                  </Button>
+                                </div>
+                                {state?.promptParsing?.isApplied && (
+                                  <div className="text-xs text-green-600 bg-green-50 p-2 rounded border">
+                                    ✅ Custom parsing rules applied successfully
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Show message when toggle is off */}
+                            {useCustomParsing !== true && (
+                              <div className="text-xs text-gray-500 italic">
+                                Enable to add custom parsing instructions for better document understanding
+                              </div>
+                            )}
+                            
+                            {/* Bring Your Own Code Toggle */}
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <label className="text-xs font-medium text-gray-700">
+                                    Bring Your Own Code
+                                  </label>
+                                  <Info className="h-3 w-3 text-gray-400 cursor-help" title="Use custom code for advanced parsing strategies" />
+                                </div>
+                                <Switch
+                                  checked={state.bringYourOwnCodeParsing || false}
+                                  onCheckedChange={(checked) => {
+                                    // Handle bring your own code toggle for parsing
+                                    // This would need to be connected to state management
+                                    console.log('Bring Your Own Code (Parsing) toggled:', checked);
+                                  }}
+                                  disabled={disabled}
+                                  className="h-5 w-9 data-[state=checked]:bg-blue-600"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
                           {/* Chunking Settings */}
                           <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
                             <h5 className="text-xs font-medium text-blue-900 mb-2">📊 Chunking Settings</h5>
@@ -573,92 +681,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                 />
                               </div>
                             </div>
-                          </div>
-
-                          {/* Prompt-Based Parsing */}
-                          <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
-                            <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-xs font-medium text-blue-900">🧠 Prompt-Based Parsing</h5>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={useCustomParsing === true}
-                                  onCheckedChange={(checked) => {
-                                    console.log('Toggle clicked:', checked);
-                                    onToggleCustomParsing?.(checked);
-                                    if (!checked) {
-                                      onParsingInstructionsChange?.('');
-                                    }
-                                  }}
-                                  disabled={disabled}
-                                />
-                                <Badge 
-                                  variant={useCustomParsing === true && parsingInstructions?.trim() ? "default" : "secondary"} 
-                                  className="text-xs"
-                                >
-                                  {useCustomParsing === true && parsingInstructions?.trim() ? 'Active' : 'Off'}
-                                </Badge>
-                              </div>
-                            </div>
-                            
-                            {/* Always show the textarea when toggle is on */}
-                            {useCustomParsing === true && (
-                              <div className="space-y-2">
-                                <textarea
-                                  placeholder="Enter custom parsing instructions here..."
-                                  value={parsingInstructions || 'Convert any tables (especially drivetrain specifications) to clean markdown format. Extract key technical specifications and present them in structured tables with proper headers.'}
-                                  onChange={(e) => {
-                                    console.log('Textarea changed:', e.target.value);
-                                    onParsingInstructionsChange?.(e.target.value);
-                                  }}
-                                  disabled={disabled}
-                                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[80px] text-xs"
-                                  rows={4}
-                                />
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => {
-                                      console.log('Apply parsing clicked');
-                                      if (parsingInstructions?.trim()) {
-                                        // Enable the toggle if not already enabled
-                                        if (useCustomParsing !== true) {
-                                          onToggleCustomParsing?.(true);
-                                        }
-                                        onApplyPromptParsing?.();
-                                      }
-                                    }}
-                                    disabled={disabled || !parsingInstructions?.trim()}
-                                    className="h-7 text-xs bg-blue-600 hover:bg-blue-700"
-                                  >
-                                    <Sparkles className="h-3 w-3 mr-1" />
-                                    {state?.promptParsing?.isApplied ? 'Update Parsing' : 'Apply Parsing'}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      onParsingInstructionsChange?.('');
-                                    }}
-                                    disabled={disabled || !parsingInstructions?.trim()}
-                                    className="h-7 text-xs"
-                                  >
-                                    Clear
-                                  </Button>
-                                </div>
-                                {state?.promptParsing?.isApplied && (
-                                  <div className="text-xs text-green-600 bg-green-50 p-2 rounded border">
-                                    ✅ Custom parsing rules applied successfully
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            
-                            {/* Show message when toggle is off */}
-                            {useCustomParsing !== true && (
-                              <div className="text-xs text-gray-500 italic">
-                                Enable to add custom parsing instructions for better document understanding
-                              </div>
-                            )}
                           </div>
 
                           {/* Prepend Metadata */}
