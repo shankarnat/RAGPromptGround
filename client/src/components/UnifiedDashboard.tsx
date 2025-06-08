@@ -1489,9 +1489,19 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     selectedEmbeddingModel: state.selectedModelId,
     onEmbeddingModelChange: selectEmbeddingModel,
     // Add parsing instructions props
-    parsingInstructions: state.promptParsing?.customPrompt || "",
+    parsingInstructions: state.promptParsing?.customPrompt || 
+      ((state.unifiedProcessing?.unifiedResults && 
+        (state.unifiedProcessing.unifiedResults.standard || 
+         state.unifiedProcessing.unifiedResults.kg || 
+         state.unifiedProcessing.unifiedResults.idp)) ? 
+       "Convert any tables (especially drivetrain specifications) to clean markdown format. Extract key technical specifications and present them in structured tables with proper headers." : 
+       ""),
     onParsingInstructionsChange: handleParsingInstructionsChange,
-    useCustomParsing: state.promptParsing?.isApplied || false,
+    useCustomParsing: state.promptParsing?.isApplied || 
+      (state.unifiedProcessing?.unifiedResults && 
+       (state.unifiedProcessing.unifiedResults.standard || 
+        state.unifiedProcessing.unifiedResults.kg || 
+        state.unifiedProcessing.unifiedResults.idp)) ? true : false,
     onToggleCustomParsing: handleToggleCustomParsing,
     // Add metadata configuration props
     selectedMetadataFilters,
