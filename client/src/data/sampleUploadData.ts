@@ -17,9 +17,9 @@ export const recentDocuments: UploadedDocument[] = [
   },
   {
     id: 1,
-    name: "Honda_CR-V_2025_Specifications.pdf",
+    name: "Patient Diabetic Lab Report.pdf",
     type: "application/pdf",
-    size: 8250000, // 8.25 MB
+    size: 825000, // 825 KB
     uploadDate: "2025-05-19T14:30:00Z"
   },
   {
