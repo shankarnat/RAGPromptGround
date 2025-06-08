@@ -28,8 +28,8 @@ export function PdfViewer({ url, className = '' }: PdfViewerProps) {
     setLoadError('Failed to load PDF. The file might not exist or there might be a loading issue.');
   };
 
-  // Encode the URL properly for iframe usage
-  const encodedUrl = encodeURI(url);
+  // Use the URL as-is since it's already properly encoded
+  const encodedUrl = url;
 
   return (
     <div className={`flex flex-col h-full bg-gray-50 rounded-lg ${className}`}>

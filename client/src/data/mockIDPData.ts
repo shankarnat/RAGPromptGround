@@ -97,19 +97,19 @@ export const mockIDPResults = {
     images: [
       {
         id: "img1",
-        url: "/api/assets/img1.png",
+        url: "/img1.png",
         caption: "Vehicle specifications extracted via OCR",
         metadata: { page: 5, type: "technical-spec", dimensions: "800x600" }
       },
       {
         id: "img2", 
-        url: "/api/assets/img2.png",
+        url: "/img2.png",
         caption: "Dashboard features identified through vision AI",
         metadata: { page: 8, type: "dashboard-layout", dimensions: "600x600" }
       },
       {
         id: "img3",
-        url: "/api/assets/img3.png", 
+        url: "/img3.png", 
         caption: "Engine details captured from technical documentation",
         metadata: { page: 12, type: "engine-diagram", dimensions: "800x400" }
       }

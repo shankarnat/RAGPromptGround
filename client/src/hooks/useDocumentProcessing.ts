@@ -271,7 +271,7 @@ export function useDocumentProcessing() {
       
       // If the document is the Acura RDX fact sheet, set its PDF URL
       if (document && document.name === "Acura_2025_RDX_Fact Sheet.pdf") {
-        pdfUrl = `/api/assets/${encodeURIComponent(document.name)}`;
+        pdfUrl = `/pdfs/${encodeURIComponent(document.name)}`;
       }
       
       return {
