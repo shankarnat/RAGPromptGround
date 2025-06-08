@@ -14,12 +14,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static files from attached_assets directory
   // Use import.meta.url for reliable path resolution in production
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  // Go up two levels: dist/server -> dist -> root -> attached_assets
-  const attachedAssetsPath = path.resolve(__dirname, '..', '..', 'attached_assets');
   
-  // Verify assets directory exists
-  if (!fs.existsSync(attachedAssetsPath)) {
-    console.warn('Warning: attached_assets directory not found at:', attachedAssetsPath);
+  // Try multiple possible paths for attached_assets (Heroku vs local)
+  const possiblePaths = [
+    path.resolve(__dirname, '..', '..', 'attached_assets'), // Local: dist/server -> root/attached_assets
+    path.resolve(process.cwd(), 'attached_assets'),         // Heroku: working dir/attached_assets
+    path.resolve(__dirname, '..', 'attached_assets')        // Alt: dist/server -> dist/attached_assets
+  ];
+  
+  let attachedAssetsPath = '';
+  for (const tryPath of possiblePaths) {
+    if (fs.existsSync(tryPath)) {
+      attachedAssetsPath = tryPath;
+      console.log(`✅ Found attached_assets at: ${attachedAssetsPath}`);
+      break;
+    } else {
+      console.log(`❌ Not found at: ${tryPath}`);
+    }
+  }
+  
+  if (!attachedAssetsPath) {
+    console.error('❌ ERROR: attached_assets directory not found in any expected location!');
+    console.log('Working directory:', process.cwd());
+    console.log('__dirname:', __dirname);
+  } else {
+    // List some files for debugging
+    try {
+      const files = fs.readdirSync(attachedAssetsPath);
+      console.log(`📁 Assets directory contains ${files.length} files:`, files.slice(0, 3));
+    } catch (e) {
+      console.error('Error reading assets directory:', e);
+    }
   }
   
   app.use('/api/assets', express.static(attachedAssetsPath));
