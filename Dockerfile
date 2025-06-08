@@ -31,14 +31,10 @@ RUN npm ci --only=production
 # Copy built files from build stage
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/shared ./shared
+COPY --from=build /app/client/dist ./client/dist
 
 # Expose the port the app runs on
 EXPOSE 3000
 
-# Create a non-root user to run the application
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-USER nodejs
-
 # Start the application
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "node dist/index.js"]
