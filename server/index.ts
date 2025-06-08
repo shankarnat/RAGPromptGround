@@ -1,22 +1,35 @@
 import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
+import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Serve attached assets (PDFs, images, etc.)
-app.use('/attached_assets', express.static(path.join(import.meta.dirname, '..', 'attached_assets')));
+app.use('/attached_assets', express.static(path.join(__dirname, '..', 'attached_assets')));
 
-app.use((req, res, next) => {
+// Inline log function (no vite.ts dependency)
+function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit", 
+    second: "2-digit",
+    hour12: true,
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+
+app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
+  res.json = function (bodyJson: any, ...args: any[]) {
     capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
@@ -51,22 +64,26 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup serving: dynamic import for dev, inline static for production
   if (app.get("env") === "development") {
+    // Dynamic import prevents loading vite config in production
+    const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    // Production: serve static files (no vite dependencies)
+    const distPath = path.resolve(__dirname, "..", "public");
+    
+    app.use(express.static(distPath));
+    
+    // SPA fallback - serve index.html for unmatched routes
+    app.use("*", (_req: Request, res: Response) => {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
   }
 
   // Use PORT from environment or default to 5175
   const port = parseInt(process.env.PORT || "5175", 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });
 })();
