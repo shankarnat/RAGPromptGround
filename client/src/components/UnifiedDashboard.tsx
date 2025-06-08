@@ -238,6 +238,24 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     }
   }, [multimodalConfig, isUpdatingFromAI]);
 
+  // Auto-apply prompt parsing when toggle is defaulted to "on" for processed documents
+  useEffect(() => {
+    // Check if we have processed data
+    const hasProcessedData = state.unifiedProcessing?.unifiedResults && 
+      (state.unifiedProcessing.unifiedResults.standard || 
+       state.unifiedProcessing.unifiedResults.kg || 
+       state.unifiedProcessing.unifiedResults.idp);
+    
+    // Check if prompt parsing should be applied but hasn't been yet
+    if (hasProcessedData && !state.promptParsing?.isApplied) {
+      console.log('🔥 Auto-applying prompt parsing for processed document');
+      const defaultPrompt = "Convert any tables (especially drivetrain specifications) to clean markdown format. Extract key technical specifications and present them in structured tables with proper headers.";
+      
+      // Apply prompt parsing with default instructions
+      applyPromptParsing(defaultPrompt);
+    }
+  }, [state.unifiedProcessing?.unifiedResults, state.promptParsing?.isApplied, applyPromptParsing]);
+
   const processingTypes = [
     { id: "rag", label: "Parse and Index", icon: FileSearch, description: "Vector-based search with retrieval" },
     { id: "idp", label: "Document AI", icon: FileText, description: "Advanced document analysis" },
@@ -1403,8 +1421,9 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   
   // Handlers for parsing instructions
   const handleParsingInstructionsChange = useCallback((instructions: string) => {
-    updatePromptParsing({ customPrompt: instructions });
-  }, [updatePromptParsing]);
+    // Keep the current isApplied state when just changing instructions
+    updatePromptParsing(state.promptParsing?.isApplied || false, instructions);
+  }, [updatePromptParsing, state.promptParsing?.isApplied]);
   
   const handleToggleCustomParsing = useCallback((enabled: boolean) => {
     if (enabled) {

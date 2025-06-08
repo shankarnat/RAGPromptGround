@@ -1115,9 +1115,13 @@ export function useDocumentProcessing() {
     }));
   };
 
-  const applyPromptParsing = (customPrompt: string) => {
-    console.log('🔥 applyPromptParsing called with:', customPrompt);
-    updatePromptParsing(true, customPrompt);
+  const applyPromptParsing = (customPrompt?: string) => {
+    // Use provided prompt or get it from current state
+    const promptToApply = customPrompt || state.promptParsing?.customPrompt || 
+      "Convert any tables (especially drivetrain specifications) to clean markdown format. Extract key technical specifications and present them in structured tables with proper headers.";
+    
+    console.log('🔥 applyPromptParsing called with:', promptToApply);
+    updatePromptParsing(true, promptToApply);
     
     // If no unified results, process document first and then apply transformation
     const currentState = state;
