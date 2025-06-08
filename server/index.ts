@@ -166,7 +166,15 @@ if (isProduction) {
       maxAge: '1y',     // Cache static assets for 1 year
       etag: true,
       lastModified: true,
-      index: false      // Don't auto-serve index.html (we handle it below)
+      index: false,     // Don't auto-serve index.html (we handle it below)
+      setHeaders: (res, path) => {
+        // Set proper CORS headers for PDFs to allow iframe embedding
+        if (path.endsWith('.pdf')) {
+          res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', 'inline');
+        }
+      }
     }));
     
     // SPA fallback - serve index.html for all unmatched routes
