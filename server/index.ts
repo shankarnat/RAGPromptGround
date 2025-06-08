@@ -12,7 +12,7 @@ app.use(express.urlencoded({ extended: false }));
 // Serve attached assets (PDFs, images, etc.)
 app.use('/attached_assets', express.static(path.join(__dirname, '..', 'attached_assets')));
 
-// Inline log function (no vite.ts dependency)
+// Inline log function (no external dependencies)
 function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -25,7 +25,7 @@ function log(message: string, source = "express") {
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
-  const path = req.path;
+  const requestPath = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
@@ -36,8 +36,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (requestPath.startsWith("/api")) {
+      let logLine = `${req.method} ${requestPath} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -64,13 +64,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     throw err;
   });
 
-  // Setup serving: dynamic import for dev, inline static for production
-  if (app.get("env") === "development") {
-    // Dynamic import prevents loading vite config in production
-    const { setupVite } = await import("./vite.js");
-    await setupVite(app, server);
-  } else {
-    // Production: serve static files (no vite dependencies)
+  // Environment-based serving
+  const isProduction = process.env.NODE_ENV === "production";
+  
+  if (isProduction) {
+    // Production: serve static files (no vite dependencies whatsoever)
     const distPath = path.resolve(__dirname, "..", "public");
     
     app.use(express.static(distPath));
@@ -79,11 +77,29 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     app.use("*", (_req: Request, res: Response) => {
       res.sendFile(path.resolve(distPath, "index.html"));
     });
+    
+    log("Production mode: serving static files from " + distPath);
+  } else {
+    // Development: setup vite only in dev
+    try {
+      // Use dynamic import to conditionally load vite setup
+      const viteModule = await import("./vite.js");
+      await viteModule.setupVite(app, server);
+      log("Development mode: Vite HMR enabled");
+    } catch (error) {
+      log("Failed to setup Vite in development: " + (error as Error).message);
+      // Fallback to static serving even in development
+      const distPath = path.resolve(__dirname, "..", "public");
+      app.use(express.static(distPath));
+      app.use("*", (_req: Request, res: Response) => {
+        res.sendFile(path.resolve(distPath, "index.html"));
+      });
+    }
   }
 
   // Use PORT from environment or default to 5175
   const port = parseInt(process.env.PORT || "5175", 10);
   server.listen(port, "0.0.0.0", () => {
-    log(`serving on port ${port}`);
+    log(`Server running on port ${port} (${isProduction ? 'production' : 'development'})`);
   });
 })();
