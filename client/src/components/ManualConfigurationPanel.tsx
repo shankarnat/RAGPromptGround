@@ -495,9 +495,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                                   onCheckedChange={(checked) => {
                                     console.log('Toggle clicked:', checked);
                                     onToggleCustomParsing?.(checked);
-                                    if (!checked) {
-                                      onParsingInstructionsChange?.('');
-                                    }
                                   }}
                                   disabled={disabled}
                                 />
