@@ -89,6 +89,29 @@ app.get('/api/debug/assets', (_req, res) => {
   }
 });
 
+// Debug endpoint to list root directory contents
+app.get('/api/debug/root', (_req, res) => {
+  try {
+    const rootDirs = fs.readdirSync(process.cwd()).filter(item => {
+      const stat = fs.statSync(path.join(process.cwd(), item));
+      return stat.isDirectory();
+    });
+    
+    res.json({
+      current_directory: process.cwd(),
+      server_dirname: __dirname,
+      directories: rootDirs,
+      has_attached_assets: fs.existsSync(path.join(process.cwd(), 'attached_assets')),
+      package_json_exists: fs.existsSync(path.join(process.cwd(), 'package.json'))
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to read root directory',
+      message: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
 // Serve static assets from attached_assets directory → /api/assets/*
 const findAttachedAssetsPath = () => {
   const possiblePaths = [
@@ -123,6 +146,23 @@ if (attachedAssetsPath) {
     etag: true,
     lastModified: true
   }));
+} else {
+  // Fallback: handle /api/assets requests with error message instead of letting them fall through to React
+  app.use('/api/assets/*', (_req, res) => {
+    res.status(404).json({
+      error: 'Assets directory not found',
+      message: 'The attached_assets directory was not found on this server.',
+      searched_paths: [
+        path.resolve(__dirname, '..', '..', 'attached_assets'),
+        path.resolve(process.cwd(), 'attached_assets'),
+        path.resolve(__dirname, '..', 'attached_assets'),
+        path.resolve('/app', 'attached_assets')
+      ],
+      current_working_directory: process.cwd(),
+      server_dirname: __dirname,
+      help: 'Check if attached_assets directory exists and is deployed to Heroku'
+    });
+  });
 }
 
 // Mock document analysis endpoint (replace with your actual API logic)
