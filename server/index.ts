@@ -37,13 +37,56 @@ app.use((req, res, next) => {
 // ===== API ROUTES FIRST (before static file serving) =====
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime()
   });
+});
+
+// Debug endpoint to list available assets
+app.get('/api/debug/assets', (_req, res) => {
+  try {
+    if (!attachedAssetsPath || !fs.existsSync(attachedAssetsPath)) {
+      return res.json({
+        error: 'Assets directory not found',
+        searchedPaths: [
+          path.resolve(__dirname, '..', '..', 'attached_assets'),
+          path.resolve(process.cwd(), 'attached_assets'),
+          path.resolve(__dirname, '..', 'attached_assets'),
+          path.resolve('/app', 'attached_assets')
+        ],
+        currentDir: process.cwd(),
+        __dirname: __dirname
+      });
+    }
+
+    const files = fs.readdirSync(attachedAssetsPath);
+    const fileDetails = files.map(file => {
+      const filePath = path.join(attachedAssetsPath, file);
+      const stats = fs.statSync(filePath);
+      return {
+        name: file,
+        size: stats.size,
+        isFile: stats.isFile(),
+        url: `/api/assets/${encodeURIComponent(file)}`
+      };
+    });
+
+    res.json({
+      assetsPath: attachedAssetsPath,
+      totalFiles: files.length,
+      files: fileDetails.slice(0, 10), // Show first 10 files
+      acuraFile: files.find(f => f.toLowerCase().includes('acura'))
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to list assets',
+      message: error instanceof Error ? error.message : String(error)
+    });
+  }
 });
 
 // Serve static assets from attached_assets directory → /api/assets/*
@@ -85,7 +128,7 @@ if (attachedAssetsPath) {
 // Mock document analysis endpoint (replace with your actual API logic)
 app.post('/api/analyze-document', async (req, res) => {
   try {
-    const { fileName, fileType, fileSize } = req.body;
+    const { fileName, fileSize } = req.body;
     
     // Mock response - replace with your actual document analysis logic
     const mockAnalysis = {
@@ -130,7 +173,7 @@ if (isProduction) {
     log('Make sure to run "npm run build" before starting the production server', 'error');
     
     // Fallback error page
-    app.use('*', (req, res) => {
+    app.use('*', (_req, res) => {
       res.status(503).send(`
         <h1>Service Unavailable</h1>
         <p>Frontend not built. Run <code>npm run build</code> first.</p>
@@ -149,7 +192,7 @@ if (isProduction) {
     }));
     
     // SPA fallback - serve index.html for all unmatched routes
-    app.use('*', (req, res) => {
+    app.use('*', (_req, res) => {
       const indexPath = path.resolve(publicPath, 'index.html');
       
       if (fs.existsSync(indexPath)) {
@@ -170,7 +213,7 @@ if (isProduction) {
   // Development: Let Vite handle frontend serving
   log('Development mode detected - frontend should be served by Vite dev server');
   
-  app.use('*', (req, res) => {
+  app.use('*', (_req, res) => {
     res.json({
       message: 'Development mode - use Vite dev server for frontend',
       api_health: '/api/health',
@@ -191,7 +234,7 @@ app.use('/api/*', (req, res) => {
 });
 
 // Global error handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   log(`Unhandled error: ${err.message}`, 'error');
   log(`Stack: ${err.stack}`, 'error');
   
