@@ -693,10 +693,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
             return (
               <Card
                 key={chunk.id}
-                className={cn(
-                  "cursor-pointer transition-all",
-                  selectedChunk === chunk.id && "ring-2 ring-blue-500"
-                )}
+                className="cursor-pointer transition-all"
                 onClick={() => onChunkSelect?.(chunk.id)}
               >
                 <CardHeader>

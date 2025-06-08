@@ -226,7 +226,7 @@ const ChunksPanel: FC<ChunksPanelProps> = ({
           borderColor: semanticScores[chunk.id] > 0.85 ? "rgb(74, 222, 128)" : 
                       semanticScores[chunk.id] > 0.75 ? "rgb(250, 204, 21)" : 
                       "rgb(248, 113, 113)",
-          boxShadow: selectedChunk === chunk.id ? "0 0 0 2px rgba(59, 130, 246, 0.5)" : "none"
+          boxShadow: "none"
         };
       case "header":
         return {
@@ -235,13 +235,13 @@ const ChunksPanel: FC<ChunksPanelProps> = ({
                       chunk.title.includes("title") ? 
                       "solid" : "dashed",
           borderWidth: chunk.title.includes("heading") ? "2px" : "1px",
-          boxShadow: selectedChunk === chunk.id ? "0 0 0 2px rgba(59, 130, 246, 0.5)" : "none"
+          boxShadow: "none"
         };
       case "fixed":
       default:
         return {
           borderColor: "rgb(203, 213, 225)",
-          boxShadow: selectedChunk === chunk.id ? "0 0 0 2px rgba(59, 130, 246, 0.5)" : "none"
+          boxShadow: "none"
         };
     }
   };
@@ -315,11 +315,7 @@ const ChunksPanel: FC<ChunksPanelProps> = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, delay: chunkIndex * 0.05 }}
-              className={`mb-4 border rounded-md p-4 cursor-pointer relative ${
-                selectedChunk === chunk.id 
-                  ? "bg-gray-50" 
-                  : "hover:bg-gray-50"
-              }`}
+              className="mb-4 border rounded-md p-4 cursor-pointer relative hover:bg-gray-50"
               style={getChunkStyle(chunk)}
               onClick={() => onChunkSelect(chunk.id)}
             >

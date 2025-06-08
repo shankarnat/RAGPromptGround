@@ -217,7 +217,7 @@ const UnifiedResultsView: React.FC<UnifiedResultsViewProps> = ({
                   <div
                     key={chunk.id}
                     className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                      selectedChunk === chunk.id ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'
+                      'hover:bg-gray-50'
                     }`}
                     onClick={() => onChunkSelect?.(chunk.id)}
                   >
@@ -430,7 +430,7 @@ const UnifiedResultsView: React.FC<UnifiedResultsViewProps> = ({
                       <div
                         key={chunk.id}
                         className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                          selectedChunk === chunk.id ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'
+                          'hover:bg-gray-50'
                         }`}
                         onClick={() => onChunkSelect?.(chunk.id)}
                       >
