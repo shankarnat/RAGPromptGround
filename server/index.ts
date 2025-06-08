@@ -28,9 +28,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
-  res.json = function (bodyJson: any, ...args: any[]) {
+  res.json = function (bodyJson: any) {
     capturedJsonResponse = bodyJson;
-    return originalResJson.call(res, bodyJson, ...args);
+    return originalResJson.call(res, bodyJson);
   };
 
   res.on("finish", () => {
@@ -53,52 +53,75 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 (async () => {
+  // Register API routes first (important: before static file serving)
   const server = await registerRoutes(app);
-
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
 
   // Environment-based serving
   const isProduction = process.env.NODE_ENV === "production";
   
   if (isProduction) {
-    // Production: serve static files (no vite dependencies whatsoever)
-    const distPath = path.resolve(__dirname, "..", "public");
+    // Production: serve static files from dist/public
+    const publicPath = path.resolve(__dirname, "..", "public");
     
-    app.use(express.static(distPath));
+    // Check if public directory exists
+    const fs = await import("fs");
+    if (!fs.existsSync(publicPath)) {
+      log(`Error: Static files directory not found at ${publicPath}`);
+      log("Make sure to run 'npm run build' before starting production server");
+    } else {
+      log(`Production mode: serving static files from ${publicPath}`);
+    }
     
-    // SPA fallback - serve index.html for unmatched routes
+    // Serve static files (CSS, JS, images, etc.)
+    app.use(express.static(publicPath, {
+      maxAge: isProduction ? '1y' : '0', // Cache static assets in production
+      etag: true
+    }));
+    
+    // SPA fallback - MUST be last route to catch all unmatched routes
     app.use("*", (_req: Request, res: Response) => {
-      res.sendFile(path.resolve(distPath, "index.html"));
+      const indexPath = path.resolve(publicPath, "index.html");
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(500).send("index.html not found. Make sure to build the frontend first.");
+      }
     });
     
-    log("Production mode: serving static files from " + distPath);
   } else {
-    // Development: setup vite only in dev
+    // Development: setup vite HMR
     try {
-      // Use dynamic import to conditionally load vite setup
       const viteModule = await import("./vite.js");
       await viteModule.setupVite(app, server);
       log("Development mode: Vite HMR enabled");
     } catch (error) {
-      log("Failed to setup Vite in development: " + (error as Error).message);
-      // Fallback to static serving even in development
-      const distPath = path.resolve(__dirname, "..", "public");
-      app.use(express.static(distPath));
+      log("Warning: Failed to setup Vite in development: " + (error as Error).message);
+      log("Falling back to static file serving...");
+      
+      // Fallback to static serving in development
+      const publicPath = path.resolve(__dirname, "..", "public");
+      app.use(express.static(publicPath));
       app.use("*", (_req: Request, res: Response) => {
-        res.sendFile(path.resolve(distPath, "index.html"));
+        res.sendFile(path.resolve(publicPath, "index.html"));
       });
     }
   }
 
-  // Use PORT from environment or default to 5175
+  // Error handling middleware (must be after all routes)
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    log(`Error: ${status} - ${message}`);
+    res.status(status).json({ message });
+  });
+
+  // Start server
   const port = parseInt(process.env.PORT || "5175", 10);
   server.listen(port, "0.0.0.0", () => {
-    log(`Server running on port ${port} (${isProduction ? 'production' : 'development'})`);
+    log(`🚀 Server running on port ${port} (${isProduction ? 'production' : 'development'})`);
+    if (isProduction) {
+      log(`📁 Static files: http://localhost:${port}/`);
+      log(`🔗 API endpoints: http://localhost:${port}/api/`);
+    }
   });
 })();
