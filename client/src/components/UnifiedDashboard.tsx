@@ -238,6 +238,16 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
     }
   }, [multimodalConfig, isUpdatingFromAI]);
 
+  // Track if prompt parsing has been auto-applied or manually interacted with
+  const promptParsingAutoAppliedRef = useRef(false);
+  const userHasInteractedRef = useRef(false);
+  
+  // Reset refs when document changes
+  useEffect(() => {
+    promptParsingAutoAppliedRef.current = false;
+    userHasInteractedRef.current = false;
+  }, [state.selectedDocument?.id]);
+
   // Auto-apply prompt parsing when toggle is defaulted to "on" for processed documents
   useEffect(() => {
     // Check if we have processed data
@@ -246,10 +256,18 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
        state.unifiedProcessing.unifiedResults.kg || 
        state.unifiedProcessing.unifiedResults.idp);
     
-    // Check if prompt parsing should be applied but hasn't been yet
-    if (hasProcessedData && !state.promptParsing?.isApplied) {
+    // Only auto-apply if:
+    // 1. We have processed data
+    // 2. Prompt parsing is not already applied
+    // 3. We haven't already auto-applied it
+    // 4. User hasn't manually interacted with it
+    if (hasProcessedData && !state.promptParsing?.isApplied && 
+        !promptParsingAutoAppliedRef.current && !userHasInteractedRef.current) {
       console.log('🔥 Auto-applying prompt parsing for processed document');
       const defaultPrompt = "Convert any tables (especially drivetrain specifications) to clean markdown format. Extract key technical specifications and present them in structured tables with proper headers.";
+      
+      // Mark as auto-applied
+      promptParsingAutoAppliedRef.current = true;
       
       // Apply prompt parsing with default instructions
       applyPromptParsing(defaultPrompt);
@@ -1426,6 +1444,9 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   }, [updatePromptParsing, state.promptParsing?.isApplied]);
   
   const handleToggleCustomParsing = useCallback((enabled: boolean) => {
+    // Mark that user has manually interacted with the toggle
+    userHasInteractedRef.current = true;
+    
     if (enabled) {
       applyPromptParsing();
     } else {

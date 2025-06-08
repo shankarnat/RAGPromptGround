@@ -1247,7 +1247,33 @@ export function useDocumentProcessing() {
   };
 
   const clearPromptParsing = () => {
+    console.log('🔥 Clearing prompt parsing and restoring original chunks');
     updatePromptParsing(false, "");
+    
+    // Restore original chunks without markdown formatting
+    setState(prev => {
+      // Get the original chunks (without markdown formatting)
+      const originalChunks = sampleChunks.map(chunk => ({
+        ...chunk,
+        isMarkdownFormatted: false
+      }));
+      
+      // Update both the main chunks and unified results
+      return {
+        ...prev,
+        chunks: originalChunks,
+        unifiedProcessing: {
+          ...prev.unifiedProcessing,
+          unifiedResults: {
+            ...prev.unifiedProcessing.unifiedResults,
+            standard: prev.unifiedProcessing.unifiedResults.standard ? {
+              ...prev.unifiedProcessing.unifiedResults.standard,
+              chunks: originalChunks
+            } : undefined
+          }
+        }
+      };
+    });
   };
 
   // Generic state update method
