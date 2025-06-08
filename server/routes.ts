@@ -4,13 +4,16 @@ import { storage } from "./storage";
 import documentAnalysisRouter from "./routes/documentAnalysis";
 import express from "express";
 import path from "path";
+import { fileURLToPath } from "url";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
   // prefix all routes with /api
 
   // Serve static files from attached_assets directory
-  const attachedAssetsPath = path.join(process.cwd(), 'attached_assets');
+  // Use import.meta.url for reliable path resolution in production
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const attachedAssetsPath = path.resolve(__dirname, '..', 'attached_assets');
   app.use('/api/assets', express.static(attachedAssetsPath));
 
   // Document analysis routes

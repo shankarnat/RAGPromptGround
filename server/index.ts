@@ -9,8 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve attached assets (PDFs, images, etc.)
-app.use('/attached_assets', express.static(path.join(__dirname, '..', 'attached_assets')));
+// Attached assets are served via /api/assets route in routes.ts
 
 // Inline log function (no external dependencies)
 function log(message: string, source = "express") {
