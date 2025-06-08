@@ -139,19 +139,55 @@ const findAttachedAssetsPath = () => {
   return '';
 };
 
-const attachedAssetsPath = findAttachedAssetsPath();
+// Try to create attached_assets directory if it doesn't exist
+const ensureAttachedAssetsPath = () => {
+  const targetPath = path.resolve(process.cwd(), 'attached_assets');
+  
+  if (!fs.existsSync(targetPath)) {
+    log('Creating attached_assets directory...', 'warn');
+    try {
+      fs.mkdirSync(targetPath, { recursive: true });
+      
+      // Create a sample file to test
+      const sampleContent = `This is a sample file created on Heroku.
+Timestamp: ${new Date().toISOString()}
+Working Directory: ${process.cwd()}
+Server Directory: ${__dirname}
+
+To fix the PDF issue:
+1. Upload your PDFs to cloud storage (AWS S3, Cloudinary)
+2. Or ensure attached_assets directory is properly deployed
+3. Or store files in a Heroku addon
+
+The attached_assets directory was missing from the Heroku deployment.`;
+      
+      fs.writeFileSync(path.join(targetPath, 'README.txt'), sampleContent);
+      log(`Created attached_assets directory at: ${targetPath}`, 'info');
+      return targetPath;
+    } catch (error) {
+      log(`Failed to create attached_assets directory: ${error}`, 'error');
+      return '';
+    }
+  }
+  
+  return findAttachedAssetsPath();
+};
+
+const attachedAssetsPath = ensureAttachedAssetsPath();
 if (attachedAssetsPath) {
   app.use('/api/assets', express.static(attachedAssetsPath, {
     maxAge: process.env.NODE_ENV === 'production' ? '1y' : '0',
     etag: true,
     lastModified: true
   }));
+  log(`✅ Serving assets from: ${attachedAssetsPath}`, 'info');
 } else {
-  // Fallback: handle /api/assets requests with error message instead of letting them fall through to React
+  // Fallback: handle /api/assets requests with error message
+  log('❌ No assets directory available', 'error');
   app.use('/api/assets/*', (_req, res) => {
     res.status(404).json({
       error: 'Assets directory not found',
-      message: 'The attached_assets directory was not found on this server.',
+      message: 'The attached_assets directory was not found and could not be created.',
       searched_paths: [
         path.resolve(__dirname, '..', '..', 'attached_assets'),
         path.resolve(process.cwd(), 'attached_assets'),
@@ -160,7 +196,12 @@ if (attachedAssetsPath) {
       ],
       current_working_directory: process.cwd(),
       server_dirname: __dirname,
-      help: 'Check if attached_assets directory exists and is deployed to Heroku'
+      solutions: [
+        'Upload files to cloud storage (AWS S3, Cloudinary, etc.)',
+        'Use Heroku addons for file storage',
+        'Ensure attached_assets directory is committed to git',
+        'Check file sizes - large files may be excluded'
+      ]
     });
   });
 }
