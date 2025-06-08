@@ -46,44 +46,32 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// Debug endpoint to list available assets
-app.get('/api/debug/assets', (_req, res) => {
+// Debug endpoint to check static files
+app.get('/api/debug/static', (_req, res) => {
   try {
-    if (!attachedAssetsPath || !fs.existsSync(attachedAssetsPath)) {
-      return res.json({
-        error: 'Assets directory not found',
-        searchedPaths: [
-          path.resolve(__dirname, '..', '..', 'attached_assets'),
-          path.resolve(process.cwd(), 'attached_assets'),
-          path.resolve(__dirname, '..', 'attached_assets'),
-          path.resolve('/app', 'attached_assets')
-        ],
-        currentDir: process.cwd(),
-        __dirname: __dirname
-      });
+    const publicPath = path.resolve(__dirname, '..', 'public');
+    const pdfsPath = path.join(publicPath, 'pdfs');
+    
+    const result: any = {
+      publicPath,
+      pdfsPath,
+      publicExists: fs.existsSync(publicPath),
+      pdfsExists: fs.existsSync(pdfsPath)
+    };
+
+    if (fs.existsSync(pdfsPath)) {
+      const pdfFiles = fs.readdirSync(pdfsPath).filter(f => f.endsWith('.pdf'));
+      result.pdfFiles = pdfFiles.map(file => ({
+        name: file,
+        size: fs.statSync(path.join(pdfsPath, file)).size,
+        url: `/pdfs/${file}`
+      }));
     }
 
-    const files = fs.readdirSync(attachedAssetsPath);
-    const fileDetails = files.map(file => {
-      const filePath = path.join(attachedAssetsPath, file);
-      const stats = fs.statSync(filePath);
-      return {
-        name: file,
-        size: stats.size,
-        isFile: stats.isFile(),
-        url: `/api/assets/${encodeURIComponent(file)}`
-      };
-    });
-
-    res.json({
-      assetsPath: attachedAssetsPath,
-      totalFiles: files.length,
-      files: fileDetails.slice(0, 10), // Show first 10 files
-      acuraFile: files.find(f => f.toLowerCase().includes('acura'))
-    });
+    res.json(result);
   } catch (error) {
     res.status(500).json({
-      error: 'Failed to list assets',
+      error: 'Failed to check static files',
       message: error instanceof Error ? error.message : String(error)
     });
   }
@@ -112,99 +100,8 @@ app.get('/api/debug/root', (_req, res) => {
   }
 });
 
-// Serve static assets from attached_assets directory → /api/assets/*
-const findAttachedAssetsPath = () => {
-  const possiblePaths = [
-    path.resolve(__dirname, '..', '..', 'attached_assets'), // Local: dist/server -> root/attached_assets
-    path.resolve(process.cwd(), 'attached_assets'),         // Heroku: /app/attached_assets
-    path.resolve(__dirname, '..', 'attached_assets'),       // Alt: dist/server -> dist/attached_assets
-    path.resolve('/app', 'attached_assets')                 // Heroku absolute path
-  ];
-
-  for (const tryPath of possiblePaths) {
-    if (fs.existsSync(tryPath)) {
-      log(`Found attached_assets at: ${tryPath}`);
-      try {
-        const files = fs.readdirSync(tryPath);
-        log(`Assets directory contains ${files.length} files`);
-      } catch (e) {
-        log(`Warning: Could not read assets directory: ${e}`, 'warn');
-      }
-      return tryPath;
-    }
-  }
-
-  log('Warning: attached_assets directory not found in any location', 'warn');
-  log(`Searched paths: ${possiblePaths.join(', ')}`, 'warn');
-  return '';
-};
-
-// Try to create attached_assets directory if it doesn't exist
-const ensureAttachedAssetsPath = () => {
-  const targetPath = path.resolve(process.cwd(), 'attached_assets');
-  
-  if (!fs.existsSync(targetPath)) {
-    log('Creating attached_assets directory...', 'warn');
-    try {
-      fs.mkdirSync(targetPath, { recursive: true });
-      
-      // Create a sample file to test
-      const sampleContent = `This is a sample file created on Heroku.
-Timestamp: ${new Date().toISOString()}
-Working Directory: ${process.cwd()}
-Server Directory: ${__dirname}
-
-To fix the PDF issue:
-1. Upload your PDFs to cloud storage (AWS S3, Cloudinary)
-2. Or ensure attached_assets directory is properly deployed
-3. Or store files in a Heroku addon
-
-The attached_assets directory was missing from the Heroku deployment.`;
-      
-      fs.writeFileSync(path.join(targetPath, 'README.txt'), sampleContent);
-      log(`Created attached_assets directory at: ${targetPath}`, 'info');
-      return targetPath;
-    } catch (error) {
-      log(`Failed to create attached_assets directory: ${error}`, 'error');
-      return '';
-    }
-  }
-  
-  return findAttachedAssetsPath();
-};
-
-const attachedAssetsPath = ensureAttachedAssetsPath();
-if (attachedAssetsPath) {
-  app.use('/api/assets', express.static(attachedAssetsPath, {
-    maxAge: process.env.NODE_ENV === 'production' ? '1y' : '0',
-    etag: true,
-    lastModified: true
-  }));
-  log(`✅ Serving assets from: ${attachedAssetsPath}`, 'info');
-} else {
-  // Fallback: handle /api/assets requests with error message
-  log('❌ No assets directory available', 'error');
-  app.use('/api/assets/*', (_req, res) => {
-    res.status(404).json({
-      error: 'Assets directory not found',
-      message: 'The attached_assets directory was not found and could not be created.',
-      searched_paths: [
-        path.resolve(__dirname, '..', '..', 'attached_assets'),
-        path.resolve(process.cwd(), 'attached_assets'),
-        path.resolve(__dirname, '..', 'attached_assets'),
-        path.resolve('/app', 'attached_assets')
-      ],
-      current_working_directory: process.cwd(),
-      server_dirname: __dirname,
-      solutions: [
-        'Upload files to cloud storage (AWS S3, Cloudinary, etc.)',
-        'Use Heroku addons for file storage',
-        'Ensure attached_assets directory is committed to git',
-        'Check file sizes - large files may be excluded'
-      ]
-    });
-  });
-}
+// PDFs are now served as static files from /pdfs/* via Express static middleware
+// This is handled automatically by the static file serving below
 
 // Mock document analysis endpoint (replace with your actual API logic)
 app.post('/api/analyze-document', async (req, res) => {

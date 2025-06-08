@@ -2852,7 +2852,7 @@ const UnifiedResultsEnhanced: React.FC<UnifiedResultsEnhancedProps> = ({
             </CardHeader>
             <CardContent className="h-full pb-20">
               <PdfViewer 
-                url="/api/assets/Acura_2025_RDX_Fact%20Sheet.pdf"
+                url="/pdfs/Acura_2025_RDX_Fact%20Sheet.pdf"
                 className="h-full"
               />
             </CardContent>
