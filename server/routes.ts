@@ -5,6 +5,7 @@ import documentAnalysisRouter from "./routes/documentAnalysis";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
@@ -13,7 +14,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static files from attached_assets directory
   // Use import.meta.url for reliable path resolution in production
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const attachedAssetsPath = path.resolve(__dirname, '..', 'attached_assets');
+  // Go up two levels: dist/server -> dist -> root -> attached_assets
+  const attachedAssetsPath = path.resolve(__dirname, '..', '..', 'attached_assets');
+  
+  // Verify assets directory exists
+  if (!fs.existsSync(attachedAssetsPath)) {
+    console.warn('Warning: attached_assets directory not found at:', attachedAssetsPath);
+  }
+  
   app.use('/api/assets', express.static(attachedAssetsPath));
 
   // Document analysis routes
