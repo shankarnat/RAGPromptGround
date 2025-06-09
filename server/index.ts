@@ -3,11 +3,31 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import { createServer } from "http";
+import cors from "cors";
 
 // Get __dirname equivalent for ES modules
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
+
+// CORS configuration for iframe embedding
+const corsOptions = {
+  origin: true, // Allow all origins, or specify specific origins in an array
+  credentials: true, // Allow cookies and credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // Cache preflight response for 24 hours
+};
+
+// Apply CORS middleware to all routes
+app.use(cors(corsOptions));
+
+// Remove X-Frame-Options header to allow iframe embedding
+app.use((_req, res, next) => {
+  res.removeHeader('X-Frame-Options');
+  next();
+});
 
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
@@ -168,9 +188,10 @@ if (isProduction) {
       lastModified: true,
       index: false,     // Don't auto-serve index.html (we handle it below)
       setHeaders: (res, path) => {
-        // Set proper CORS headers for PDFs to allow iframe embedding
+        // Set proper headers for PDFs to allow iframe embedding
         if (path.endsWith('.pdf')) {
-          res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+          // Remove X-Frame-Options to allow iframe embedding from any origin
+          res.removeHeader('X-Frame-Options');
           res.setHeader('Content-Type', 'application/pdf');
           res.setHeader('Content-Disposition', 'inline');
         }
