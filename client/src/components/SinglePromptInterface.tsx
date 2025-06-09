@@ -467,6 +467,14 @@ const SinglePromptInterface: React.FC<SinglePromptInterfaceProps> = ({
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-600" />
               Lens
+              <button
+                type="button"
+                onClick={() => setPrompt("I am a Data Steward in my organization. I am part of <<Industry segment [can be automobile, retail, etc]>>. I am trying to enable my <<Employee role [can be sales, service, finance role]]>> to be able to search for valuable content that can answer their questions. Use the document that I just uploaded to enable my users to search for content. They should be able to search for text, images, tabular data that are embedded within the document.")}
+                className="p-1 rounded hover:bg-gray-100 transition-colors"
+                title="Use sample prompt"
+              >
+                <Eye className="h-4 w-4 text-gray-500" />
+              </button>
             </CardTitle>
             <CardDescription>
               Can you say more about what you're trying to do, which user persona will use the document(s)
