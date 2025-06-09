@@ -466,7 +466,7 @@ const SinglePromptInterface: React.FC<SinglePromptInterfaceProps> = ({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-600" />
-              Content Lens
+              Lens
             </CardTitle>
             <CardDescription>
               Can you say more about what you're trying to do, which user persona will use the document(s)

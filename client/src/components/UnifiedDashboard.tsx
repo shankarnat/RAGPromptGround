@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Upload, FileSearch, Network, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard, Layers, User, HelpCircle, Phone, LogOut, Brain, Sparkles, PlayCircle, Database, BarChart3 } from "lucide-react";
+import { Upload, FileSearch, FileText, ChevronRight, CheckCircle2, Circle, LayoutDashboard, Layers, User, HelpCircle, Phone, LogOut, Brain, Sparkles, PlayCircle, Database, BarChart3 } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import {
   DropdownMenu,
@@ -277,7 +277,6 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
   const processingTypes = [
     { id: "rag", label: "Parse and Index", icon: FileSearch, description: "Vector-based search with retrieval" },
     { id: "idp", label: "Document AI", icon: FileText, description: "Advanced document analysis" },
-    { id: "kg", label: "Knowledge Graph", icon: Network, description: "Entity and relation extraction" },
   ];
 
   const presets = {
