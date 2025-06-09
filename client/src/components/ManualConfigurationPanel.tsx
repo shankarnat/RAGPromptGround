@@ -1019,24 +1019,6 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                       </div>
                     </div>
 
-                    {/* Advanced IDP Options */}
-                    <div className="p-3 bg-white rounded-md border border-purple-200 shadow-sm">
-                      <h5 className="text-xs font-medium text-purple-900 mb-2">⚙️ Advanced Options</h5>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs">Form Processing</span>
-                          <Badge variant="outline" className="text-xs">Auto-detect</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs">Table Extraction</span>
-                          <Badge variant="outline" className="text-xs">Enabled</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs">Layout Analysis</span>
-                          <Badge variant="outline" className="text-xs">Enabled</Badge>
-                        </div>
-                      </div>
-                    </div>
 
                   </AccordionContent>
                 </AccordionItem>
