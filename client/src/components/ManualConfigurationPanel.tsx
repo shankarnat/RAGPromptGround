@@ -488,7 +488,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           {/* Prompt-Based Parsing */}
                           <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
                             <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-xs font-medium text-blue-900">🧠 Prompt-Based Parsing</h5>
+                              <h5 className="text-xs font-bold text-blue-900">🧠 Prompt-Based Parsing</h5>
                               <div className="flex items-center gap-2">
                                 <Switch
                                   checked={useCustomParsing === true}
@@ -592,7 +592,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
 
                           {/* Chunking Settings */}
                           <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
-                            <h5 className="text-xs font-medium text-blue-900 mb-2">📊 Chunking Settings</h5>
+                            <h5 className="text-xs font-bold text-blue-900 mb-2">📊 Chunking Settings</h5>
                             <div className="grid grid-cols-3 gap-2">
                               <div>
                                 <label className="text-xs text-gray-600">Method</label>
@@ -685,7 +685,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           {/* Prepend Metadata */}
                           <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
                             <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-xs font-medium text-blue-900">🔖 Prepend Metadata</h5>
+                              <h5 className="text-xs font-bold text-blue-900">🔖 Prepend Metadata</h5>
                               <div className="flex items-center gap-2">
                                 <Switch
                                   checked={prependMetadata === true}
@@ -758,7 +758,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           {/* Multimodal Options */}
                           <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
                             <div className="flex items-center justify-between mb-3">
-                              <h5 className="text-xs font-medium text-blue-900">🎭 Multimodal Processing</h5>
+                              <h5 className="text-xs font-bold text-blue-900">🎭 Multimodal Processing</h5>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -849,7 +849,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           
                           {/* Embedding Model Selection */}
                           <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
-                            <h5 className="text-xs font-medium text-blue-900 mb-2">🔤 Embedding Model</h5>
+                            <h5 className="text-xs font-bold text-blue-900 mb-2">🔤 Embedding Model</h5>
                             <Select
                               value={selectedEmbeddingModel}
                               onValueChange={onEmbeddingModelChange}
@@ -876,7 +876,7 @@ const ManualConfigurationPanel: React.FC<ManualConfigurationPanelProps> = memo((
                           {/* Metadata Filters */}
                           <div className="p-3 bg-white rounded-md border border-blue-100 shadow-sm">
                             <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-xs font-medium text-blue-900">📋 Prefilters</h5>
+                              <h5 className="text-xs font-bold text-blue-900">📋 Prefilters</h5>
                               <Button
                                 variant="ghost"
                                 size="sm"
