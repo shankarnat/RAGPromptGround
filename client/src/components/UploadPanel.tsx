@@ -100,7 +100,7 @@ const UploadPanel: FC<UploadPanelProps> = ({
         <div className="flex items-center space-x-3 px-6 py-4">
           <CloudUpload className="h-7 w-7 text-blue-600" />
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Content Ingestion Centre</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Content Ingestion</h2>
             <p className="text-sm text-gray-600 mt-1">Upload and manage your content for processing</p>
           </div>
         </div>

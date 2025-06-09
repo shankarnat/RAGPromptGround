@@ -2128,7 +2128,7 @@ const UnifiedDashboard: FC<UnifiedDashboardProps> = ({ initialVehicleInfo, defau
             <h1 className="text-xl font-semibold text-gray-800">
               {currentStep === 'results' && state.document?.title 
                 ? `${state.document.title} - Analysis Results`
-                : 'Content Workbench'}
+                : 'Content Lens'}
             </h1>
           </div>
           
